@@ -6,6 +6,8 @@ import aethereal.ui.element.Element_2;
 import java.util.Objects;
 import java.util.function.Consumer;
 import lombok.Generated;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 
 public abstract class Setting<Value> {
     private final Value c;
@@ -89,5 +91,23 @@ public abstract class Setting<Value> {
 
     public Value c() {
         return this.d;
+    }
+
+    private ItemStack g = null;
+
+    public ItemStack getIcon() {
+        return this.g;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends Setting<Value>> T setIcon(ItemStack icon) {
+        this.g = icon;
+        return (T) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends Setting<Value>> T setIcon(Item item) {
+        this.g = item != null ? item.getDefaultStack() : null;
+        return (T) this;
     }
 }

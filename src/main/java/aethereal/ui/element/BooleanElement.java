@@ -16,6 +16,7 @@ import aethereal.setting.BooleanSetting;
 import aethereal.ui.element.Element_2;
 
 import aethereal.api.Compile;
+import net.minecraft.item.ItemStack;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.math.MatrixStack;
 import org.joml.Vector4f;
@@ -71,8 +72,17 @@ public class BooleanElement extends Element_2<BooleanSetting> {
         float disabled = 1.0f - enabled;
         float centerY = this.a.y + (this.a.w / 2.0f) + 0.5f;
         boolean hovered = MathUtil.a(mouseX, mouseY, this.a.x, this.a.y, this.a.z, this.a.w) && extend >= 1.0f;
-        a(matrices, Fonts.c, ((BooleanSetting) this.b).i(), this.a.x, this.a.y, this.a.w, 6.5f, theme.a(ThemeInfo.TEXT).a(), (this.a.z - 11.0f) - 4.0f, hovered, extend, delta);
+        ItemStack icon = ((BooleanSetting) this.b).getIcon();
+        float textX = this.a.x;
+        if (icon != null) {
+            float iconSize = 9.0f;
+            float iconX = this.a.x;
+            float iconY = centerY - (iconSize / 2.0f);
+            Delta.h().d().j().a(context, icon, iconX, iconY, 0, extend, iconSize / 16.0f, false);
+            textX += iconSize + 3.5f;
+        }
         float boxX = (this.a.x + this.a.z) - 11.0f;
+        a(matrices, Fonts.c, ((BooleanSetting) this.b).i(), textX, this.a.y, this.a.w, 6.5f, theme.a(ThemeInfo.TEXT).a(), (boxX - textX) - 4.0f, hovered, extend, delta);
         float boxY = centerY - 5.5f;
         draw.a(matrices, boxX, boxY, 11.0f, 11.0f, 3.0f, ColorUtil.a(theme.a(ThemeInfo.PRIMARY).a(), 0.039215688f * extend));
         draw.a(matrices, boxX, boxY, 11.0f, 11.0f, 3.0f, 0.5f, ColorUtil.a(theme.a(ThemeInfo.OUTLINE_SMALL).a(), theme.a(ThemeInfo.OUTLINE_SMALL).b() * extend));

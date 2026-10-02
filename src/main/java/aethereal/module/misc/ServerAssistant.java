@@ -8,6 +8,7 @@ import aethereal.render.ColorUtil;
 import aethereal.util.InventoryUtil;
 import aethereal.util.ServerUtil;
 
+import aethereal.autobuy.AutoBuyEntry;
 import aethereal.config.DescriptionProcessor;
 import aethereal.config.EnchantmentProcessor;
 import aethereal.core.Category;
@@ -97,7 +98,7 @@ public class ServerAssistant extends Module implements Interface {
     private final BindSetting q = a("Взрывная трапка", Items.PRISMARINE_SHARD, "HolyWorld");
     private final BindSetting r = a("Стан", Items.NETHER_STAR, "HolyWorld");
     private final BindSetting s = a("Ком снега", Items.SNOWBALL, "HolyWorld");
-    private final BooleanSetting t = (BooleanSetting) new BooleanSetting("Авто-божья аура", false).a(() -> {
+    private final BooleanSetting t = (BooleanSetting) new BooleanSetting("Авто-божья аура", false).setIcon(Items.PHANTOM_MEMBRANE).a(() -> {
         return Boolean.valueOf(this.b.l("FunTime") || this.b.l("SpookyTime"));
     });
     private final a u = new a();
@@ -271,7 +272,22 @@ public class ServerAssistant extends Module implements Interface {
     }
 
     private BindSetting a(String name, Item item, String... servers) {
-        BindSetting setting = (BindSetting) new BindSetting(name, -1).a(() -> {
+        BindSetting setting = (BindSetting) new BindSetting(name, -1);
+        if (item != null) {
+            ItemStack icon = null;
+            for (AutoBuyEntry entry : AutoBuyEntry.values()) {
+                String entryName = entry.b().replace("[★] ", "").replace("[★]", "").trim();
+                if (entryName.equalsIgnoreCase(name) || entryName.contains(name) || name.contains(entryName)) {
+                    icon = entry.a();
+                    break;
+                }
+            }
+            if (icon == null) {
+                icon = item.getDefaultStack();
+            }
+            setting.setIcon(icon);
+        }
+        setting.a(() -> {
             ItemCooldownManagerAccessor itemCooldownManagerAccessorMethod_7357 = (ItemCooldownManagerAccessor) (ItemCooldownManagerAccessor) aM_.player.getItemCooldownManager();
             if (((net.minecraft.entity.player.ItemCooldownManager) (Object) itemCooldownManagerAccessorMethod_7357).isCoolingDown(item.getDefaultStack())) {
                 ItemCooldownManagerAccessor accessor = itemCooldownManagerAccessorMethod_7357;

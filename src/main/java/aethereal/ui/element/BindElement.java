@@ -16,6 +16,7 @@ import aethereal.setting.BindSetting;
 import aethereal.ui.element.Element_2;
 
 import aethereal.api.Compile;
+import net.minecraft.item.ItemStack;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.math.MatrixStack;
 import org.joml.Vector4f;
@@ -97,7 +98,16 @@ public class BindElement extends Element_2<BindSetting> {
         float boxX = (this.a.x + this.a.z) - boxWidth;
         float boxY = centerY - (boxHeight / 2.0f);
         float textY = (boxY + ((boxHeight - Fonts.c.a(6.5f)) / 2.0f)) - 0.75f;
-        a(matrices, Fonts.c, ((BindSetting) this.b).i(), this.a.x, this.a.y, this.a.w, 6.5f, theme.a(ThemeInfo.TEXT).a(), (boxX - this.a.x) - 4.0f, hovered, extend, delta);
+        ItemStack icon = ((BindSetting) this.b).getIcon();
+        float textX = this.a.x;
+        if (icon != null) {
+            float iconSize = 9.0f;
+            float iconX = this.a.x;
+            float iconY = centerY - (iconSize / 2.0f);
+            Delta.h().d().j().a(context, icon, iconX, iconY, 0, extend, iconSize / 16.0f, false);
+            textX += iconSize + 3.5f;
+        }
+        a(matrices, Fonts.c, ((BindSetting) this.b).i(), textX, this.a.y, this.a.w, 6.5f, theme.a(ThemeInfo.TEXT).a(), (boxX - textX) - 4.0f, hovered, extend, delta);
         draw.a(matrices, boxX, boxY, boxWidth, boxHeight, 2.0f, ColorUtil.a(theme.a(ThemeInfo.PRIMARY).a(), 0.039215688f * extend));
         draw.a(matrices, boxX, boxY, boxWidth, boxHeight, 2.0f, 0.5f, ColorUtil.a(theme.a(ThemeInfo.OUTLINE_MEDIUM).a(), theme.a(ThemeInfo.OUTLINE_MEDIUM).b() * extend));
         ScissorUtil.a(matrices, boxX, boxY, boxWidth, boxHeight);

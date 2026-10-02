@@ -34,8 +34,10 @@ public class HandsShader extends Module {
 
     public HandsShader() {
         this.color.a(() -> !this.useTheme.c());
-        this.vtoroyColor.a(() -> this.gradient.c() || this.mode.l("Градиент"));
-        this.speedGradienta.a(() -> this.gradient.c() || this.mode.l("Градиент"));
+        this.gradient.a(() -> !this.mode.l("Градиент"));
+        this.vtoroyColor.a(() -> this.gradient.c() || this.mode.l("Градиент") || this.mode.l("Свечение") || this.mode.l("Неон"));
+        this.speedGradienta.a(() -> this.gradient.c() || this.mode.l("Градиент") || this.mode.l("Свечение"));
+        this.radius.a(() -> this.mode.l("Свечение") || this.mode.l("Неон"));
         this.strengthAnimacii.a(this.vklyuchitAnimaciyu::c);
         this.sizeAnimacii.a(this.vklyuchitAnimaciyu::c);
 
@@ -72,43 +74,52 @@ public class HandsShader extends Module {
             float r1 = (primaryCol >> 16 & 0xFF) / 255.0f;
             float g1 = (primaryCol >> 8 & 0xFF) / 255.0f;
             float b1 = (primaryCol & 0xFF) / 255.0f;
+            float alpha = this.opacity.c();
 
-            float r = r1;
-            float g = g1;
-            float b = b1;
+            int secondCol = this.vtoroyColor.c();
+            float r2 = (secondCol >> 16 & 0xFF) / 255.0f;
+            float g2 = (secondCol >> 8 & 0xFF) / 255.0f;
+            float b2 = (secondCol & 0xFF) / 255.0f;
+            boolean hasSecond = this.gradient.c() || this.mode.l("Градиент") || this.mode.l("Свечение") || this.mode.l("Неон");
+            float a2 = hasSecond ? alpha : 0.0f;
 
-            if (this.gradient.c() || this.mode.l("Градиент")) {
-                int secondCol = this.vtoroyColor.c();
-                float r2 = (secondCol >> 16 & 0xFF) / 255.0f;
-                float g2 = (secondCol >> 8 & 0xFF) / 255.0f;
-                float b2 = (secondCol & 0xFF) / 255.0f;
-
-                float gradSpeed = this.speedGradienta.c();
-                float wave = (float) (Math.sin(System.currentTimeMillis() * 0.002 * gradSpeed) + 1.0) * 0.5f;
-                r = MathHelper.lerp(wave, r1, r2);
-                g = MathHelper.lerp(wave, g1, g2);
-                b = MathHelper.lerp(wave, b1, b2);
+            int modeIndex = 0;
+            if (this.mode.l("Свечение")) {
+                modeIndex = 1;
+            } else if (this.mode.l("Градиент")) {
+                modeIndex = 2;
+            } else if (this.mode.l("Неон")) {
+                modeIndex = 3;
             }
 
             float brightnessMult = this.yarkost.c();
-            float alpha = this.opacity.c();
+            float rad = this.radius.c();
+            float flameStrength = 0.0f;
 
             if (this.vklyuchitAnimaciyu.c()) {
                 float animSpeed = this.sizeAnimacii.c();
                 float animStrength = this.strengthAnimacii.c();
                 float pulse = (float) Math.sin(System.currentTimeMillis() * 0.003 * animSpeed) * animStrength * 0.25f;
                 brightnessMult = Math.max(0.1f, brightnessMult + pulse);
-                alpha = MathHelper.clamp(alpha + pulse * 0.5f, 0.0f, 1.0f);
+                flameStrength = animStrength;
+                rad = Math.max(2.0f, rad * (1.0f + pulse * 0.3f));
             }
 
-            float[] finalColor = new float[] {
-                Math.min(1.0f, r * brightnessMult),
-                Math.min(1.0f, g * brightnessMult),
-                Math.min(1.0f, b * brightnessMult),
+            float[] primary = new float[] {
+                r1,
+                g1,
+                b1,
                 alpha
             };
 
-            shader.a(finalColor);
+            float[] second = new float[] {
+                r2,
+                g2,
+                b2,
+                a2
+            };
+
+            shader.a(modeIndex, primary, second, rad, brightnessMult, this.speedGradienta.c(), flameStrength);
         }
     }
 }

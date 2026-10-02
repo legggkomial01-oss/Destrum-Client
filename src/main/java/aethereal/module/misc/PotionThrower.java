@@ -44,11 +44,15 @@ public class PotionThrower extends Module implements Interface {
         a(this.b, this.d);
         for (AutoBuyEntry potion : AutoBuyEntry.values()) {
             if (potion.d() == Items.SPLASH_POTION) {
-                a(new BindSetting(potion.b(), -1).a(() -> {
+                String cleanName = potion.b().replace("[★] ", "").replace("[★]", "").trim();
+                BindSetting bind = new BindSetting(cleanName, -1);
+                bind.setIcon(potion.a());
+                bind.a(() -> {
                     Delta.h().d().v().b().a(potion.a());
                 }).a(() -> {
                     return Boolean.valueOf(this.b.l("Клавиша"));
-                }));
+                });
+                a(bind);
             }
         }
     }
