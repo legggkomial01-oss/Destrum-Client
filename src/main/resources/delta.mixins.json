@@ -84,6 +84,7 @@
     "mixin.ClientWorldMixin",
     "mixin.ClientWorldPropertiesMixin",
     "mixin.DisconnectedScreenMixin",
+    "mixin.FramebufferMixin",
     "mixin.GameMenuScreenMixin",
     "mixin.HeadFeatureRendererMixin",
     "mixin.HeldItemRendererMixin",

@@ -68,4 +68,29 @@ public class HeldItemRendererMixin {
         }
         return original;
     }
+
+    @org.spongepowered.asm.mixin.Shadow
+    private void renderFirstPersonItem(AbstractClientPlayerEntity player, float tickDelta, float pitch, Hand hand, float swingProgress, ItemStack item, float equipProgress, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light) {}
+
+    @Inject(method = "renderFirstPersonItem", at = @At("TAIL"))
+    private void onRenderFirstPersonItemTail(AbstractClientPlayerEntity player, float tickDelta, float pitch, Hand hand, float swingProgress, ItemStack item, float equipProgress, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
+        if (aethereal.render.FramebufferRedirect.isFlag()) {
+            return;
+        }
+        aethereal.module.render.HandsShader handsShader = aethereal.module.render.HandsShader.getInstance();
+        if (handsShader != null && handsShader.m() && handsShader.isGlowMode()) {
+            try {
+                aethereal.render.PlayerOutlineEffect.onVertexConsumerProvider(vertexConsumers);
+                aethereal.render.FramebufferRedirect.setFlag2();
+                aethereal.render.ImmediateBufferSource maskBuffer = aethereal.render.ImmediateBufferSource.getInstance();
+                this.renderFirstPersonItem(player, tickDelta, pitch, hand, swingProgress, item, equipProgress, matrices, maskBuffer, light);
+                maskBuffer.update();
+                aethereal.render.PlayerOutlineEffect.setHasHandMask(true);
+            } catch (Throwable ignored) {
+            } finally {
+                aethereal.render.FramebufferRedirect.setFlag();
+                aethereal.render.PlayerOutlineEffect.restoreFramebuffer();
+            }
+        }
+    }
 }
