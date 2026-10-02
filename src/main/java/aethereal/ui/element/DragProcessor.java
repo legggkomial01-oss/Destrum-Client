@@ -26,6 +26,8 @@ import java.util.Iterator;
 import java.util.List;
 import lombok.Generated;
 import net.minecraft.client.gui.screen.ChatScreen;
+import net.minecraft.client.gui.screen.Screen;
+import aethereal.ui.widget.WatermarkWidget;
 
 public class DragProcessor extends ConfigProcessor<DragInfo> implements Interface {
     private final b e = new b();
@@ -83,8 +85,8 @@ public class DragProcessor extends ConfigProcessor<DragInfo> implements Interfac
             jSONObject.c("name", dragInfo2.j());
             jSONObject.b("x", dragInfo2.c());
             jSONObject.b("y", dragInfo2.d());
-            jSONObject.b("width", dragInfo2.f());
-            jSONObject.b("height", dragInfo2.g());
+            jSONObject.b("width", dragInfo2.getRawWidth());
+            jSONObject.b("height", dragInfo2.getRawHeight());
             dragInfo2.e();
             JSONObject jSONObject2 = new JSONObject();
             for (Setting<?> setting : dragInfo2.e().b()) {
@@ -127,9 +129,18 @@ public class DragProcessor extends ConfigProcessor<DragInfo> implements Interfac
     @EventTarget
     public void a(ClickEvent event) {
         if (aM_.currentScreen instanceof ChatScreen) {
+            if (WatermarkWidget.isPillInteracting()) {
+                if (event.c()) {
+                    h();
+                }
+                return;
+            }
             if (event.b() && event.h() == 0) {
                 for (DragInfo dragInfo : e()) {
                     if (dragInfo.k() != 2 && MathUtil.a(event.f(), event.g(), dragInfo.a(), dragInfo.b(), dragInfo.f(), dragInfo.g())) {
+                        if ("Инфо-панель".equals(dragInfo.j()) && WatermarkWidget.isInteractingWithPill(event.f(), event.g()) && !Screen.hasShiftDown()) {
+                            continue;
+                        }
                         CursorUtil.a(CursorUtil.a.HAND);
                         this.g = dragInfo;
                         this.g.a(event.f() - ((double) dragInfo.a()));
@@ -140,6 +151,9 @@ public class DragProcessor extends ConfigProcessor<DragInfo> implements Interfac
             } else if (event.c() && event.h() == 0) {
                 h();
             } else if (event.d() && this.g != null && event.h() == 0) {
+                if (WatermarkWidget.isPillInteracting()) {
+                    return;
+                }
                 a((float) (event.f() - this.g.h()), (float) (event.g() - this.g.i()), this.g);
             }
             for (DragInfo dragInfo2 : e()) {
@@ -165,10 +179,6 @@ public class DragProcessor extends ConfigProcessor<DragInfo> implements Interfac
                 }
                 this.e.a(this.g != null, event.g());
                 this.f.a(this.g != null, event.g());
-                if (this.e.a() || this.f.a()) {
-                    b(event);
-                    return;
-                }
                 return;
             }
             for (DragInfo dragInfo : e()) {
@@ -257,12 +267,6 @@ public class DragProcessor extends ConfigProcessor<DragInfo> implements Interfac
     }
 
     private void b(DrawEvent event) {
-        if (this.e.a()) {
-            event.d().a(event.i(), this.e.c().floatValue() - 0.5f, 0.0f, 0.5f, aM_.getWindow().getFramebufferHeight() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont()), ColorUtil.a(255, 255, 255, (int) (this.e.b().c() * 200.0f)));
-        }
-        if (this.f.a()) {
-            event.d().a(event.i(), 0.0f, this.f.c().floatValue() - 0.5f, aM_.getWindow().getFramebufferWidth() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont()), 0.5f, ColorUtil.a(255, 255, 255, (int) (this.f.b().c() * 200.0f)));
-        }
     }
 
     private void h() {

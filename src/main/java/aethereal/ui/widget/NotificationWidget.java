@@ -35,7 +35,7 @@ public class NotificationWidget extends Widget implements Interface {
         this.f = new BooleanSetting("Оповещать о поднятии донат-предметов", true);
         this.g = new BooleanSetting("Обновления и уведомления друзей", true);
         j().a(this);
-        j().a(1);
+        j().a(0);
         a(this.g, this.f);
     }
 
@@ -49,7 +49,29 @@ public class NotificationWidget extends Widget implements Interface {
     public void a(DrawEvent event) {
         float fA;
         d().a(0.0f, 1.0f, 0.3f, EasingList.g, event.g());
+        float x = j().a();
         float contentY = j().b();
+
+        if (j().c() == 0.0f && j().d() == 0.0f) {
+            x = (aM_.getWindow().getScaledWidth() - 150.0f) / 2.0f;
+            contentY = 25.0f;
+            j().a(x);
+            j().b(contentY);
+        }
+
+        boolean hasNotifications = !Delta.h().d().m().b().isEmpty();
+        if (!hasNotifications && (aM_.currentScreen instanceof ChatScreen)) {
+            String previewText = "Пример отображения уведомления";
+            float previewW = 17.5f + Fonts.e.a(previewText, this.e) + 6.0f;
+            int color = Delta.h().d().o().a(ThemeInfo.PRIMARY).a();
+            a(event, x, contentY, "o", previewText, previewW, a(), color);
+            j().c(previewW);
+            j().d(this.d);
+            super.a(event);
+            return;
+        }
+
+        float maxW = 100.0f;
         for (Notification notification : Delta.h().d().m().b()) {
             float animation = notification.a().c() * a();
             if (animation > 0.0f) {
@@ -61,7 +83,7 @@ public class NotificationWidget extends Widget implements Interface {
                     fA = Fonts.e.a(String.valueOf(message), this.e);
                 }
                 float width = 17.5f + fA + 4.0f;
-                float x = (aM_.getWindow().getScaledWidth() - width) / 2.0f;
+                maxW = Math.max(maxW, width);
                 int color = notification.e() == -1 ? Delta.h().d().o().a(ThemeInfo.PRIMARY).a() : notification.e();
                 Object objD = notification.d();
                 if (objD instanceof ItemStack) {
@@ -70,12 +92,11 @@ public class NotificationWidget extends Widget implements Interface {
                 } else {
                     a(event, x, contentY, (String) notification.d(), message, width, animation, color);
                 }
-                j().a(x);
-                j().c(width);
-                j().d(this.d);
                 contentY += (this.d + 3.5f) * animation;
             }
         }
+        j().c(maxW);
+        j().d(Math.max(this.d, contentY - j().b()));
         super.a(event);
     }
 

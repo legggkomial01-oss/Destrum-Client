@@ -22,6 +22,8 @@ import aethereal.setting.Setting;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import java.util.List;
 import lombok.Generated;
+import aethereal.setting.SliderSetting;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.client.gui.screen.ChatScreen;
@@ -36,6 +38,16 @@ public class Widget {
     protected float d = 12.5f;
     protected float e = 7.0f;
     private final DragInfo i;
+    protected final SliderSetting widgetScale = new SliderSetting("Размер", 1.0f, 0.5f, 1.5f, 0.05f);
+    protected final SliderSetting widgetBgOpacity = new SliderSetting("Прозрачность фона", 1.0f, 0.0f, 1.0f, 0.05f);
+
+    public float getScale() {
+        return this.widgetScale != null ? this.widgetScale.c().floatValue() : 1.0f;
+    }
+
+    public float getBgOpacity() {
+        return this.widgetBgOpacity != null ? this.widgetBgOpacity.c().floatValue() : 1.0f;
+    }
 
     @Generated
     public List<Setting<?>> b() {
@@ -90,6 +102,7 @@ public class Widget {
     public Widget(DragInfo dragInfo) {
         this.i = dragInfo;
         dragInfo.a(this);
+        a(this.widgetScale, this.widgetBgOpacity);
     }
 
     protected final void a(Setting<?>... settings) {
@@ -100,11 +113,34 @@ public class Widget {
     }
 
     public void a(DrawEvent event) {
+        float scale = getScale();
+        float dragAnim = this.i != null ? this.i.getDragAnim() : 0.0f;
+        float totalScale = scale * (1.0f + 0.04f * dragAnim);
+        MatrixStack matrices = event.i().getMatrices();
+        float wx = this.i != null ? this.i.a() : 0.0f;
+        float wy = this.i != null ? this.i.b() : 0.0f;
+        boolean transform = Math.abs(totalScale - 1.0f) > 0.001f;
+        if (transform) {
+            matrices.push();
+            matrices.translate(wx, wy, 0.0f);
+            matrices.scale(totalScale, totalScale, 1.0f);
+            matrices.translate(-wx, -wy, 0.0f);
+        }
+
+        if (dragAnim > 0.01f && this.i != null) {
+            int glowColor = Delta.h().d().o().a(ThemeInfo.PRIMARY).a();
+            event.d().a(event.h(), wx - 2.0f, wy - 2.0f, this.i.getRawWidth() + 4.0f, this.i.getRawHeight() + 4.0f, 6.0f, ColorUtil.a(glowColor, 0.3f * dragAnim), 1.0f, ColorUtil.a(glowColor, 0.45f * dragAnim), 10.0f);
+        }
+
         e().a(0.0f, 1.0f, 0.3f, EasingList.g, event.g());
         this.c.a(this.h && (Interface.aM_.currentScreen instanceof ChatScreen));
         this.c.a(0.0f, 1.0f, 0.3f, EasingList.g, event.g());
         if (this.c.c() > 0.0f) {
             b(event);
+        }
+
+        if (transform) {
+            matrices.pop();
         }
     }
 
@@ -185,13 +221,16 @@ public class Widget {
     protected void a(DrawEvent event, float x, float y, float width, float height, boolean glow, float animation) {
         if (animation > 0.0f) {
             ThemeProcessor themeProcessor = Delta.h().d().o();
-            float alpha = themeProcessor.a(ThemeInfo.BACKGROUND_HUD).b() * animation;
+            float bgMult = getBgOpacity();
+            float alpha = themeProcessor.a(ThemeInfo.BACKGROUND_HUD).b() * animation * bgMult;
             int background = ColorUtil.a(themeProcessor.a(ThemeInfo.BACKGROUND_HUD).a(), themeProcessor.a(ThemeInfo.PRIMARY).a(), themeProcessor.a(ThemeInfo.PRIMARY).b() / 6.0f);
             themeProcessor.a(ThemeInfo.BACKGROUND_HUD).e(InterfaceC0020Opcode.cY);
-            if (glow) {
-                event.d().a(event.h(), x, y, width, height, 5.0f + (1.0f * this.b.c()), ColorUtil.a(background, alpha), animation, ColorUtil.a(background, alpha), 8.0f + (2.0f * this.b.c()));
-            } else {
-                event.d().b(event.h(), x, y, width, height, 5.0f, ColorUtil.a(background, alpha), animation);
+            if (alpha > 0.001f) {
+                if (glow) {
+                    event.d().a(event.h(), x, y, width, height, 5.0f + (1.0f * this.b.c()), ColorUtil.a(background, alpha), animation * bgMult, ColorUtil.a(background, alpha), 8.0f + (2.0f * this.b.c()));
+                } else {
+                    event.d().b(event.h(), x, y, width, height, 5.0f, ColorUtil.a(background, alpha), animation * bgMult);
+                }
             }
         }
     }

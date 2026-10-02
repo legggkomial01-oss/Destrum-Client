@@ -65,13 +65,27 @@ public class DragInfo implements Interface {
         return this.b;
     }
 
+    private float renderX = Float.NaN;
+    private float renderY = Float.NaN;
+    private float dragAnim = 0.0f;
+
     @Generated
     public float f() {
-        return this.e;
+        float scale = (this.b != null) ? this.b.getScale() : 1.0f;
+        return this.e * scale;
     }
 
     @Generated
     public float g() {
+        float scale = (this.b != null) ? this.b.getScale() : 1.0f;
+        return this.f * scale;
+    }
+
+    public float getRawWidth() {
+        return this.e;
+    }
+
+    public float getRawHeight() {
         return this.f;
     }
 
@@ -105,11 +119,41 @@ public class DragInfo implements Interface {
     }
 
     public float a() {
-        return MathUtil.b(this.c, 0.0f, (aM_.getWindow().getFramebufferWidth() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - this.e);
+        float target = MathUtil.b(this.c, 0.0f, (aM_.getWindow().getFramebufferWidth() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - f());
+        if (Float.isNaN(this.renderX)) {
+            this.renderX = target;
+        } else {
+            this.renderX = MathUtil.c(this.renderX, target, 0.35f);
+        }
+        return this.renderX;
     }
 
     public float b() {
-        return MathUtil.b(this.d, 0.0f, (aM_.getWindow().getFramebufferHeight() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - this.f);
+        float target = MathUtil.b(this.d, 0.0f, (aM_.getWindow().getFramebufferHeight() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - g());
+        if (Float.isNaN(this.renderY)) {
+            this.renderY = target;
+        } else {
+            this.renderY = MathUtil.c(this.renderY, target, 0.35f);
+        }
+        return this.renderY;
+    }
+
+    public float getRawA() {
+        return MathUtil.b(this.c, 0.0f, (aM_.getWindow().getFramebufferWidth() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - f());
+    }
+
+    public float getRawB() {
+        return MathUtil.b(this.d, 0.0f, (aM_.getWindow().getFramebufferHeight() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - g());
+    }
+
+    public float getDragAnim() {
+        boolean isDragging = Delta.h().d().s() != null && Delta.h().d().s().g() == this;
+        this.dragAnim = MathUtil.c(this.dragAnim, isDragging ? 1.0f : 0.0f, 0.25f);
+        return this.dragAnim;
+    }
+
+    public float getDragScale() {
+        return 1.0f + (0.04f * getDragAnim());
     }
 
     public float c() {

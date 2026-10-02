@@ -17,7 +17,7 @@ import aethereal.notification.Notification;
 import aethereal.ui.element.DragInfo;
 import aethereal.ui.widget.Widget;
 
-import aethereal.setting.BooleanSetting;
+import aethereal.setting.ModeSetting;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -32,15 +32,16 @@ import net.minecraft.entity.effect.StatusEffectCategory;
 import org.joml.Vector4f;
 
 public class PotionWidget extends Widget implements Interface {
-    private final BooleanSetting f;
+    private final ModeSetting mode;
     private final StatusEffectInstance g;
 
     public PotionWidget() {
         super(new DragInfo("Зелья", 0.0f, 0.0f, 0.0f, 0.0f));
-        this.f = new BooleanSetting("Боковое отображение", false);
-        this.g = new StatusEffectInstance(StatusEffects.SPEED, 1200, 0);
+        this.mode = new ModeSetting("Режим", "Дашборд", "Дашборд", "Бафф");
+        this.g = new StatusEffectInstance(StatusEffects.SPEED, 6360, 0);
         j().a(this);
-        a(this.f);
+        j().a(0);
+        a(this.mode);
     }
 
     @Override
@@ -50,12 +51,12 @@ public class PotionWidget extends Widget implements Interface {
         while (it.hasNext()) {
             ((IStatusEffectInstance) (Object) it.next()).getAnimation().a(0.0f, 1.0f, 0.3f, EasingList.g, event.g());
         }
-        if (this.f.c().booleanValue()) {
+        if (this.mode.l("Бафф")) {
             d(event);
         } else {
             c(event);
         }
-        j().a(this.f.c().booleanValue() ? 2 : 0);
+        j().a(0);
     }
 
     private void c(DrawEvent event) {
@@ -105,15 +106,17 @@ public class PotionWidget extends Widget implements Interface {
 
     private void d(DrawEvent event) {
         int primary = Delta.h().d().o().a(ThemeInfo.PRIMARY).a();
-        int visibleCount = 0;
-        Iterator<StatusEffectInstance> it = k().iterator();
-        while (it.hasNext()) {
-            if (((IStatusEffectInstance) (Object) it.next()).getAnimation().c() > 0.0f) {
-                visibleCount++;
-            }
+        float drawX = j().a();
+        float contentY = j().b();
+
+        if (j().c() == 0.0f && j().d() == 0.0f) {
+            drawX = 5.0f;
+            contentY = (aM_.getWindow().getScaledHeight() - 100.0f) / 2.0f;
+            j().a(drawX);
+            j().b(contentY);
         }
-        float posY = (aM_.getWindow().getScaledHeight() - ((visibleCount * 26.0f) + ((visibleCount - 1) * 2.0f))) / 2.0f;
-        float contentY = posY;
+
+        float startY = contentY;
         float maxWidth = 0.0f;
         Iterator<StatusEffectInstance> it2 = k().iterator();
         while (it2.hasNext()) {
@@ -125,15 +128,14 @@ public class PotionWidget extends Widget implements Interface {
                 int seconds = iStatusEffectInstance.getDuration() / 20;
                 String duration = iStatusEffectInstance.getDuration() > 1000000 ? "∞" : (seconds / 60) + ":" + String.format("%02d", Integer.valueOf(seconds % 60));
                 float textWidth = Math.max(Fonts.e.a(name, 7.0f), Fonts.e.a(duration, 6.0f));
-                float width = 18.5f + textWidth + 8.0f;
-                float drawX = 3.0f - (width * (1.0f - animation));
+                float width = 18.5f + textWidth + 10.0f;
                 float textX = drawX + 13.5f + 6.0f;
                 a(event, drawX, contentY, width, 24.0f, true, animation);
                 event.e().a(event.i(), aM_.getStatusEffectSpriteManager().getSprite(iStatusEffectInstance.getEffectType()), drawX + 3.5f, contentY + 5.75f, 0.0f, 0.6944444f, animation);
                 Fonts.e.a(event.h(), name, textX, contentY + 3.5f, 7.0f, ColorUtil.a(harmful ? ColorUtil.a(215, 76, 76, 255) : -1, animation));
                 Fonts.e.a(event.h(), duration, textX, contentY + 13.0f, 6.0f, ColorUtil.a(-1, 0.55f * animation));
                 int initialDuration = iStatusEffectInstance.getInitialDuration();
-                float progress = initialDuration <= 0 ? 1.0f : Math.min(1.0f, iStatusEffectInstance.getDuration() / initialDuration);
+                float progress = initialDuration <= 0 ? 1.0f : Math.min(1.0f, (float) iStatusEffectInstance.getDuration() / (float) initialDuration);
                 int accent = harmful ? ColorUtil.a(215, 76, 76, 255) : primary;
                 event.d().a(event.h(), drawX + 2.0f, (contentY + 24.0f) - 1.5f, width - 4.0f, 1.5f, new Vector4f(0.0f, 0.0f, 1.0f, 1.0f), ColorUtil.a(accent, 0.15f * animation));
                 event.d().a(event.h(), drawX + 2.0f, (contentY + 24.0f) - 1.5f, (width - 4.0f) * progress, 1.5f, new Vector4f(0.0f, 0.0f, 1.0f, 1.0f), ColorUtil.a(accent, animation));
@@ -141,10 +143,8 @@ public class PotionWidget extends Widget implements Interface {
                 contentY += 28.0f * animation;
             }
         }
-        j().a(3.0f);
-        j().b(posY);
         j().c(maxWidth);
-        j().d((contentY - posY) - 2.0f);
+        j().d(Math.max(24.0f, (contentY - startY) - 2.0f));
         super.a(event);
     }
 
@@ -173,7 +173,7 @@ public class PotionWidget extends Widget implements Interface {
         boolean empty = effects.stream().allMatch(effect -> {
             return effect.getEffectType().equals(StatusEffects.NIGHT_VISION);
         });
-        if (this.f.c().booleanValue() && empty && ((aM_.currentScreen instanceof ChatScreen) || ((IStatusEffectInstance) (Object) this.g).getAnimation().c() > 0.0f)) {
+        if (empty && ((aM_.currentScreen instanceof ChatScreen) || ((IStatusEffectInstance) (Object) this.g).getAnimation().c() > 0.0f)) {
             effects.add(this.g);
         }
         effects.sort(Comparator.comparingInt(effect2 -> {
