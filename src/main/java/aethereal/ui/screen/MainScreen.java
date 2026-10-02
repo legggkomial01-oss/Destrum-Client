@@ -16,6 +16,7 @@ import aethereal.util.MathUtil;
 import aethereal.config.ThemeInfo;
 import aethereal.render.Draw2DProcessor;
 import aethereal.ui.screen.AltScreen;
+import aethereal.module.render.SkyShader;
 
 import aethereal.render.AnimationUtil;
 import aethereal.ui.element.Button;
@@ -77,7 +78,24 @@ public class MainScreen extends Screen {
             "Создан для тех, кто ценит стиль и контроль",
             "Добро пожаловать в новую эру геймплея",
             "Destrum Client — твоё ключевое преимущество",
-            "Безупречная отзывчивость каждого клика"
+            "Безупречная отзывчивость каждого клика",
+            "Абсолютный контроль над каждым движением",
+            "Чистый дизайн, непревзойденная скорость",
+            "Покоряй вершины с совершенным арсеналом",
+            "Эстетика минимализма и мощь технологий",
+            "Твой верный союзник в самых жарких битвах",
+            "Побеждай красиво, доминируй уверенно",
+            "Мгновенный отклик и сверхточный расчет",
+            "Новые горизонты твоих игровых возможностей",
+            "Destrum Client — выбор истинных чемпионов",
+            "Никаких преград между тобой и триумфом",
+            "Каждая деталь выверена до идеала",
+            "Эволюция интерфейса и максимальный комфорт",
+            "Всегда на шаг впереди соперников",
+            "Качественный рендер и чистая картинка",
+            "Вдохновлен лучшими, создан для лучших",
+            "Уверенность в каждом движении и ударе",
+            "Destrum: точность, грация, превосходство"
         };
 
         private static final String[] EN_PHRASES = {
@@ -88,7 +106,24 @@ public class MainScreen extends Screen {
             "Engineered for style, speed, and precision",
             "Welcome to the next era of gameplay",
             "Destrum Client — your definitive advantage",
-            "Flawless tactile response in every click"
+            "Flawless tactile response in every click",
+            "Absolute mastery over every motion",
+            "Pure aesthetics, unmatched responsiveness",
+            "Conquer every arena with superior gear",
+            "Minimalist elegance powered by elite tech",
+            "Your steadfast ally in the heat of battle",
+            "Win in style, dominate with composure",
+            "Instant reaction and surgical calculation",
+            "Unlocking new heights of gaming prowess",
+            "Destrum Client — forged for true champions",
+            "Zero compromises between you and triumph",
+            "Obsessively crafted to absolute perfection",
+            "Next-gen interface and seamless control",
+            "Always one step ahead of the competition",
+            "Razor-sharp visuals and fluid rendering",
+            "Inspired by the finest, built for the best",
+            "Total confidence in every clutch and strike",
+            "Destrum: precision, grace, supremacy"
         };
 
         private enum State {
@@ -280,16 +315,16 @@ public class MainScreen extends Screen {
             this.b.e(1.0f);
         }
         MainMenuConfig cfg = MainMenuConfig.getInstance();
-        this.c = new Button(78.0f, 24.0f, cfg.getSingleplayerText(), () -> {
+        this.c = new Button(70.0f, 21.0f, cfg.getSingleplayerText(), () -> {
             Interface.aM_.setScreen(new SelectWorldScreen((Screen) null));
         });
-        this.d = new Button(78.0f, 24.0f, cfg.getMultiplayerText(), () -> {
+        this.d = new Button(70.0f, 21.0f, cfg.getMultiplayerText(), () -> {
             Interface.aM_.setScreen(new MultiplayerScreen((Screen) null));
         });
-        this.e = new Button(161.0f, 22.0f, cfg.getAltManagerText(), () -> {
+        this.e = new Button(144.0f, 20.0f, cfg.getAltManagerText(), () -> {
             Interface.aM_.setScreen(new AltScreen());
         });
-        this.f = new Button(79.0f, 19.5f, cfg.getSettingsText(), () -> {
+        this.f = new Button(70.0f, 18.0f, cfg.getSettingsText(), () -> {
             Interface.aM_.setScreen(new OptionsScreen((Screen) null, Interface.aM_.options));
         });
         this.g = List.of(this.c, this.d, this.e, this.f);
@@ -331,6 +366,10 @@ public class MainScreen extends Screen {
         if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.DARK) {
             Draw2DProcessor draw = Delta.h().d().i();
             draw.a(context, 0, 0, width, height, ColorUtil.a(12, 13, 17, 255));
+        } else if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.SHADER) {
+            SkyShader.renderMenuBackground(cfg.getShaderBackground(), mouseX, mouseY, width, height);
+        } else if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.WALLPAPER) {
+            Delta.h().d().i().a(matrices, cfg.getWallpaperBackground().getIdentifier(), (-marginX) + a[0], (-marginY) + a[1], width + (marginX * 2.0f), height + (marginY * 2.0f), 0.0f, -1);
         } else if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.CUSTOM && cfg.getCustomTextureIdentifier() != null) {
             Delta.h().d().i().a(matrices, cfg.getCustomTextureIdentifier(), (-marginX) + a[0], (-marginY) + a[1], width + (marginX * 2.0f), height + (marginY * 2.0f), 0.0f, -1);
         } else {
@@ -340,11 +379,12 @@ public class MainScreen extends Screen {
     }
 
     private void a(int width, int height) {
+        float gap = 4.0f;
         float mainY = (height - this.c.c()) / 2.0f;
-        float mainX = (((width - this.c.b()) - 5.0f) - this.d.b()) / 2.0f;
+        float mainX = (((width - this.c.b()) - gap) - this.d.b()) / 2.0f;
         this.c.a(mainX, mainY);
-        this.d.a(mainX + this.c.b() + 5.0f, mainY);
-        this.e.a((width - this.e.b()) / 2.0f, mainY + this.c.c() + 5.0f);
+        this.d.a(mainX + this.c.b() + gap, mainY);
+        this.e.a((width - this.e.b()) / 2.0f, mainY + this.c.c() + gap);
         this.k = (width - 79.0f) / 2.0f;
         this.l = height * 0.85f;
         this.f.a((width - this.f.b()) / 2.0f, (this.l - this.f.c()) - 5.0f);
@@ -452,8 +492,8 @@ public class MainScreen extends Screen {
         // Screen dimming
         draw.a(matrices, 0.0f, 0.0f, width, height, 0.0f, ColorUtil.a(0, 0, 0, (int) (140.0f * mAlpha)));
 
-        float mWidth = 270.0f;
-        float mHeight = 175.0f;
+        float mWidth = 296.0f;
+        float mHeight = 205.0f;
         float mX = (width - mWidth) / 2.0f;
         float mY = (height - mHeight) / 2.0f;
         float mScale = 0.90f + (0.10f * EasingList.s.ease(mAlpha));
@@ -484,59 +524,98 @@ public class MainScreen extends Screen {
         draw.a(matrices, mX + 10.0f, mY + 22.0f, mWidth - 20.0f, 0.5f, 0.0f, ColorUtil.a(255, 255, 255, (int) (14.0f * mAlpha)));
 
         // 1. Language section
-        Fonts.c.a(matrices, cfg.getLanguageLabel(), mX + 12.0f, mY + 28.0f, 6.75f, ColorUtil.a(160, 165, 180, (int) (200.0f * mAlpha)));
-        float pY = mY + 39.0f;
-        float pW = 72.0f;
-        float pH = 16.5f;
-        drawLanguagePill(matrices, draw, mX + 12.0f, pY, pW, pH, "Русский", cfg.getLanguage() == MainMenuConfig.Language.RUSSIAN, mouseX, mouseY, primary, mAlpha);
-        drawLanguagePill(matrices, draw, mX + 12.0f + pW + 6.0f, pY, pW, pH, "English", cfg.getLanguage() == MainMenuConfig.Language.ENGLISH, mouseX, mouseY, primary, mAlpha);
+        Fonts.c.a(matrices, cfg.getLanguageLabel(), mX + 12.0f, mY + 27.5f, 6.75f, ColorUtil.a(160, 165, 180, (int) (200.0f * mAlpha)));
+        float pY = mY + 38.0f;
+        float pW = 75.0f;
+        float pH = 15.5f;
+        drawPill(matrices, draw, mX + 12.0f, pY, pW, pH, "Русский", cfg.getLanguage() == MainMenuConfig.Language.RUSSIAN, mouseX, mouseY, primary, mAlpha, 6.75f);
+        drawPill(matrices, draw, mX + 12.0f + pW + 6.0f, pY, pW, pH, "English", cfg.getLanguage() == MainMenuConfig.Language.ENGLISH, mouseX, mouseY, primary, mAlpha, 6.75f);
 
-        // 2. Background section
-        float bgSecY = mY + 63.0f;
+        // 2. Background Mode section
+        float bgSecY = mY + 59.0f;
         Fonts.c.a(matrices, cfg.getBackgroundLabel(), mX + 12.0f, bgSecY, 6.75f, ColorUtil.a(160, 165, 180, (int) (200.0f * mAlpha)));
-        float bgPillY = bgSecY + 11.0f;
-        float bgW = 78.0f;
-        float bgH = 16.5f;
-        drawLanguagePill(matrices, draw, mX + 12.0f, bgPillY, bgW, bgH, cfg.getBackgroundMode().DEFAULT.getDisplay(cfg.getLanguage()), cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.DEFAULT, mouseX, mouseY, primary, mAlpha);
-        drawLanguagePill(matrices, draw, mX + 12.0f + bgW + 5.0f, bgPillY, bgW, bgH, cfg.getBackgroundMode().DARK.getDisplay(cfg.getLanguage()), cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.DARK, mouseX, mouseY, primary, mAlpha);
-        drawLanguagePill(matrices, draw, mX + 12.0f + (bgW + 5.0f) * 2.0f, bgPillY, bgW, bgH, cfg.getBackgroundMode().CUSTOM.getDisplay(cfg.getLanguage()), cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.CUSTOM, mouseX, mouseY, primary, mAlpha);
+        float bgPillY = bgSecY + 10.5f;
+        float bgW1 = 87.0f;
+        float bgH = 15.5f;
+        drawPill(matrices, draw, mX + 12.0f, bgPillY, bgW1, bgH, cfg.getBackgroundMode().DEFAULT.getDisplay(cfg.getLanguage()), cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.DEFAULT, mouseX, mouseY, primary, mAlpha, 6.5f);
+        drawPill(matrices, draw, mX + 12.0f + bgW1 + 5.0f, bgPillY, bgW1, bgH, cfg.getBackgroundMode().DARK.getDisplay(cfg.getLanguage()), cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.DARK, mouseX, mouseY, primary, mAlpha, 6.5f);
+        drawPill(matrices, draw, mX + 12.0f + (bgW1 + 5.0f) * 2.0f, bgPillY, bgW1, bgH, cfg.getBackgroundMode().SHADER.getDisplay(cfg.getLanguage()), cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.SHADER, mouseX, mouseY, primary, mAlpha, 6.5f);
 
-        // File buttons
-        float fBtnY = mY + 100.0f;
-        float fBtnX = mX + 12.0f;
-        float fBtnW = 120.0f;
-        float fBtnH = 18.0f;
-        boolean fHover = MathUtil.a(mouseX, mouseY, fBtnX, fBtnY, fBtnW, fBtnH);
-        draw.b(matrices, fBtnX, fBtnY, fBtnW, fBtnH, 5.0f, ColorUtil.a(18, 20, 28, 220), mAlpha);
-        draw.a(matrices, fBtnX, fBtnY, fBtnW, fBtnH, 5.0f, 0.5f, ColorUtil.a(255, 255, 255, (int) ((fHover ? 30.0f : 15.0f) * mAlpha)));
-        Fonts.a.a(matrices, "#", fBtnX + 6.0f, fBtnY + ((fBtnH - 8.0f) / 2.0f), 8.0f, ColorUtil.a(primary, (int) (220.0f * mAlpha)));
-        Fonts.c.a(matrices, cfg.getSelectFileText(), fBtnX + 18.0f, (fBtnY + ((fBtnH - 6.75f) / 2.0f)) - 0.5f, 6.75f, ColorUtil.a(240, 240, 245, (int) (230.0f * mAlpha)));
+        float bgPillY2 = bgPillY + bgH + 3.0f;
+        float bgW2 = 133.0f;
+        drawPill(matrices, draw, mX + 12.0f, bgPillY2, bgW2, bgH, cfg.getBackgroundMode().WALLPAPER.getDisplay(cfg.getLanguage()), cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.WALLPAPER, mouseX, mouseY, primary, mAlpha, 6.5f);
+        drawPill(matrices, draw, mX + 12.0f + bgW2 + 6.0f, bgPillY2, bgW2, bgH, cfg.getBackgroundMode().CUSTOM.getDisplay(cfg.getLanguage()), cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.CUSTOM, mouseX, mouseY, primary, mAlpha, 6.5f);
 
-        float rBtnX = fBtnX + fBtnW + 8.0f;
-        float rBtnW = 55.0f;
-        float rBtnH = 18.0f;
-        boolean rHover = MathUtil.a(mouseX, mouseY, rBtnX, fBtnY, rBtnW, rBtnH);
-        draw.b(matrices, rBtnX, fBtnY, rBtnW, rBtnH, 5.0f, ColorUtil.a(18, 20, 28, 220), mAlpha);
-        draw.a(matrices, rBtnX, fBtnY, rBtnW, rBtnH, 5.0f, 0.5f, ColorUtil.a(255, 255, 255, (int) ((rHover ? 30.0f : 15.0f) * mAlpha)));
-        float rTextW = Fonts.c.a(cfg.getResetText(), 6.75f);
-        Fonts.c.a(matrices, cfg.getResetText(), rBtnX + ((rBtnW - rTextW) / 2.0f), (fBtnY + ((rBtnH - 6.75f) / 2.0f)) - 0.5f, 6.75f, ColorUtil.a(180, 185, 200, (int) (200.0f * mAlpha)));
+        // 3. Dynamic sub-options
+        if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.SHADER) {
+            Fonts.c.a(matrices, cfg.getShaderSelectionLabel(), mX + 12.0f, mY + 108.5f, 6.5f, ColorUtil.a(160, 165, 180, (int) (200.0f * mAlpha)));
+            float sY1 = mY + 119.0f;
+            float sW1 = 65.0f;
+            float sH1 = 14.5f;
+            drawPill(matrices, draw, mX + 12.0f + 0 * 69.0f, sY1, sW1, sH1, MainMenuConfig.ShaderBackground.NEBULA.getDisplay(cfg.getLanguage()), cfg.getShaderBackground() == MainMenuConfig.ShaderBackground.NEBULA, mouseX, mouseY, primary, mAlpha, 6.0f);
+            drawPill(matrices, draw, mX + 12.0f + 1 * 69.0f, sY1, sW1, sH1, MainMenuConfig.ShaderBackground.AURORA.getDisplay(cfg.getLanguage()), cfg.getShaderBackground() == MainMenuConfig.ShaderBackground.AURORA, mouseX, mouseY, primary, mAlpha, 6.0f);
+            drawPill(matrices, draw, mX + 12.0f + 2 * 69.0f, sY1, sW1, sH1, MainMenuConfig.ShaderBackground.STARS.getDisplay(cfg.getLanguage()), cfg.getShaderBackground() == MainMenuConfig.ShaderBackground.STARS, mouseX, mouseY, primary, mAlpha, 6.0f);
+            drawPill(matrices, draw, mX + 12.0f + 3 * 69.0f, sY1, sW1, sH1, MainMenuConfig.ShaderBackground.PLASMA.getDisplay(cfg.getLanguage()), cfg.getShaderBackground() == MainMenuConfig.ShaderBackground.PLASMA, mouseX, mouseY, primary, mAlpha, 6.0f);
 
-        // File status
-        if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.CUSTOM && cfg.getCustomTextureIdentifier() != null) {
-            String fname = new File(cfg.getCustomImagePath()).getName();
-            Fonts.a.a(matrices, "m", mX + 13.0f, mY + 126.0f, 7.5f, ColorUtil.a(100, 230, 140, (int) (230.0f * mAlpha)));
-            Fonts.c.a(matrices, fname, mX + 24.0f, mY + 126.0f, 6.75f, ColorUtil.a(220, 230, 245, (int) (210.0f * mAlpha)));
-        } else {
-            Fonts.c.a(matrices, cfg.getNoImageText(), mX + 13.0f, mY + 126.0f, 6.75f, ColorUtil.a(140, 145, 160, (int) (170.0f * mAlpha)));
+            float sY2 = sY1 + sH1 + 3.0f;
+            float sW2 = 87.0f;
+            drawPill(matrices, draw, mX + 12.0f + 0 * 92.0f, sY2, sW2, sH1, MainMenuConfig.ShaderBackground.NEON.getDisplay(cfg.getLanguage()), cfg.getShaderBackground() == MainMenuConfig.ShaderBackground.NEON, mouseX, mouseY, primary, mAlpha, 6.0f);
+            drawPill(matrices, draw, mX + 12.0f + 1 * 92.0f, sY2, sW2, sH1, MainMenuConfig.ShaderBackground.COSMOS.getDisplay(cfg.getLanguage()), cfg.getShaderBackground() == MainMenuConfig.ShaderBackground.COSMOS, mouseX, mouseY, primary, mAlpha, 6.0f);
+            drawPill(matrices, draw, mX + 12.0f + 2 * 92.0f, sY2, sW2, sH1, MainMenuConfig.ShaderBackground.CYBER.getDisplay(cfg.getLanguage()), cfg.getShaderBackground() == MainMenuConfig.ShaderBackground.CYBER, mouseX, mouseY, primary, mAlpha, 6.0f);
+        } else if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.WALLPAPER) {
+            Fonts.c.a(matrices, cfg.getWallpaperSelectionLabel(), mX + 12.0f, mY + 108.5f, 6.5f, ColorUtil.a(160, 165, 180, (int) (200.0f * mAlpha)));
+            float wY = mY + 120.0f;
+            float wW = 65.0f;
+            float wH = 16.0f;
+            drawPill(matrices, draw, mX + 12.0f + 0 * 69.0f, wY, wW, wH, MainMenuConfig.WallpaperBackground.COSMIC.getDisplay(cfg.getLanguage()), cfg.getWallpaperBackground() == MainMenuConfig.WallpaperBackground.COSMIC, mouseX, mouseY, primary, mAlpha, 6.25f);
+            drawPill(matrices, draw, mX + 12.0f + 1 * 69.0f, wY, wW, wH, MainMenuConfig.WallpaperBackground.EMERALD.getDisplay(cfg.getLanguage()), cfg.getWallpaperBackground() == MainMenuConfig.WallpaperBackground.EMERALD, mouseX, mouseY, primary, mAlpha, 6.25f);
+            drawPill(matrices, draw, mX + 12.0f + 2 * 69.0f, wY, wW, wH, MainMenuConfig.WallpaperBackground.SUNSET.getDisplay(cfg.getLanguage()), cfg.getWallpaperBackground() == MainMenuConfig.WallpaperBackground.SUNSET, mouseX, mouseY, primary, mAlpha, 6.25f);
+            drawPill(matrices, draw, mX + 12.0f + 3 * 69.0f, wY, wW, wH, MainMenuConfig.WallpaperBackground.AURORA.getDisplay(cfg.getLanguage()), cfg.getWallpaperBackground() == MainMenuConfig.WallpaperBackground.AURORA, mouseX, mouseY, primary, mAlpha, 6.25f);
+
+            String wpNote = cfg.getLanguage() == MainMenuConfig.Language.ENGLISH ? "Ultra HD 3840x2160 aesthetic blurred wallpapers" : "Ultra HD 3840x2160 эстетичные обои с размытием";
+            Fonts.c.a(matrices, wpNote, mX + 13.0f, mY + 142.5f, 6.25f, ColorUtil.a(150, 160, 180, (int) (180.0f * mAlpha)));
+        } else if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.CUSTOM) {
+            float fBtnY = mY + 115.0f;
+            float fBtnX = mX + 12.0f;
+            float fBtnW = 125.0f;
+            float fBtnH = 17.5f;
+            boolean fHover = MathUtil.a(mouseX, mouseY, fBtnX, fBtnY, fBtnW, fBtnH);
+            draw.b(matrices, fBtnX, fBtnY, fBtnW, fBtnH, 4.5f, ColorUtil.a(18, 20, 28, 220), mAlpha);
+            draw.a(matrices, fBtnX, fBtnY, fBtnW, fBtnH, 4.5f, 0.5f, ColorUtil.a(255, 255, 255, (int) ((fHover ? 30.0f : 15.0f) * mAlpha)));
+            Fonts.a.a(matrices, "#", fBtnX + 6.0f, fBtnY + ((fBtnH - 8.0f) / 2.0f), 8.0f, ColorUtil.a(primary, (int) (220.0f * mAlpha)));
+            Fonts.c.a(matrices, cfg.getSelectFileText(), fBtnX + 18.0f, (fBtnY + ((fBtnH - 6.75f) / 2.0f)) - 0.5f, 6.75f, ColorUtil.a(240, 240, 245, (int) (230.0f * mAlpha)));
+
+            float rBtnX = fBtnX + fBtnW + 8.0f;
+            float rBtnW = 55.0f;
+            float rBtnH = 17.5f;
+            boolean rHover = MathUtil.a(mouseX, mouseY, rBtnX, fBtnY, rBtnW, rBtnH);
+            draw.b(matrices, rBtnX, fBtnY, rBtnW, rBtnH, 4.5f, ColorUtil.a(18, 20, 28, 220), mAlpha);
+            draw.a(matrices, rBtnX, fBtnY, rBtnW, rBtnH, 4.5f, 0.5f, ColorUtil.a(255, 255, 255, (int) ((rHover ? 30.0f : 15.0f) * mAlpha)));
+            float rTextW = Fonts.c.a(cfg.getResetText(), 6.75f);
+            Fonts.c.a(matrices, cfg.getResetText(), rBtnX + ((rBtnW - rTextW) / 2.0f), (fBtnY + ((rBtnH - 6.75f) / 2.0f)) - 0.5f, 6.75f, ColorUtil.a(180, 185, 200, (int) (200.0f * mAlpha)));
+
+            if (cfg.getCustomTextureIdentifier() != null) {
+                String fname = new File(cfg.getCustomImagePath()).getName();
+                Fonts.a.a(matrices, "m", mX + 13.0f, mY + 139.0f, 7.5f, ColorUtil.a(100, 230, 140, (int) (230.0f * mAlpha)));
+                Fonts.c.a(matrices, fname, mX + 24.0f, mY + 139.0f, 6.75f, ColorUtil.a(220, 230, 245, (int) (210.0f * mAlpha)));
+            } else {
+                Fonts.c.a(matrices, cfg.getNoImageText(), mX + 13.0f, mY + 139.0f, 6.75f, ColorUtil.a(140, 145, 160, (int) (170.0f * mAlpha)));
+            }
+        } else if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.DEFAULT) {
+            String note = cfg.getLanguage() == MainMenuConfig.Language.ENGLISH ? "Original Destrum Client atmospheric artwork" : "Оригинальный атмосферный арт Destrum Client";
+            Fonts.c.a(matrices, note, mX + 13.0f, mY + 124.0f, 6.5f, ColorUtil.a(160, 170, 190, (int) (190.0f * mAlpha)));
+        } else if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.DARK) {
+            String note = cfg.getLanguage() == MainMenuConfig.Language.ENGLISH ? "Minimalist deep dark OLED background" : "Минималистичный глубокий тёмный OLED фон";
+            Fonts.c.a(matrices, note, mX + 13.0f, mY + 124.0f, 6.5f, ColorUtil.a(160, 170, 190, (int) (190.0f * mAlpha)));
         }
 
         // Close/Done pill
-        float doneW = 65.0f;
-        float doneH = 16.0f;
+        float doneW = 68.0f;
+        float doneH = 16.5f;
         float doneX = mX + ((mWidth - doneW) / 2.0f);
-        float doneY = (mY + mHeight) - doneH - 8.0f;
+        float doneY = (mY + mHeight) - doneH - 8.5f;
         boolean doneHover = MathUtil.a(mouseX, mouseY, doneX, doneY, doneW, doneH);
-        draw.b(matrices, doneX, doneY, doneW, doneH, 4.0f, ColorUtil.a(255, 255, 255, (int) ((doneHover ? 18.0f : 10.0f) * mAlpha)), mAlpha);
+        draw.b(matrices, doneX, doneY, doneW, doneH, 4.0f, ColorUtil.a(255, 255, 255, (int) ((doneHover ? 20.0f : 10.0f) * mAlpha)), mAlpha);
         draw.a(matrices, doneX, doneY, doneW, doneH, 4.0f, 0.5f, ColorUtil.a(255, 255, 255, (int) (25.0f * mAlpha)));
         String doneLabel = cfg.getLanguage() == MainMenuConfig.Language.ENGLISH ? "Done" : "Готово";
         float doneLabelW = Fonts.c.a(doneLabel, 6.75f);
@@ -545,18 +624,18 @@ public class MainScreen extends Screen {
         matrices.pop();
     }
 
-    private void drawLanguagePill(MatrixStack matrices, Draw2DProcessor draw, float px, float py, float pw, float ph, String text, boolean selected, int mouseX, int mouseY, int primary, float mAlpha) {
+    private void drawPill(MatrixStack matrices, Draw2DProcessor draw, float px, float py, float pw, float ph, String text, boolean selected, int mouseX, int mouseY, int primary, float mAlpha, float fontSize) {
         boolean hover = MathUtil.a(mouseX, mouseY, px, py, pw, ph);
         if (selected) {
-            draw.b(matrices, px, py, pw, ph, 4.5f, ColorUtil.a(primary, 0.28f * mAlpha), mAlpha);
-            draw.a(matrices, px, py, pw, ph, 4.5f, 0.5f, ColorUtil.a(primary, 0.85f * mAlpha));
-            float tw = Fonts.c.a(text, 6.75f);
-            Fonts.c.a(matrices, text, px + ((pw - tw) / 2.0f), (py + ((ph - 6.75f) / 2.0f)) - 0.5f, 6.75f, ColorUtil.a(255, 255, 255, (int) (250.0f * mAlpha)));
+            draw.b(matrices, px, py, pw, ph, 4.0f, ColorUtil.a(primary, 0.28f * mAlpha), mAlpha);
+            draw.a(matrices, px, py, pw, ph, 4.0f, 0.5f, ColorUtil.a(primary, 0.85f * mAlpha));
+            float tw = Fonts.c.a(text, fontSize);
+            Fonts.c.a(matrices, text, px + ((pw - tw) / 2.0f), (py + ((ph - fontSize) / 2.0f)) - 0.5f, fontSize, ColorUtil.a(255, 255, 255, (int) (250.0f * mAlpha)));
         } else {
-            draw.b(matrices, px, py, pw, ph, 4.5f, ColorUtil.a(11, 11, 13, InterfaceC0020Opcode.bN), mAlpha);
-            draw.a(matrices, px, py, pw, ph, 4.5f, 0.5f, ColorUtil.a(255, 255, 255, (int) ((hover ? 25.0f : 12.0f) * mAlpha)));
-            float tw = Fonts.c.a(text, 6.75f);
-            Fonts.c.a(matrices, text, px + ((pw - tw) / 2.0f), (py + ((ph - 6.75f) / 2.0f)) - 0.5f, 6.75f, ColorUtil.a(160, 165, 180, (int) (190.0f * mAlpha)));
+            draw.b(matrices, px, py, pw, ph, 4.0f, ColorUtil.a(11, 11, 13, InterfaceC0020Opcode.bN), mAlpha);
+            draw.a(matrices, px, py, pw, ph, 4.0f, 0.5f, ColorUtil.a(255, 255, 255, (int) ((hover ? 25.0f : 12.0f) * mAlpha)));
+            float tw = Fonts.c.a(text, fontSize);
+            Fonts.c.a(matrices, text, px + ((pw - tw) / 2.0f), (py + ((ph - fontSize) / 2.0f)) - 0.5f, fontSize, ColorUtil.a(160, 165, 180, (int) (190.0f * mAlpha)));
         }
     }
 
@@ -566,8 +645,8 @@ public class MainScreen extends Screen {
         }
         int width = Interface.aM_.getWindow().getScaledWidth();
         int height = Interface.aM_.getWindow().getScaledHeight();
-        float mWidth = 270.0f;
-        float mHeight = 175.0f;
+        float mWidth = 296.0f;
+        float mHeight = 205.0f;
         float mX = (width - mWidth) / 2.0f;
         float mY = (height - mHeight) / 2.0f;
 
@@ -582,9 +661,9 @@ public class MainScreen extends Screen {
         }
 
         // Language pills
-        float pY = mY + 39.0f;
-        float pW = 72.0f;
-        float pH = 16.5f;
+        float pY = mY + 38.0f;
+        float pW = 75.0f;
+        float pH = 15.5f;
         if (MathUtil.a(dA, dA2, mX + 12.0f, pY, pW, pH)) {
             cfg.setLanguage(MainMenuConfig.Language.RUSSIAN);
             updateButtonLabels();
@@ -596,20 +675,31 @@ public class MainScreen extends Screen {
             return true;
         }
 
-        // Background pills
-        float bgSecY = mY + 63.0f;
-        float bgPillY = bgSecY + 11.0f;
-        float bgW = 78.0f;
-        float bgH = 16.5f;
-        if (MathUtil.a(dA, dA2, mX + 12.0f, bgPillY, bgW, bgH)) {
+        // Background pills Row 1: DEFAULT, DARK, SHADER
+        float bgPillY = mY + 69.5f;
+        float bgW1 = 87.0f;
+        float bgH = 15.5f;
+        if (MathUtil.a(dA, dA2, mX + 12.0f, bgPillY, bgW1, bgH)) {
             cfg.setBackgroundMode(MainMenuConfig.BackgroundMode.DEFAULT);
             return true;
         }
-        if (MathUtil.a(dA, dA2, mX + 12.0f + bgW + 5.0f, bgPillY, bgW, bgH)) {
+        if (MathUtil.a(dA, dA2, mX + 12.0f + bgW1 + 5.0f, bgPillY, bgW1, bgH)) {
             cfg.setBackgroundMode(MainMenuConfig.BackgroundMode.DARK);
             return true;
         }
-        if (MathUtil.a(dA, dA2, mX + 12.0f + (bgW + 5.0f) * 2.0f, bgPillY, bgW, bgH)) {
+        if (MathUtil.a(dA, dA2, mX + 12.0f + (bgW1 + 5.0f) * 2.0f, bgPillY, bgW1, bgH)) {
+            cfg.setBackgroundMode(MainMenuConfig.BackgroundMode.SHADER);
+            return true;
+        }
+
+        // Background pills Row 2: WALLPAPER, CUSTOM
+        float bgPillY2 = bgPillY + bgH + 3.0f;
+        float bgW2 = 133.0f;
+        if (MathUtil.a(dA, dA2, mX + 12.0f, bgPillY2, bgW2, bgH)) {
+            cfg.setBackgroundMode(MainMenuConfig.BackgroundMode.WALLPAPER);
+            return true;
+        }
+        if (MathUtil.a(dA, dA2, mX + 12.0f + bgW2 + 6.0f, bgPillY2, bgW2, bgH)) {
             if (cfg.getCustomTextureIdentifier() != null) {
                 cfg.setBackgroundMode(MainMenuConfig.BackgroundMode.CUSTOM);
             } else {
@@ -618,30 +708,85 @@ public class MainScreen extends Screen {
             return true;
         }
 
-        // File choose button
-        float fBtnY = mY + 100.0f;
-        float fBtnX = mX + 12.0f;
-        float fBtnW = 120.0f;
-        float fBtnH = 18.0f;
-        if (MathUtil.a(dA, dA2, fBtnX, fBtnY, fBtnW, fBtnH)) {
-            openFileDialogAsync();
-            return true;
-        }
+        // Sub-options
+        if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.SHADER) {
+            float sY1 = mY + 119.0f;
+            float sW1 = 65.0f;
+            float sH1 = 14.5f;
+            if (MathUtil.a(dA, dA2, mX + 12.0f + 0 * 69.0f, sY1, sW1, sH1)) {
+                cfg.setShaderBackground(MainMenuConfig.ShaderBackground.NEBULA);
+                return true;
+            }
+            if (MathUtil.a(dA, dA2, mX + 12.0f + 1 * 69.0f, sY1, sW1, sH1)) {
+                cfg.setShaderBackground(MainMenuConfig.ShaderBackground.AURORA);
+                return true;
+            }
+            if (MathUtil.a(dA, dA2, mX + 12.0f + 2 * 69.0f, sY1, sW1, sH1)) {
+                cfg.setShaderBackground(MainMenuConfig.ShaderBackground.STARS);
+                return true;
+            }
+            if (MathUtil.a(dA, dA2, mX + 12.0f + 3 * 69.0f, sY1, sW1, sH1)) {
+                cfg.setShaderBackground(MainMenuConfig.ShaderBackground.PLASMA);
+                return true;
+            }
 
-        // Reset button
-        float rBtnX = fBtnX + fBtnW + 8.0f;
-        float rBtnW = 55.0f;
-        float rBtnH = 18.0f;
-        if (MathUtil.a(dA, dA2, rBtnX, fBtnY, rBtnW, rBtnH)) {
-            cfg.resetBackground();
-            return true;
+            float sY2 = sY1 + sH1 + 3.0f;
+            float sW2 = 87.0f;
+            if (MathUtil.a(dA, dA2, mX + 12.0f + 0 * 92.0f, sY2, sW2, sH1)) {
+                cfg.setShaderBackground(MainMenuConfig.ShaderBackground.NEON);
+                return true;
+            }
+            if (MathUtil.a(dA, dA2, mX + 12.0f + 1 * 92.0f, sY2, sW2, sH1)) {
+                cfg.setShaderBackground(MainMenuConfig.ShaderBackground.COSMOS);
+                return true;
+            }
+            if (MathUtil.a(dA, dA2, mX + 12.0f + 2 * 92.0f, sY2, sW2, sH1)) {
+                cfg.setShaderBackground(MainMenuConfig.ShaderBackground.CYBER);
+                return true;
+            }
+        } else if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.WALLPAPER) {
+            float wY = mY + 120.0f;
+            float wW = 65.0f;
+            float wH = 16.0f;
+            if (MathUtil.a(dA, dA2, mX + 12.0f + 0 * 69.0f, wY, wW, wH)) {
+                cfg.setWallpaperBackground(MainMenuConfig.WallpaperBackground.COSMIC);
+                return true;
+            }
+            if (MathUtil.a(dA, dA2, mX + 12.0f + 1 * 69.0f, wY, wW, wH)) {
+                cfg.setWallpaperBackground(MainMenuConfig.WallpaperBackground.EMERALD);
+                return true;
+            }
+            if (MathUtil.a(dA, dA2, mX + 12.0f + 2 * 69.0f, wY, wW, wH)) {
+                cfg.setWallpaperBackground(MainMenuConfig.WallpaperBackground.SUNSET);
+                return true;
+            }
+            if (MathUtil.a(dA, dA2, mX + 12.0f + 3 * 69.0f, wY, wW, wH)) {
+                cfg.setWallpaperBackground(MainMenuConfig.WallpaperBackground.AURORA);
+                return true;
+            }
+        } else if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.CUSTOM) {
+            float fBtnY = mY + 115.0f;
+            float fBtnX = mX + 12.0f;
+            float fBtnW = 125.0f;
+            float fBtnH = 17.5f;
+            if (MathUtil.a(dA, dA2, fBtnX, fBtnY, fBtnW, fBtnH)) {
+                openFileDialogAsync();
+                return true;
+            }
+            float rBtnX = fBtnX + fBtnW + 8.0f;
+            float rBtnW = 55.0f;
+            float rBtnH = 17.5f;
+            if (MathUtil.a(dA, dA2, rBtnX, fBtnY, rBtnW, rBtnH)) {
+                cfg.resetBackground();
+                return true;
+            }
         }
 
         // Done button
-        float doneW = 65.0f;
-        float doneH = 16.0f;
+        float doneW = 68.0f;
+        float doneH = 16.5f;
         float doneX = mX + ((mWidth - doneW) / 2.0f);
-        float doneY = (mY + mHeight) - doneH - 8.0f;
+        float doneY = (mY + mHeight) - doneH - 8.5f;
         if (MathUtil.a(dA, dA2, doneX, doneY, doneW, doneH)) {
             this.modalOpen = false;
             return true;

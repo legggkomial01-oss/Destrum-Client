@@ -1,6 +1,9 @@
 package aethereal.module.render;
 
 import static aethereal.core.Interface.aM_;
+import aethereal.config.MainMenuConfig;
+import aethereal.config.ThemeInfo;
+import aethereal.core.Delta;
 import aethereal.core.Category;
 import aethereal.core.Module;
 import aethereal.core.ModuleRegister;
@@ -44,8 +47,20 @@ public class SkyShader extends Module {
     private static final ShaderProgramKey SHADER_NEON = new ShaderProgramKey(
         Identifier.of("delta", "core/sky_neon"), VertexFormats.POSITION, Defines.EMPTY
     );
+    private static final ShaderProgramKey SHADER_COSMOS = new ShaderProgramKey(
+        Identifier.of("delta", "core/sky_cosmos"), VertexFormats.POSITION, Defines.EMPTY
+    );
+    private static final ShaderProgramKey SHADER_CYBER = new ShaderProgramKey(
+        Identifier.of("delta", "core/sky_cyber"), VertexFormats.POSITION, Defines.EMPTY
+    );
 
-    private final ModeSetting mode = new ModeSetting("Режим", "Туманность", "Туманность", "Аврора", "Звезды", "Плазма", "Неон");
+    private static final Map<String, ShaderProgram> MENU_PROGRAM_CACHE = new HashMap<>();
+    private static long menuStartTime = -1L;
+    private static final Matrix4f MENU_PROJ_BACKUP = new Matrix4f();
+    private static final Matrix4f MENU_ORTHO_MATRIX = new Matrix4f();
+    private static final Matrix4f MENU_IDENTITY_MATRIX = new Matrix4f();
+
+    private final ModeSetting mode = new ModeSetting("Режим", "Туманность", "Туманность", "Аврора", "Звезды", "Плазма", "Неон", "Космос", "Киберпанк");
     private final ColorSetting color = new ColorSetting("Цвет", Integer.valueOf(ColorUtil.a(50, 150, 255, 255)));
     private final ModeSetting neonPalette = new ModeSetting("Палитра неона", "RGB", "RGB", "Пастель", "Светлый", "Свой");
     private final ColorSetting neonColor1 = new ColorSetting("Неон цвет 1", Integer.valueOf(ColorUtil.a(255, 50, 50, 255)));
@@ -204,6 +219,8 @@ public class SkyShader extends Module {
             case "Звезды" -> SHADER_STARS;
             case "Плазма" -> SHADER_PLASMA;
             case "Неон" -> SHADER_NEON;
+            case "Космос" -> SHADER_COSMOS;
+            case "Киберпанк" -> SHADER_CYBER;
             default -> SHADER_NEBULA;
         };
 
@@ -216,6 +233,111 @@ public class SkyShader extends Module {
         } catch (Throwable ignored) {
             return null;
         }
+    }
+
+    public static void renderMenuBackground(MainMenuConfig.ShaderBackground bg, float mouseX, float mouseY, int screenWidth, int screenHeight) {
+        if (aM_ == null || aM_.getShaderLoader() == null) return;
+        if (bg == null) bg = MainMenuConfig.ShaderBackground.NEBULA;
+
+        ShaderProgramKey key = switch (bg) {
+            case AURORA -> SHADER_AURORA;
+            case STARS -> SHADER_STARS;
+            case PLASMA -> SHADER_PLASMA;
+            case NEON -> SHADER_NEON;
+            case COSMOS -> SHADER_COSMOS;
+            case CYBER -> SHADER_CYBER;
+            default -> SHADER_NEBULA;
+        };
+
+        ShaderProgram prog = MENU_PROGRAM_CACHE.get(bg.name());
+        if (prog == null) {
+            try {
+                prog = aM_.getShaderLoader().getOrCreateProgram(key);
+                if (prog != null) {
+                    MENU_PROGRAM_CACHE.put(bg.name(), prog);
+                }
+            } catch (Throwable ignored) {
+                return;
+            }
+        }
+        if (prog == null) return;
+
+        if (menuStartTime < 0L) {
+            menuStartTime = System.currentTimeMillis();
+        }
+        float elapsedSec = (float) (System.currentTimeMillis() - menuStartTime) / 1000.0f;
+        float fbW = (float) aM_.getWindow().getFramebufferWidth();
+        float fbH = (float) aM_.getWindow().getFramebufferHeight();
+
+        // Parallax from mouse
+        float normX = screenWidth > 0 ? (mouseX / screenWidth) - 0.5f : 0.0f;
+        float normY = screenHeight > 0 ? (mouseY / screenHeight) - 0.5f : 0.0f;
+        float yaw = normX * 0.35f;
+        float pitch = normY * 0.25f;
+
+        float cosYaw = (float) Math.cos(-yaw);
+        float sinYaw = (float) Math.sin(-yaw);
+        float cosPitch = (float) Math.cos(-pitch);
+        float sinPitch = (float) Math.sin(-pitch);
+
+        MENU_PROJ_BACKUP.set(RenderSystem.getProjectionMatrix());
+        RenderSystem.setProjectionMatrix(MENU_ORTHO_MATRIX, ProjectionType.ORTHOGRAPHIC);
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
+        RenderSystem.disableCull();
+        RenderSystem.setShader(prog);
+
+        setUniform(prog, "uTime", elapsedSec);
+        setUniform2f(prog, "uResolution", fbW, fbH);
+
+        int primary = Delta.h().d().o().a(ThemeInfo.PRIMARY).a();
+        float r = ((primary >> 16) & 0xFF) / 255.0f;
+        float g = ((primary >> 8) & 0xFF) / 255.0f;
+        float b = (primary & 0xFF) / 255.0f;
+
+        if (bg == MainMenuConfig.ShaderBackground.AURORA) {
+            r = 0.2f; g = 0.95f; b = 0.65f;
+        } else if (bg == MainMenuConfig.ShaderBackground.PLASMA) {
+            r = 0.85f; g = 0.25f; b = 0.95f;
+        } else if (bg == MainMenuConfig.ShaderBackground.CYBER) {
+            r = 0.0f; g = 0.85f; b = 1.0f;
+        } else if (bg == MainMenuConfig.ShaderBackground.COSMOS) {
+            r = 0.45f; g = 0.35f; b = 0.95f;
+        } else if (bg == MainMenuConfig.ShaderBackground.STARS) {
+            r = 0.85f; g = 0.9f; b = 1.0f;
+        }
+
+        setUniform3f(prog, "uColor", r, g, b);
+        setUniform(prog, "uAlpha", 1.0f);
+        setUniform(prog, "uSpeed", 0.85f);
+        setUniform(prog, "uScale", bg == MainMenuConfig.ShaderBackground.STARS ? 6.0f : 4.0f);
+        setUniform(prog, "uIntensity", 0.02f);
+
+        setUniform3f(prog, "uCamRight", cosYaw, 0.0f, -sinYaw);
+        setUniform3f(prog, "uCamUp", sinYaw * sinPitch, cosPitch, cosYaw * sinPitch);
+        setUniform3f(prog, "uCamForward", -sinYaw * cosPitch, sinPitch, -cosYaw * cosPitch);
+        setUniform(prog, "uFov", 75.0f);
+
+        if (bg == MainMenuConfig.ShaderBackground.NEON) {
+            setUniform3f(prog, "uColor1", 1.0f, 0.2f, 0.4f);
+            setUniform3f(prog, "uColor2", 0.1f, 0.9f, 0.6f);
+            setUniform3f(prog, "uColor3", 0.2f, 0.5f, 1.0f);
+        }
+
+        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
+        buffer.vertex(MENU_IDENTITY_MATRIX, -1.0f, -1.0f, 1.0f);
+        buffer.vertex(MENU_IDENTITY_MATRIX, 1.0f, -1.0f, 1.0f);
+        buffer.vertex(MENU_IDENTITY_MATRIX, 1.0f, 1.0f, 1.0f);
+        buffer.vertex(MENU_IDENTITY_MATRIX, -1.0f, 1.0f, 1.0f);
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
+
+        RenderSystem.depthMask(true);
+        RenderSystem.enableCull();
+        RenderSystem.enableDepthTest();
+        RenderSystem.disableBlend();
+        RenderSystem.setProjectionMatrix(MENU_PROJ_BACKUP, ProjectionType.ORTHOGRAPHIC);
     }
 
     private static void setUniform(ShaderProgram program, String name, float value) {

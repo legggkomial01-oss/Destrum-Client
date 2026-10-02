@@ -35,6 +35,8 @@ public class MainMenuConfig {
     public enum BackgroundMode {
         DEFAULT("Стандартный", "Default"),
         DARK("Тёмный", "Dark"),
+        SHADER("Шейдеры", "Shaders"),
+        WALLPAPER("4K Обои", "4K Wallpaper"),
         CUSTOM("Свой фон", "Custom");
 
         private final String ru;
@@ -50,8 +52,64 @@ public class MainMenuConfig {
         }
     }
 
+    public enum ShaderBackground {
+        NEBULA("Туманность", "Nebula", "core/sky_nebula"),
+        AURORA("Аврора", "Aurora", "core/sky_aurora"),
+        STARS("Звезды", "Stars", "core/sky_stars"),
+        PLASMA("Плазма", "Plasma", "core/sky_plasma"),
+        NEON("Неон", "Neon", "core/sky_neon"),
+        COSMOS("Космос", "Cosmos", "core/sky_cosmos"),
+        CYBER("Киберпанк", "Cyberpunk", "core/sky_cyber");
+
+        private final String ru;
+        private final String en;
+        private final String shaderPath;
+
+        ShaderBackground(String ru, String en, String shaderPath) {
+            this.ru = ru;
+            this.en = en;
+            this.shaderPath = shaderPath;
+        }
+
+        public String getDisplay(Language lang) {
+            return lang == Language.ENGLISH ? en : ru;
+        }
+
+        public String getShaderPath() {
+            return shaderPath;
+        }
+    }
+
+    public enum WallpaperBackground {
+        COSMIC("Космос", "Cosmic", "pictures/bg_cosmic.png"),
+        EMERALD("Изумруд", "Emerald", "pictures/bg_emerald.png"),
+        SUNSET("Закат", "Sunset", "pictures/bg_sunset.png"),
+        AURORA("Сияние", "Aurora", "pictures/bg_aurora.png");
+
+        private final String ru;
+        private final String en;
+        private final String assetPath;
+
+        WallpaperBackground(String ru, String en, String assetPath) {
+            this.ru = ru;
+            this.en = en;
+            this.assetPath = assetPath;
+        }
+
+        public String getDisplay(Language lang) {
+            return lang == Language.ENGLISH ? en : ru;
+        }
+
+        public Identifier getIdentifier() {
+            return Identifier.of("delta", assetPath);
+        }
+    }
+
     private Language language = Language.RUSSIAN;
     private BackgroundMode backgroundMode = BackgroundMode.DEFAULT;
+    private ShaderBackground shaderBackground = ShaderBackground.NEBULA;
+    private WallpaperBackground wallpaperBackground = WallpaperBackground.COSMIC;
+
     private String customImagePath = "";
     private Identifier customTextureIdentifier = null;
     private NativeImageBackedTexture customTexture = null;
@@ -82,6 +140,26 @@ public class MainMenuConfig {
 
     public void setBackgroundMode(BackgroundMode backgroundMode) {
         this.backgroundMode = backgroundMode;
+        save();
+    }
+
+    public ShaderBackground getShaderBackground() {
+        return shaderBackground;
+    }
+
+    public void setShaderBackground(ShaderBackground shaderBackground) {
+        this.shaderBackground = shaderBackground;
+        this.backgroundMode = BackgroundMode.SHADER;
+        save();
+    }
+
+    public WallpaperBackground getWallpaperBackground() {
+        return wallpaperBackground;
+    }
+
+    public void setWallpaperBackground(WallpaperBackground wallpaperBackground) {
+        this.wallpaperBackground = wallpaperBackground;
+        this.backgroundMode = BackgroundMode.WALLPAPER;
         save();
     }
 
@@ -146,6 +224,12 @@ public class MainMenuConfig {
             if (json.has("backgroundMode")) {
                 this.backgroundMode = BackgroundMode.valueOf(json.get("backgroundMode").getAsString());
             }
+            if (json.has("shaderBackground")) {
+                this.shaderBackground = ShaderBackground.valueOf(json.get("shaderBackground").getAsString());
+            }
+            if (json.has("wallpaperBackground")) {
+                this.wallpaperBackground = WallpaperBackground.valueOf(json.get("wallpaperBackground").getAsString());
+            }
             if (json.has("customImagePath")) {
                 this.customImagePath = json.get("customImagePath").getAsString();
                 if (this.backgroundMode == BackgroundMode.CUSTOM && !this.customImagePath.isEmpty()) {
@@ -165,6 +249,8 @@ public class MainMenuConfig {
             JsonObject json = new JsonObject();
             json.addProperty("language", this.language.name());
             json.addProperty("backgroundMode", this.backgroundMode.name());
+            json.addProperty("shaderBackground", this.shaderBackground.name());
+            json.addProperty("wallpaperBackground", this.wallpaperBackground.name());
             json.addProperty("customImagePath", this.customImagePath);
             File file = getConfigFile();
             Files.writeString(file.toPath(), GSON.toJson(json));
@@ -203,7 +289,15 @@ public class MainMenuConfig {
     }
 
     public String getBackgroundLabel() {
-        return language == Language.ENGLISH ? "Main Menu Background" : "Фон главного меню";
+        return language == Language.ENGLISH ? "Background Mode" : "Фон главного меню";
+    }
+
+    public String getShaderSelectionLabel() {
+        return language == Language.ENGLISH ? "Sky Shaders (Live)" : "Шейдеры неба (Live)";
+    }
+
+    public String getWallpaperSelectionLabel() {
+        return language == Language.ENGLISH ? "4K Wallpapers" : "4K Обои";
     }
 
     public String getSelectFileText() {

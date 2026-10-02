@@ -6,6 +6,7 @@ import static aethereal.core.Interface.aM_;
 import aethereal.core.Delta;
 import aethereal.core.InterfaceC0020Opcode;
 import aethereal.core.Module;
+import aethereal.notification.Notification;
 import aethereal.render.EasingList;
 import aethereal.render.Fonts;
 import aethereal.render.ColorUtil;
@@ -63,21 +64,34 @@ import platform.inject.accessors.TridentEntityAccessor;
 public class Predictions extends Module {
     private final MultiModeSetting b = new MultiModeSetting("Отслеживаемые предметы", new BooleanSetting("Стрелы", true), new BooleanSetting("Трезубцы", true), new BooleanSetting("Эндер жемчуг", true), new BooleanSetting("Зелья", true));
     private final BooleanSetting c = new BooleanSetting("Радужный цвет", false);
+    private final BooleanSetting pearlNotify = new BooleanSetting("Уведомление о перле", true);
     private final Map<Integer, b> d = new HashMap();
+    private final Set<Integer> notifiedPearls = new HashSet<>();
 
     static final class b {
         private final Vec3d a;
         private final int b;
         private final ItemStack c;
         private final AnimationUtil d;
+        private final String thrower;
+        private final double distance;
+        private final boolean isPearl;
 
-        b(Vec3d impact, int ticks, ItemStack item, AnimationUtil anim) {
+        b(Vec3d impact, int ticks, ItemStack item, AnimationUtil anim, String thrower, double distance, boolean isPearl) {
             this.a = impact;
             this.b = ticks;
             this.c = item;
             this.d = anim;
+            this.thrower = thrower;
+            this.distance = distance;
+            this.isPearl = isPearl;
         }
-public Vec3d a() {
+
+        b(Vec3d impact, int ticks, ItemStack item, AnimationUtil anim) {
+            this(impact, ticks, item, anim, null, 0.0, false);
+        }
+
+        public Vec3d a() {
             return this.a;
         }
 
@@ -92,10 +106,29 @@ public Vec3d a() {
         public AnimationUtil d() {
             return this.d;
         }
+
+        public String getThrower() {
+            return this.thrower;
+        }
+
+        public double getDistance() {
+            return this.distance;
+        }
+
+        public boolean isPearl() {
+            return this.isPearl;
+        }
     }
 
     public Predictions() {
-        a(this.b, this.c);
+        a(this.b, this.c, this.pearlNotify);
+    }
+
+    @Override
+    public void c() {
+        super.c();
+        this.notifiedPearls.clear();
+        this.d.clear();
     }
 
     private boolean a(Entity entity) {
@@ -146,7 +179,11 @@ public Vec3d a() {
                 AnimationUtil anim = ((b) entry.getValue()).d();
                 anim.a(false);
                 anim.a(0.0f, 1.0f, 0.25f, EasingList.s, event.g());
-                return anim.c() <= 0.0f;
+                boolean remove = anim.c() <= 0.0f;
+                if (remove) {
+                    this.notifiedPearls.remove(entry.getKey());
+                }
+                return remove;
             });
         }
         if (event.b()) {
@@ -180,7 +217,32 @@ public Vec3d a() {
             int lineAlpha = (int) (255.0f * (0.3f + (0.7f * (1.0f - (i / segCount)))) * max * alpha);
             event.e().a(event.h(), path.get(i), path.get(i + 1), null, (base & 16777215) | (lineAlpha << 24), 1.5f);
         }
-        this.d.put(Integer.valueOf(entity.getId()), new b((Vec3d) path.getLast(), segCount, item, anim));
+
+        boolean isPearl = entity instanceof EnderPearlEntity;
+        String throwerName = null;
+        double distance = 0.0;
+        if (isPearl) {
+            EnderPearlEntity pearl = (EnderPearlEntity) entity;
+            Entity owner = pearl.getOwner();
+            if (owner == null && aM_.world != null) {
+                owner = aM_.world.getClosestPlayer(pearl, 16.0);
+            }
+            if (owner != null) {
+                throwerName = (owner == aM_.player) ? "Вы" : owner.getName().getString();
+                distance = owner.getPos().distanceTo(path.getLast());
+            } else {
+                throwerName = "Игрок";
+                distance = pearl.getPos().distanceTo(path.getLast());
+            }
+
+            if (this.pearlNotify.c().booleanValue() && !this.notifiedPearls.contains(entity.getId())) {
+                this.notifiedPearls.add(entity.getId());
+                String msg = throwerName + " бросил перл (" + String.format(Locale.US, "%.1f", distance) + "м)";
+                Delta.h().d().m().a(new Notification(Items.ENDER_PEARL.getDefaultStack(), primaryColor, msg, 3500));
+            }
+        }
+
+        this.d.put(Integer.valueOf(entity.getId()), new b((Vec3d) path.getLast(), segCount, item, anim, throwerName, distance, isPearl));
     }
 
     private void a(DrawEvent event, b info) {
@@ -189,23 +251,55 @@ public Vec3d a() {
             return;
         }
         Vector2f screen = ProjectUtil.a(info.a().x, info.a().y, info.a().z);
-        if (ProjectUtil.a(screen)) {
+        if (!ProjectUtil.a(screen)) {
+            return;
+        }
+
+        MatrixStack matrices = event.i().getMatrices();
+        matrices.push();
+        matrices.translate(screen.x(), screen.y(), 0.0f);
+        matrices.scale(0.8f + (alpha * 0.2f), 0.8f + (alpha * 0.2f), 1.0f);
+        matrices.translate(-screen.x(), -screen.y(), 0.0f);
+
+        int primaryColor = Delta.h().d().o().a(ThemeInfo.PRIMARY).a();
+
+        if (info.isPearl() && info.getThrower() != null) {
+            String thrower = info.getThrower();
+            String timeAndDist = String.format(Locale.US, "%.1f м  •  %.1f с", info.getDistance(), info.b() / 20.0f);
+
+            float iconSize = 13.0f;
+            float padX = 5.0f;
+            float padY = 3.5f;
+            float textW = Math.max(Fonts.c.a(thrower, 7.0f), Fonts.e.a(timeAndDist, 6.5f));
+            float width = padX + iconSize + 4.0f + textW + padX;
+            float height = padY * 2.0f + 15.0f;
+
+            float x = screen.x() - (width / 2.0f);
+            float y = screen.y() - (height / 2.0f);
+
+            int bgColor = ColorUtil.a(12, 12, 16, (int) (215.0f * alpha));
+            int outlineColor = ColorUtil.a(primaryColor, 0.5f * alpha);
+            event.d().a(matrices, x, y, width, height, 4.0f, bgColor);
+            event.d().a(matrices, x, y, width, height, 4.0f, 0.75f, outlineColor);
+
+            event.e().a(event.i(), info.c(), x + padX, y + (height - iconSize) / 2.0f, 0, alpha, iconSize / 16.0f, false);
+
+            float textX = x + padX + iconSize + 4.0f;
+            Fonts.c.a(matrices, thrower, textX, y + padY, 7.0f, ColorUtil.a(primaryColor, alpha));
+            Fonts.e.a(matrices, timeAndDist, textX, y + padY + 8.5f, 6.5f, ColorUtil.a(-1, 0.85f * alpha), 0.0f);
+        } else {
             float iconSize = Fonts.e.d().lineHeight() * 7.25f;
             String format = String.format(Locale.US, "%.1fs", Float.valueOf(info.b() / 20.0f));
             float width = (2.0f * 3.0f) + iconSize + Fonts.e.a(format, 7.25f);
             float height = iconSize + (2.0f * 2.0f);
             float x = screen.x() - (width / 2.0f);
             float y = screen.y() - (height / 2.0f);
-            MatrixStack matrices = event.i().getMatrices();
-            matrices.push();
-            matrices.translate(screen.x(), screen.y(), 0.0f);
-            matrices.scale(0.8f + (alpha * 0.2f), 0.8f + (alpha * 0.2f), 1.0f);
-            matrices.translate(-screen.x(), -screen.y(), 0.0f);
+
             event.d().a(matrices, x, y, width + 1.0f, height, 2.0f, ColorUtil.a(0, 0, 0, (int) (130.0f * alpha)));
             event.e().a(event.i(), info.c(), x + 2.0f, (y + 2.0f) - 0.25f, 0, alpha, iconSize / 16.0f, false);
             Fonts.e.a(matrices, format, x + (2.0f * 2.0f) + iconSize, y + 2.0f, 7.25f, ColorUtil.a(-1, alpha), 0.0f);
-            matrices.pop();
         }
+        matrices.pop();
     }
 
     private List<Vec3d> b(Entity entity) {

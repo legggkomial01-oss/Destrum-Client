@@ -100,7 +100,7 @@ public class Button {
                 int c = (int) (180.0f + (65.0f * wave * hover));
                 class_2561VarMethod_43470.append(Text.literal(String.valueOf(this.d.charAt(i))).setStyle(Style.EMPTY.withColor((c << 16) | (c << 8) | c)));
             }
-            float fontSize = this.c < 30.0f ? 7.25f : 8.0f;
+            float fontSize = this.c <= 21.0f ? 6.75f : (this.c < 30.0f ? 7.25f : 8.0f);
             float labelW = Fonts.e.a(this.d, fontSize);
             Fonts.e.a(matrices, class_2561VarMethod_43470, this.f + ((this.b - labelW) / 2.0f), this.g + ((this.c - (fontSize + 1.0f)) / 2.0f), fontSize, 0.0f, open);
         }
