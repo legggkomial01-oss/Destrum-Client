@@ -29,6 +29,7 @@ import net.minecraft.component.DataComponentTypes;
 public class NotificationWidget extends Widget implements Interface {
     private final BooleanSetting f;
     private final BooleanSetting g;
+    private boolean initialized = false;
 
     public NotificationWidget() {
         super(new DragInfo("Уведомления", 0.0f, 0.0f, 0.0f, 0.0f));
@@ -49,15 +50,17 @@ public class NotificationWidget extends Widget implements Interface {
     public void a(DrawEvent event) {
         float fA;
         d().a(0.0f, 1.0f, 0.3f, EasingList.g, event.g());
+
+        if (!this.initialized && j().c() == 0.0f && j().d() == 0.0f) {
+            float initX = (aM_.getWindow().getScaledWidth() - 150.0f) / 2.0f;
+            float initY = 25.0f;
+            j().a(initX);
+            j().b(initY);
+            this.initialized = true;
+        }
+
         float x = j().a();
         float contentY = j().b();
-
-        if (j().c() == 0.0f && j().d() == 0.0f) {
-            x = (aM_.getWindow().getScaledWidth() - 150.0f) / 2.0f;
-            contentY = 25.0f;
-            j().a(x);
-            j().b(contentY);
-        }
 
         boolean hasNotifications = !Delta.h().d().m().b().isEmpty();
         if (!hasNotifications && (aM_.currentScreen instanceof ChatScreen)) {

@@ -15,6 +15,8 @@ import aethereal.event.BackendEvent;
 import aethereal.event.DrawEvent;
 import aethereal.event.PacketEvent;
 import aethereal.ui.element.Element_2;
+import aethereal.ui.element.SliderElement;
+import aethereal.ui.element.ModeElement;
 
 import aethereal.render.AnimationUtil;
 import aethereal.ui.element.DragInfo;
@@ -112,36 +114,37 @@ public class Widget {
         }
     }
 
-    public void a(DrawEvent event) {
+    public void render(DrawEvent event) {
+        if (this.i != null) {
+            this.i.update(event.g());
+        }
         float scale = getScale();
-        float dragAnim = this.i != null ? this.i.getDragAnim() : 0.0f;
-        float totalScale = scale * (1.0f + 0.04f * dragAnim);
+        boolean transform = Math.abs(scale - 1.0f) > 0.001f;
         MatrixStack matrices = event.i().getMatrices();
         float wx = this.i != null ? this.i.a() : 0.0f;
         float wy = this.i != null ? this.i.b() : 0.0f;
-        boolean transform = Math.abs(totalScale - 1.0f) > 0.001f;
         if (transform) {
             matrices.push();
             matrices.translate(wx, wy, 0.0f);
-            matrices.scale(totalScale, totalScale, 1.0f);
+            matrices.scale(scale, scale, 1.0f);
             matrices.translate(-wx, -wy, 0.0f);
         }
 
-        if (dragAnim > 0.01f && this.i != null) {
-            int glowColor = Delta.h().d().o().a(ThemeInfo.PRIMARY).a();
-            event.d().a(event.h(), wx - 2.0f, wy - 2.0f, this.i.getRawWidth() + 4.0f, this.i.getRawHeight() + 4.0f, 6.0f, ColorUtil.a(glowColor, 0.3f * dragAnim), 1.0f, ColorUtil.a(glowColor, 0.45f * dragAnim), 10.0f);
+        a(event);
+
+        if (transform) {
+            matrices.pop();
         }
 
-        e().a(0.0f, 1.0f, 0.3f, EasingList.g, event.g());
         this.c.a(this.h && (Interface.aM_.currentScreen instanceof ChatScreen));
         this.c.a(0.0f, 1.0f, 0.3f, EasingList.g, event.g());
         if (this.c.c() > 0.0f) {
             b(event);
         }
+    }
 
-        if (transform) {
-            matrices.pop();
-        }
+    public void a(DrawEvent event) {
+        e().a(0.0f, 1.0f, 0.3f, EasingList.g, event.g());
     }
 
     public void a(GlobalEvent event) {
@@ -160,10 +163,12 @@ public class Widget {
         }).toList();
         if (!visible.isEmpty()) {
             float panelWidth = ((Float) visible.stream().map(e2 -> {
-                return Float.valueOf(19.5f + Fonts.e.a(e2.e().i(), 6.5f) + 25.0f);
+                float extra = (e2 instanceof SliderElement || e2 instanceof ModeElement) ? 68.0f : 28.0f;
+                return Float.valueOf(19.5f + Fonts.e.a(e2.e().i(), 6.5f) + extra);
             }).reduce(Float.valueOf(0.0f), (v0, v1) -> {
                 return Math.max(v0, v1);
             })).floatValue();
+            panelWidth = Math.max(panelWidth, 95.0f);
             float totalHeight = (12.0f * visible.size()) + (visible.size() - 1);
             float anim = this.c.c() * a();
             float baseX = (this.i.b() - totalHeight) - 2.0f >= 0.0f ? (this.i.a() + (this.i.f() / 2.0f)) - (panelWidth / 2.0f) : this.i.a() + this.i.f() + 2.0f;

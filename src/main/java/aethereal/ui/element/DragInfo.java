@@ -118,42 +118,54 @@ public class DragInfo implements Interface {
         Delta.h().d().s().e().add(this);
     }
 
-    public float a() {
-        float target = MathUtil.b(this.c, 0.0f, (aM_.getWindow().getFramebufferWidth() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - f());
-        if (Float.isNaN(this.renderX)) {
-            this.renderX = target;
+    public void update(float tickDelta) {
+        float maxW = (aM_.getWindow().getFramebufferWidth() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - f();
+        float maxH = (aM_.getWindow().getFramebufferHeight() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - g();
+        float targetX = MathUtil.b(this.c, 0.0f, Math.max(0.0f, maxW));
+        float targetY = MathUtil.b(this.d, 0.0f, Math.max(0.0f, maxH));
+        boolean isDragging = Delta.h().d().s() != null && Delta.h().d().s().g() == this;
+        this.dragAnim = MathUtil.c(this.dragAnim, isDragging ? 1.0f : 0.0f, 0.25f);
+        if (Float.isNaN(this.renderX) || isDragging) {
+            this.renderX = targetX;
+            this.renderY = targetY;
         } else {
-            this.renderX = MathUtil.c(this.renderX, target, 0.35f);
+            this.renderX = MathUtil.c(this.renderX, targetX, 0.35f);
+            this.renderY = MathUtil.c(this.renderY, targetY, 0.35f);
+        }
+    }
+
+    public float a() {
+        if (Float.isNaN(this.renderX)) {
+            float maxW = (aM_.getWindow().getFramebufferWidth() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - f();
+            return MathUtil.b(this.c, 0.0f, Math.max(0.0f, maxW));
         }
         return this.renderX;
     }
 
     public float b() {
-        float target = MathUtil.b(this.d, 0.0f, (aM_.getWindow().getFramebufferHeight() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - g());
         if (Float.isNaN(this.renderY)) {
-            this.renderY = target;
-        } else {
-            this.renderY = MathUtil.c(this.renderY, target, 0.35f);
+            float maxH = (aM_.getWindow().getFramebufferHeight() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - g();
+            return MathUtil.b(this.d, 0.0f, Math.max(0.0f, maxH));
         }
         return this.renderY;
     }
 
     public float getRawA() {
-        return MathUtil.b(this.c, 0.0f, (aM_.getWindow().getFramebufferWidth() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - f());
+        float maxW = (aM_.getWindow().getFramebufferWidth() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - f();
+        return MathUtil.b(this.c, 0.0f, Math.max(0.0f, maxW));
     }
 
     public float getRawB() {
-        return MathUtil.b(this.d, 0.0f, (aM_.getWindow().getFramebufferHeight() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - g());
+        float maxH = (aM_.getWindow().getFramebufferHeight() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - g();
+        return MathUtil.b(this.d, 0.0f, Math.max(0.0f, maxH));
     }
 
     public float getDragAnim() {
-        boolean isDragging = Delta.h().d().s() != null && Delta.h().d().s().g() == this;
-        this.dragAnim = MathUtil.c(this.dragAnim, isDragging ? 1.0f : 0.0f, 0.25f);
         return this.dragAnim;
     }
 
     public float getDragScale() {
-        return 1.0f + (0.04f * getDragAnim());
+        return 1.0f + (0.04f * this.dragAnim);
     }
 
     public float c() {

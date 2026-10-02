@@ -2,6 +2,7 @@ package aethereal.ui.element;
 
 import aethereal.core.NativeMethodLookup;
 import aethereal.core.Delta;
+import aethereal.core.InterfaceC0020Opcode;
 import aethereal.render.EasingList;
 import aethereal.render.Fonts;
 import aethereal.render.ColorUtil;
@@ -9,12 +10,14 @@ import aethereal.util.MathUtil;
 
 import aethereal.config.ThemeInfo;
 import aethereal.config.ThemeProcessor;
+import aethereal.event.DrawEvent;
 import aethereal.render.Draw2DProcessor;
 import aethereal.setting.ModeSetting;
 import aethereal.ui.element.Element_2;
 
 import aethereal.render.AnimationUtil;
 import aethereal.api.Compile;
+import java.util.List;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.math.MatrixStack;
 import org.joml.Vector4f;
@@ -27,6 +30,25 @@ public class ModeElement extends Element_2<ModeSetting> {
     public boolean a(double mouseX, double mouseY, int button) {
         Vector4f vector4f = this.a;
         var setting = this.b;
+        if (vector4f.w <= 14.0f) {
+            if (MathUtil.a(mouseX, mouseY, vector4f.x, vector4f.y, vector4f.z, vector4f.w)) {
+                if (!(setting instanceof ModeSetting)) {
+                    throw new ClassCastException();
+                }
+                ModeSetting modeSetting = (ModeSetting) setting;
+                if (button == 0) {
+                    List<String> modes = modeSetting.k();
+                    int idx = modes.indexOf(modeSetting.c());
+                    int next = (idx + 1) % modes.size();
+                    modeSetting.a(modes.get(next));
+                    return true;
+                } else if (button == 2) {
+                    modeSetting.b();
+                    return true;
+                }
+            }
+            return false;
+        }
         if (button != 0) {
             if (button != 2 || !MathUtil.a(mouseX, mouseY, vector4f.x, vector4f.y, vector4f.z, vector4f.w)) {
                 return false;
@@ -100,5 +122,25 @@ public class ModeElement extends Element_2<ModeSetting> {
             i++;
         }
         this.a.w = (y + 9.0f) - this.a.y;
+    }
+
+    @Override
+    public void a(DrawEvent event, float x, float y, float width, float animation) {
+        ThemeProcessor theme = Delta.h().d().o();
+        int primary = theme.a(ThemeInfo.PRIMARY).a();
+        Fonts.a.a(event.h(), "g", x + 5.0f, y + ((12.0f - Fonts.a.a(6.5f)) / 2.0f), 6.5f, ColorUtil.a(primary, animation));
+        event.d().a(event.i().getMatrices(), x + 15.5f, y + 3.0f, 0.75f, 6.0f, 0.0f, ColorUtil.a(ColorUtil.a(InterfaceC0020Opcode.aN, InterfaceC0020Opcode.aN, InterfaceC0020Opcode.aN, 255), 0.5f * animation));
+        Fonts.e.a(event.h(), ((ModeSetting) this.b).i(), x + 19.5f, (y + ((12.0f - Fonts.e.a(6.5f)) / 2.0f)) - 0.5f, 6.5f, ColorUtil.a(-1, animation));
+
+        String currentMode = ((ModeSetting) this.b).c();
+        float badgeTextW = Fonts.e.a(currentMode, 6.0f);
+        float badgeW = badgeTextW + 8.0f;
+        float badgeH = 8.5f;
+        float badgeX = ((x + width) - badgeW) - 4.0f;
+        float badgeY = y + ((12.0f - badgeH) / 2.0f);
+
+        event.d().a(event.i().getMatrices(), badgeX, badgeY, badgeW, badgeH, 2.0f, ColorUtil.a(primary, 0.35f * animation));
+        event.d().a(event.i().getMatrices(), badgeX, badgeY, badgeW, badgeH, 2.0f, 0.5f, ColorUtil.a(theme.a(ThemeInfo.OUTLINE_SMALL).a(), theme.a(ThemeInfo.OUTLINE_SMALL).b() * animation));
+        Fonts.e.a(event.h(), currentMode, badgeX + 4.0f, (badgeY + ((badgeH - Fonts.e.a(6.0f)) / 2.0f)) - 0.5f, 6.0f, ColorUtil.a(-1, animation));
     }
 }

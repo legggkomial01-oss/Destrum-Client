@@ -318,6 +318,11 @@ public class WatermarkWidget extends Widget implements Interface {
             bossOffset = (((12 + (size * (10 + 9))) + 5) * aM_.getWindow().calculateScaleFactor(((Integer) aM_.options.getGuiScale().getValue()).intValue(), aM_.forcesUnicodeFont())) / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont());
         }
 
+        // Check if watermark widget itself is being dragged: turns off center automatically
+        if (Delta.h().d().s() != null && Delta.h().d().s().g() == j()) {
+            this.centerSetting.a(Boolean.valueOf(false));
+        }
+
         // Handle center setting: if center is enabled, position at top center and reset detached pills
         if (this.centerSetting.c().booleanValue()) {
             boolean anyChanged = this.pills.stream().anyMatch(p -> p.detached || p.order != p.defaultOrder || p.row != p.defaultRow);
@@ -330,19 +335,14 @@ public class WatermarkWidget extends Widget implements Interface {
             float centerY = 5.0f + bossOffset;
             j().a(centerX);
             j().b(centerY);
-        } else {
-            // Check if watermark widget itself is being dragged: turns off center automatically
-            if (Delta.h().d().s() != null && Delta.h().d().s().g() == j()) {
-                this.centerSetting.a(Boolean.valueOf(false));
-            }
         }
+
+        j().c(Math.max(topWidth, bottomWidth));
+        j().d(row1.isEmpty() ? this.d : this.d + 3.0f + this.d);
 
         float x = j().a();
         float y = j().b();
         float bottomX = x + ((topWidth - bottomWidth) / 2.0f);
-
-        j().c(Math.max(topWidth, bottomWidth));
-        j().d(row1.isEmpty() ? this.d : this.d + 3.0f + this.d);
 
         int primaryColor = ColorUtil.a(Delta.h().d().o().a(ThemeInfo.PRIMARY).a(), 1.0f);
         float textYOffset = -0.5f;

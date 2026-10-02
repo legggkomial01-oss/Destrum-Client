@@ -135,36 +135,76 @@ public class DragProcessor extends ConfigProcessor<DragInfo> implements Interfac
                 }
                 return;
             }
-            if (event.b() && event.h() == 0) {
-                for (DragInfo dragInfo : e()) {
-                    if (dragInfo.k() != 2 && MathUtil.a(event.f(), event.g(), dragInfo.a(), dragInfo.b(), dragInfo.f(), dragInfo.g())) {
-                        if ("Инфо-панель".equals(dragInfo.j()) && WatermarkWidget.isInteractingWithPill(event.f(), event.g()) && !Screen.hasShiftDown()) {
-                            continue;
+
+            boolean popupHandled = false;
+            for (DragInfo dragInfo : e()) {
+                if (dragInfo.e() != null && dragInfo.e().g()) {
+                    for (Element_2<?> element : dragInfo.e().c()) {
+                        if (element.a() && MathUtil.a(event.f(), event.g(), element.d().x, element.d().y, element.d().z, element.d().w)) {
+                            if (event.b()) {
+                                element.a(event.f(), event.g(), event.h());
+                            }
+                            popupHandled = true;
+                            break;
                         }
-                        CursorUtil.a(CursorUtil.a.HAND);
-                        this.g = dragInfo;
-                        this.g.a(event.f() - ((double) dragInfo.a()));
-                        this.g.b(event.g() - ((double) dragInfo.b()));
-                        break;
+                    }
+                    if (popupHandled) break;
+                }
+            }
+
+            if (event.d() && event.h() == 0) {
+                for (DragInfo dragInfo : e()) {
+                    if (dragInfo.e() != null && dragInfo.e().g()) {
+                        for (Element_2<?> element : dragInfo.e().c()) {
+                            if (element.a(event.f(), event.g(), event.h(), 0, 0)) {
+                                popupHandled = true;
+                                break;
+                            }
+                        }
                     }
                 }
-            } else if (event.c() && event.h() == 0) {
-                h();
-            } else if (event.d() && this.g != null && event.h() == 0) {
-                if (WatermarkWidget.isPillInteracting()) {
-                    return;
-                }
-                a((float) (event.f() - this.g.h()), (float) (event.g() - this.g.i()), this.g);
             }
-            for (DragInfo dragInfo2 : e()) {
-                if (event.h() == 1 && event.b()) {
+
+            if (event.c() && event.h() == 0) {
+                for (DragInfo dragInfo : e()) {
+                    if (dragInfo.e() != null && dragInfo.e().g()) {
+                        for (Element_2<?> element : dragInfo.e().c()) {
+                            element.b(event.f(), event.g(), event.h());
+                        }
+                    }
+                }
+            }
+
+            if (event.h() == 1 && event.b()) {
+                for (DragInfo dragInfo2 : e()) {
                     if (MathUtil.a(event.f(), event.g(), dragInfo2.a(), dragInfo2.b(), dragInfo2.f(), dragInfo2.g())) {
                         dragInfo2.e().a(!dragInfo2.e().g());
+                        return;
                     }
-                } else if (event.h() == 0 && event.c() && dragInfo2.e().g()) {
-                    for (Element_2<?> element : dragInfo2.e().c()) {
-                        element.a(event.f(), event.g(), event.h());
+                }
+            }
+
+            if (!popupHandled) {
+                if (event.b() && event.h() == 0) {
+                    for (DragInfo dragInfo : e()) {
+                        if (dragInfo.k() != 2 && MathUtil.a(event.f(), event.g(), dragInfo.a(), dragInfo.b(), dragInfo.f(), dragInfo.g())) {
+                            if ("Инфо-панель".equals(dragInfo.j()) && WatermarkWidget.isInteractingWithPill(event.f(), event.g()) && !Screen.hasShiftDown()) {
+                                continue;
+                            }
+                            CursorUtil.a(CursorUtil.a.HAND);
+                            this.g = dragInfo;
+                            this.g.a(event.f() - ((double) dragInfo.a()));
+                            this.g.b(event.g() - ((double) dragInfo.b()));
+                            break;
+                        }
                     }
+                } else if (event.c() && event.h() == 0) {
+                    h();
+                } else if (event.d() && this.g != null && event.h() == 0) {
+                    if (WatermarkWidget.isPillInteracting()) {
+                        return;
+                    }
+                    a((float) (event.f() - this.g.h()), (float) (event.g() - this.g.i()), this.g);
                 }
             }
         }

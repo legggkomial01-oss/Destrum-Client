@@ -62,7 +62,7 @@ public class Interface_2 extends Module {
             Delta.h().d().o().a(ThemeInfo.PRIMARY).a(this.b.c().intValue());
             for (Widget widget : this.d) {
                 if (this.c.a(widget.j().j()).c().booleanValue()) {
-                    widget.a(event);
+                    widget.render(event);
                 }
             }
         }
