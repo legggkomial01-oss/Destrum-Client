@@ -19,11 +19,9 @@ import aethereal.setting.Setting;
 import aethereal.module.combat.AimAssistant;
 import aethereal.module.movement.AirStuck;
 import aethereal.ambience.Ambience;
-import aethereal.module.misc.AncientFarmer;
 import aethereal.render.Animations;
 import aethereal.module.misc.AntiAFK;
 import aethereal.module.combat.AntiBot;
-import aethereal.module.misc.AppleFarmer;
 import aethereal.module.render.AspectRatio;
 import aethereal.ui.screen.AssistantScreen;
 import aethereal.module.player.AucReissue;
@@ -38,32 +36,25 @@ import aethereal.module.player.AutoEat;
 import aethereal.module.combat.AutoExplosion;
 import aethereal.module.player.AutoFish;
 import aethereal.module.player.AutoLeave;
-import aethereal.module.player.AutoRespawn;
 import aethereal.module.combat.AutoSwap;
 import aethereal.module.player.AutoTool;
 import aethereal.module.combat.AutoTotem;
-import aethereal.module.misc.AutoWarden;
 import aethereal.module.render.BlockESP;
 import aethereal.module.render.BoardSpoofer;
 import aethereal.module.player.CaptchaSolver;
 import aethereal.module.misc.ChatHelper;
-import aethereal.module.player.ChestStealer;
 import aethereal.module.render.ChinaHat;
 import aethereal.module.misc.ClanUpgrader;
 import aethereal.module.player.ClickAction;
 import aethereal.module.misc.Collector_2;
-import aethereal.module.misc.Communication;
 import aethereal.module.render.Crosshair;
-import aethereal.module.player.DeathCoords;
 import aethereal.module.player.ElytraHelper;
 import aethereal.module.movement.ElytraTarget;
 import aethereal.module.render.EntityBox;
 import aethereal.module.render.EntityESP;
-import aethereal.module.player.FakeLags;
 import aethereal.module.movement.FastBreak;
 import aethereal.module.player.FastEXP;
 import aethereal.module.player.FastLoad;
-import aethereal.module.movement.Fly;
 import aethereal.module.movement.FreeCamera;
 import aethereal.module.render.FullBright;
 import aethereal.module.misc.FunDeliver;
@@ -89,9 +80,7 @@ import aethereal.module.combat.NoServerPack;
 import aethereal.module.combat.NoSlotChange;
 import aethereal.module.movement.NoSlowDown;
 import aethereal.module.misc.Nuker;
-import aethereal.module.player.OpenWalls;
 import aethereal.module.render.Pointers;
-import aethereal.module.misc.PortalBypass;
 import aethereal.module.misc.PotionThrower;
 import aethereal.module.render.Predictions;
 import aethereal.module.combat.ProjectileHelper;
@@ -102,7 +91,6 @@ import aethereal.module.movement.Scaffold;
 import aethereal.module.movement.ScreenWalk;
 import aethereal.module.render.SeeInvisibles;
 import aethereal.module.misc.ServerAssistant;
-import aethereal.module.misc.ServerJoiner;
 import aethereal.module.render.ShaderESP;
 import aethereal.module.combat.ShiftTAP;
 import aethereal.module.render.ShulkerPreview;
@@ -123,10 +111,6 @@ import aethereal.module.movement.WallClimb;
 import aethereal.module.render.WardenESP;
 import aethereal.module.movement.WaterJump;
 import aethereal.module.player.WindHop;
-import aethereal.module.misc.XRay;
-import aethereal.module.render.JumpCircles;
-import aethereal.module.render.TargetESP;
-import aethereal.module.render.SkyShader;
 import aethereal.api.Compile;
 import java.io.File;
 import java.io.IOException;
@@ -151,9 +135,7 @@ import net.minecraft.registry.DefaultedRegistry;
 import net.minecraft.registry.Registries;
 
 public class ModuleProcessor extends ConfigProcessor<Module> {
-    private final OpenWalls e = new OpenWalls();
     private final ScreenWalk f = new ScreenWalk();
-    private final FakeLags g = new FakeLags();
     private final FreeCamera h = new FreeCamera();
     private final WardenESP i = new WardenESP();
     private final Structures j = new Structures();
@@ -171,24 +153,20 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     private final NoServerPack v = new NoServerPack();
     private final ItemScroller w = new ItemScroller();
     private final BoardSpoofer x = new BoardSpoofer();
-    private final Communication y = new Communication();
     private final UseTracker z = new UseTracker();
     private final ShiftTAP A = new ShiftTAP();
     private final Aura B = new Aura();
     private final AutoExplosion C = new AutoExplosion();
     private final ProjectileHelper D = new ProjectileHelper();
-    private final XRay E = new XRay();
     private final ElytraHelper F = new ElytraHelper();
     private final ElytraTarget G = new ElytraTarget();
     private final MaceHelper H = new MaceHelper();
     private final AntiAFK I = new AntiAFK();
-    private final DeathCoords J = new DeathCoords();
     private final AutoAccept K = new AutoAccept();
     private final AutoSwap L = new AutoSwap();
     private final ThirdPerson M = new ThirdPerson();
     private final AutoTool N = new AutoTool();
     private final NoPush O = new NoPush();
-    private final AutoRespawn P = new AutoRespawn();
     private final Animations Q = new Animations();
     private final SwingAnimation R = new SwingAnimation();
     private final AucReissue S = new AucReissue();
@@ -212,7 +190,6 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     private final MineAssistant ak = new MineAssistant();
     private final AutoFish al = new AutoFish();
     private final NoCommands am = new NoCommands();
-    private final ServerJoiner an = new ServerJoiner();
     private final ViewModel ao = new ViewModel();
     private final ClickAction ap = new ClickAction();
     private final WaterJump aq = new WaterJump();
@@ -224,14 +201,10 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     private final ShulkerPreview aw = new ShulkerPreview();
     private final NoDelay ax = new NoDelay();
     private final ChinaHat ay = new ChinaHat();
-    private final AppleFarmer az = new AppleFarmer();
-    private final AncientFarmer aA = new AncientFarmer();
     private final AspectRatio aB = new AspectRatio();
     private final Predictions aC = new Predictions();
-    private final ChestStealer aD = new ChestStealer();
     private final StreamerMode aE = new StreamerMode();
     private final Ambience aF = new Ambience();
-    private final PortalBypass aG = new PortalBypass();
     private final CaptchaSolver aH = new CaptchaSolver();
     private final FastEXP aI = new FastEXP();
     private final Collector_2 aJ = new Collector_2();
@@ -241,11 +214,9 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     private final FastLoad aN = new FastLoad();
     private final FullBright aO = new FullBright();
     private final AutoEXP aP = new AutoEXP();
-    private final Fly aQ = new Fly();
     private final WallClimb aR = new WallClimb();
     private final Scaffold aS = new Scaffold();
     private final HandsShader aT = new HandsShader();
-    private final AutoWarden aU = new AutoWarden();
     private final AutoEat aV = new AutoEat();
     private final WindHop aW = new WindHop();
     private final FastBreak aX = new FastBreak();
@@ -255,15 +226,12 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     private final AutoLeave bb = new AutoLeave();
     private final Velocity bc = new Velocity();
     private Interface_2 bd;
-    private final JumpCircles be = new JumpCircles();
-    private final TargetESP bf = new TargetESP();
-    private final SkyShader bg = new SkyShader();
 
     @Override
     @Compile
     public void setup() {
         this.bd = new Interface_2();
-        a(this.f, this.aA, this.az, this.bc, this.aY, this.aL, this.aD, this.Z, this.J, this.aK, this.U, this.S, this.aJ, this.N, this.aH, this.aT, this.s, this.av, this.i, this.aE, this.ao, this.m, this.Q, this.ag, this.aC, this.n, this.am, this.I, this.h, this.aQ, this.aR, this.aS, this.aI, this.al, this.aq, this.x, this.ar, this.g, this.aM, this.aG, this.aF, this.z, this.ax, this.aw, this.r, this.u, this.y, this.an, this.aj, this.ak, this.A, this.t, this.ah, this.V, this.W, this.as, this.q, this.P, this.ap, this.k, this.l, this.F, this.G, this.H, this.B, this.C, this.R, this.D, this.X, this.j, this.M, this.ay, this.L, this.K, this.o, this.E, this.ae, this.v, this.ac, this.af, this.T, this.ai, this.ab, this.aa, this.O, this.p, this.w, this.bd, this.at, this.au, this.aB, this.aO, this.e, this.aN, this.aP, this.aU, this.aV, this.aW, this.aX, this.aZ, this.ba, this.bb, this.Y, this.be, this.bf, this.bg);
+        a(this.f, this.bc, this.aY, this.aL, this.Z, this.aK, this.U, this.S, this.aJ, this.N, this.aH, this.aT, this.s, this.av, this.i, this.aE, this.ao, this.m, this.Q, this.ag, this.aC, this.n, this.am, this.I, this.h, this.aR, this.aS, this.aI, this.al, this.aq, this.x, this.ar, this.aM, this.aF, this.z, this.ax, this.aw, this.r, this.u, this.aj, this.ak, this.A, this.t, this.ah, this.V, this.W, this.as, this.q, this.ap, this.k, this.l, this.F, this.G, this.H, this.B, this.C, this.R, this.D, this.X, this.j, this.M, this.ay, this.L, this.K, this.o, this.ae, this.v, this.ac, this.af, this.T, this.ai, this.ab, this.aa, this.O, this.p, this.w, this.bd, this.at, this.au, this.aB, this.aO, this.aN, this.aP, this.aV, this.aW, this.aX, this.aZ, this.ba, this.bb, this.Y);
         super.setup();
     }
 
@@ -537,18 +505,8 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     }
 
     @Generated
-    public OpenWalls a() {
-        return this.e;
-    }
-
-    @Generated
     public ScreenWalk f() {
         return this.f;
-    }
-
-    @Generated
-    public FakeLags g() {
-        return this.g;
     }
 
     @Generated
@@ -637,11 +595,6 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     }
 
     @Generated
-    public Communication y() {
-        return this.y;
-    }
-
-    @Generated
     public UseTracker z() {
         return this.z;
     }
@@ -667,11 +620,6 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     }
 
     @Generated
-    public XRay E() {
-        return this.E;
-    }
-
-    @Generated
     public ElytraHelper F() {
         return this.F;
     }
@@ -689,11 +637,6 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     @Generated
     public AntiAFK I() {
         return this.I;
-    }
-
-    @Generated
-    public DeathCoords J() {
-        return this.J;
     }
 
     @Generated
@@ -719,11 +662,6 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     @Generated
     public NoPush O() {
         return this.O;
-    }
-
-    @Generated
-    public AutoRespawn P() {
-        return this.P;
     }
 
     @Generated
@@ -842,11 +780,6 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     }
 
     @Generated
-    public ServerJoiner an() {
-        return this.an;
-    }
-
-    @Generated
     public ViewModel ao() {
         return this.ao;
     }
@@ -902,16 +835,6 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     }
 
     @Generated
-    public AppleFarmer az() {
-        return this.az;
-    }
-
-    @Generated
-    public AncientFarmer aA() {
-        return this.aA;
-    }
-
-    @Generated
     public AspectRatio aB() {
         return this.aB;
     }
@@ -922,11 +845,6 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     }
 
     @Generated
-    public ChestStealer aD() {
-        return this.aD;
-    }
-
-    @Generated
     public StreamerMode aE() {
         return this.aE;
     }
@@ -934,11 +852,6 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     @Generated
     public Ambience aF() {
         return this.aF;
-    }
-
-    @Generated
-    public PortalBypass aG() {
-        return this.aG;
     }
 
     @Generated
@@ -987,11 +900,6 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     }
 
     @Generated
-    public Fly aQ() {
-        return this.aQ;
-    }
-
-    @Generated
     public WallClimb aR() {
         return this.aR;
     }
@@ -1004,11 +912,6 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     @Generated
     public HandsShader aT() {
         return this.aT;
-    }
-
-    @Generated
-    public AutoWarden aU() {
-        return this.aU;
     }
 
     @Generated

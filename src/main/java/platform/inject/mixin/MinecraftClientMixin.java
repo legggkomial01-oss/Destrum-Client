@@ -11,7 +11,6 @@ import aethereal.event.HotbarEvent;
 import aethereal.core.IEvent;
 import aethereal.core.Interface;
 import aethereal.core.InterfaceC0020Opcode;
-import aethereal.module.player.OpenWalls;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -129,18 +128,5 @@ public abstract class MinecraftClientMixin implements Interface {
         if ((stack.getItem() instanceof CrossbowItem) && CrossbowItem.isCharged(stack) && aM_.player.getItemCooldownManager().isCoolingDown(stack)) {
             ci.cancel();
         }
-    }
-
-    @Redirect(method = {"doItemUse"}, at = @At(value = "FIELD", target = "Lnet/minecraft/client/MinecraftClient;crosshairTarget:Lnet/minecraft/util/hit/HitResult;", opcode = InterfaceC0020Opcode.aK))
-    private HitResult doItemUse(MinecraftClient instance) {
-        OpenWalls openWalls = Delta.h().d().t().a();
-        if (!openWalls.m()) {
-            return instance.crosshairTarget;
-        }
-        BlockHitResult hit = openWalls.a((ClientPlayerEntity) Objects.requireNonNull(instance.player));
-        if (hit != null && hit.getType() == HitResult.Type.BLOCK) {
-            return hit;
-        }
-        return instance.crosshairTarget;
     }
 }

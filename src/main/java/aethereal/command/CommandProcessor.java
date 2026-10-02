@@ -16,7 +16,6 @@ import aethereal.command.MacrosCommand;
 import aethereal.command.RCTCommand;
 import aethereal.command.StaffCommand;
 import aethereal.command.VClipCommand;
-import aethereal.command.WardenCommand;
 import aethereal.command.WayCommand;
 import aethereal.config.BaseProcessor;
 
@@ -57,7 +56,7 @@ public class CommandProcessor extends BaseProcessor {
     @Override
     @Compile
     public void setup() {
-        a(this.e, this.f, this.g, this.h, this.i, new AHCommand(), new MacrosCommand(), new FriendCommand(), new StaffCommand(), new WardenCommand(), new ConfigCommand(), new BindCommand(), new VClipCommand(), new HClipCommand(), new CCCommand());
+        a(this.e, this.f, this.g, this.h, this.i, new AHCommand(), new MacrosCommand(), new FriendCommand(), new StaffCommand(), new ConfigCommand(), new BindCommand(), new VClipCommand(), new HClipCommand(), new CCCommand());
     }
 
     static {
