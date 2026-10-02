@@ -177,7 +177,7 @@ public class DragProcessor extends ConfigProcessor<DragInfo> implements Interfac
 
             if (event.h() == 1 && event.b()) {
                 for (DragInfo dragInfo2 : e()) {
-                    if (MathUtil.a(event.f(), event.g(), dragInfo2.a(), dragInfo2.b(), dragInfo2.f(), dragInfo2.g())) {
+                    if (MathUtil.a(event.f(), event.g(), dragInfo2.getVisualX(), dragInfo2.getVisualY(), dragInfo2.f(), dragInfo2.g())) {
                         dragInfo2.e().a(!dragInfo2.e().g());
                         return;
                     }
@@ -187,7 +187,7 @@ public class DragProcessor extends ConfigProcessor<DragInfo> implements Interfac
             if (!popupHandled) {
                 if (event.b() && event.h() == 0) {
                     for (DragInfo dragInfo : e()) {
-                        if (dragInfo.k() != 2 && MathUtil.a(event.f(), event.g(), dragInfo.a(), dragInfo.b(), dragInfo.f(), dragInfo.g())) {
+                        if (dragInfo.k() != 2 && MathUtil.a(event.f(), event.g(), dragInfo.getVisualX(), dragInfo.getVisualY(), dragInfo.f(), dragInfo.g())) {
                             if ("Инфо-панель".equals(dragInfo.j()) && WatermarkWidget.isInteractingWithPill(event.f(), event.g()) && !Screen.hasShiftDown()) {
                                 continue;
                             }
@@ -233,24 +233,16 @@ public class DragProcessor extends ConfigProcessor<DragInfo> implements Interfac
     private void a(float x, float y, DragInfo dragInfo) {
         int status = dragInfo.k();
         if (status == 2) {
-            this.e.a(null);
-            this.f.a(null);
             return;
         }
         boolean onlyY = status == 1;
-        if (onlyY) {
-            x = dragInfo.a();
-        }
-        float x2 = MathUtil.b(x, 0.0f, (aM_.getWindow().getFramebufferWidth() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - dragInfo.f());
-        float y2 = MathUtil.b(y, 0.0f, (aM_.getWindow().getFramebufferHeight() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - dragInfo.g());
-        if (!onlyY) {
-            x2 = a(a.X, x2, dragInfo);
-        } else {
-            this.e.a(null);
-        }
-        float y3 = a(a.Y, y2, dragInfo);
-        dragInfo.a(MathUtil.b(x2, 0.0f, (aM_.getWindow().getFramebufferWidth() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - dragInfo.f()));
-        dragInfo.b(MathUtil.b(y3, 0.0f, (aM_.getWindow().getFramebufferHeight() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - dragInfo.g()));
+        float xVal = onlyY ? dragInfo.a() : x;
+        float maxX = Math.max(0.0f, (aM_.getWindow().getFramebufferWidth() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - dragInfo.f());
+        float maxY = Math.max(0.0f, (aM_.getWindow().getFramebufferHeight() / aM_.getWindow().calculateScaleFactor(2, aM_.forcesUnicodeFont())) - dragInfo.g());
+        float x2 = MathUtil.b(xVal, 0.0f, maxX);
+        float y2 = MathUtil.b(y, 0.0f, maxY);
+        dragInfo.a(x2);
+        dragInfo.b(y2);
     }
 
     private float a(a axis, float pos, DragInfo dragInfo) {

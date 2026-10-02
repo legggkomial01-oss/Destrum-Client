@@ -22,6 +22,8 @@ import org.joml.Vector4f;
 
 public class SliderElement extends Element_2<SliderSetting> {
     private boolean d;
+    private float popupTrackX;
+    private float popupTrackW = 40.0f;
 
     @Override
     @Compile
@@ -173,10 +175,13 @@ public class SliderElement extends Element_2<SliderSetting> {
         float valX = (x + width) - valW - 4.0f;
         Fonts.e.a(event.h(), valText, valX, (y + ((12.0f - Fonts.e.a(6.0f)) / 2.0f)) - 0.5f, 6.0f, ColorUtil.a(-1, 0.8f * animation));
 
-        float trackW = 28.0f;
+        float trackW = 40.0f;
         float trackH = 2.5f;
-        float trackX = valX - trackW - 4.0f;
+        float trackX = valX - trackW - 5.0f;
         float trackY = y + ((12.0f - trackH) / 2.0f);
+
+        this.popupTrackX = trackX;
+        this.popupTrackW = trackW;
 
         event.d().a(event.i().getMatrices(), trackX, trackY, trackW, trackH, 1.25f, ColorUtil.a(ColorUtil.a(50, 52, 60, 255), 0.5f * animation));
         if (progress > 0.01f) {
@@ -190,9 +195,8 @@ public class SliderElement extends Element_2<SliderSetting> {
     }
 
     private void updatePopupSlider(double mouseX) {
-        float trackW = 28.0f;
-        float trackX = (this.a.x + this.a.z) - 26.0f - trackW - 4.0f;
-        float progress = MathUtil.b(((float) (mouseX - trackX)) / trackW, 0.0f, 1.0f);
+        float width = this.popupTrackW > 0.0f ? this.popupTrackW : 40.0f;
+        float progress = MathUtil.b(((float) (mouseX - this.popupTrackX)) / width, 0.0f, 1.0f);
         float val = ((SliderSetting) this.b).a + ((((SliderSetting) this.b).b - ((SliderSetting) this.b).a) * progress);
         ((SliderSetting) this.b).a(Float.valueOf(MathUtil.b(Math.round(val / ((SliderSetting) this.b).c) * ((SliderSetting) this.b).c, ((SliderSetting) this.b).a, ((SliderSetting) this.b).b)));
     }

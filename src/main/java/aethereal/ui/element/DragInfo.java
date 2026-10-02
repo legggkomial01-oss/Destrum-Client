@@ -168,6 +168,16 @@ public class DragInfo implements Interface {
         return 1.0f + (0.04f * this.dragAnim);
     }
 
+    public float getVisualX() {
+        float scale = (this.b != null) ? this.b.getScale() : 1.0f;
+        return a() + (this.e / 2.0f) * (1.0f - scale);
+    }
+
+    public float getVisualY() {
+        float scale = (this.b != null) ? this.b.getScale() : 1.0f;
+        return b() + (this.f / 2.0f) * (1.0f - scale);
+    }
+
     public float c() {
         return this.c;
     }

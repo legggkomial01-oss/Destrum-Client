@@ -7,6 +7,7 @@ import aethereal.core.InterfaceC0020Opcode;
 import aethereal.render.EasingList;
 import aethereal.render.Fonts;
 import aethereal.render.ColorUtil;
+import aethereal.util.MathUtil;
 
 import aethereal.config.ThemeInfo;
 import aethereal.config.ThemeProcessor;
@@ -114,20 +115,28 @@ public class Widget {
         }
     }
 
+    protected float animatedScale = 1.0f;
+    private float popupX = Float.NaN;
+    private float popupY = Float.NaN;
+
     public void render(DrawEvent event) {
         if (this.i != null) {
             this.i.update(event.g());
         }
-        float scale = getScale();
+        float targetScale = getScale();
+        this.animatedScale = MathUtil.c(this.animatedScale, targetScale, 0.25f);
+        float scale = this.animatedScale;
         boolean transform = Math.abs(scale - 1.0f) > 0.001f;
         MatrixStack matrices = event.i().getMatrices();
         float wx = this.i != null ? this.i.a() : 0.0f;
         float wy = this.i != null ? this.i.b() : 0.0f;
+        float cx = wx + (this.i != null ? this.i.getRawWidth() / 2.0f : 0.0f);
+        float cy = wy + (this.i != null ? this.i.getRawHeight() / 2.0f : 0.0f);
         if (transform) {
             matrices.push();
-            matrices.translate(wx, wy, 0.0f);
+            matrices.translate(cx, cy, 0.0f);
             matrices.scale(scale, scale, 1.0f);
-            matrices.translate(-wx, -wy, 0.0f);
+            matrices.translate(-cx, -cy, 0.0f);
         }
 
         a(event);
@@ -136,10 +145,14 @@ public class Widget {
             matrices.pop();
         }
 
-        this.c.a(this.h && (Interface.aM_.currentScreen instanceof ChatScreen));
+        boolean open = this.h && (Interface.aM_.currentScreen instanceof ChatScreen);
+        this.c.a(open);
         this.c.a(0.0f, 1.0f, 0.3f, EasingList.g, event.g());
         if (this.c.c() > 0.0f) {
             b(event);
+        } else {
+            this.popupX = Float.NaN;
+            this.popupY = Float.NaN;
         }
     }
 
@@ -163,18 +176,31 @@ public class Widget {
         }).toList();
         if (!visible.isEmpty()) {
             float panelWidth = ((Float) visible.stream().map(e2 -> {
-                float extra = (e2 instanceof SliderElement || e2 instanceof ModeElement) ? 68.0f : 28.0f;
+                float extra = (e2 instanceof SliderElement || e2 instanceof ModeElement) ? 75.0f : 28.0f;
                 return Float.valueOf(19.5f + Fonts.e.a(e2.e().i(), 6.5f) + extra);
             }).reduce(Float.valueOf(0.0f), (v0, v1) -> {
                 return Math.max(v0, v1);
             })).floatValue();
-            panelWidth = Math.max(panelWidth, 95.0f);
+            panelWidth = Math.max(panelWidth, 115.0f);
             float totalHeight = (12.0f * visible.size()) + (visible.size() - 1);
             float anim = this.c.c() * a();
-            float baseX = (this.i.b() - totalHeight) - 2.0f >= 0.0f ? (this.i.a() + (this.i.f() / 2.0f)) - (panelWidth / 2.0f) : this.i.a() + this.i.f() + 2.0f;
-            float baseY = (this.i.b() - totalHeight) - 2.0f >= 0.0f ? (this.i.b() - totalHeight) - 2.0f : this.i.b();
-            float baseX2 = Math.min(Math.max(baseX, 0.0f), (Interface.aM_.getWindow().getScaledWidth() - panelWidth) - 2.0f);
-            float baseY2 = Math.min(Math.max(baseY, 0.0f), Interface.aM_.getWindow().getScaledHeight() - totalHeight);
+
+            if (Delta.h().d().s() != null && Delta.h().d().s().g() == this.i) {
+                this.popupX = Float.NaN;
+                this.popupY = Float.NaN;
+            }
+
+            if (Float.isNaN(this.popupX) || Float.isNaN(this.popupY)) {
+                float rawW = this.i.getRawWidth();
+                float baseX = (this.i.b() - totalHeight) - 2.0f >= 0.0f ? (this.i.a() + (rawW / 2.0f)) - (panelWidth / 2.0f) : this.i.a() + rawW + 2.0f;
+                float baseY = (this.i.b() - totalHeight) - 2.0f >= 0.0f ? (this.i.b() - totalHeight) - 2.0f : this.i.b();
+                this.popupX = Math.min(Math.max(baseX, 0.0f), (Interface.aM_.getWindow().getScaledWidth() - panelWidth) - 2.0f);
+                this.popupY = Math.min(Math.max(baseY, 0.0f), Interface.aM_.getWindow().getScaledHeight() - totalHeight);
+            }
+
+            float baseX2 = this.popupX;
+            float baseY2 = this.popupY;
+
             a(event, baseX2, baseY2, panelWidth, totalHeight, true, anim);
             float y = baseY2;
             for (Element_2<?> element : visible) {
