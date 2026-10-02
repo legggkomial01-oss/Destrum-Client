@@ -42,7 +42,7 @@ import org.joml.Quaternionf;
 
 public class MainScreen extends Screen {
     private static final float[] a;
-    private static final String SPLASH_TEXT = "Delta была крякнута командой PasterEnd, а зафикшена @alex_s1gma, будьте счастливы";
+    private static final String SPLASH_TEXT = "Destrum Client — добро пожаловать в игру. Приготовьтесь к победам!";
     private static final float SPLASH_FADE_IN = 480.0f;
     private static final float SPLASH_TYPE_START = 320.0f;
     private static final float SPLASH_TYPE_TIME = 2800.0f;

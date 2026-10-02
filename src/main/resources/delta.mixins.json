@@ -44,7 +44,8 @@
     "mixin.TextVisitFactoryMixin",
     "mixin.WindowMixin",
     "mixin.WorldBorderMixin",
-    "mixin.WorldRendererMixin"
+    "mixin.WorldRendererMixin",
+    "mixin.SkyRenderingMixin"
   ],
   "client": [
     "accessors.BossBarHudAccessor",

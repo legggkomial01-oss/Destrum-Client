@@ -124,6 +124,9 @@ import aethereal.module.render.WardenESP;
 import aethereal.module.movement.WaterJump;
 import aethereal.module.player.WindHop;
 import aethereal.module.misc.XRay;
+import aethereal.module.render.JumpCircles;
+import aethereal.module.render.TargetESP;
+import aethereal.module.render.SkyShader;
 import aethereal.api.Compile;
 import java.io.File;
 import java.io.IOException;
@@ -252,12 +255,15 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     private final AutoLeave bb = new AutoLeave();
     private final Velocity bc = new Velocity();
     private Interface_2 bd;
+    private final JumpCircles be = new JumpCircles();
+    private final TargetESP bf = new TargetESP();
+    private final SkyShader bg = new SkyShader();
 
     @Override
     @Compile
     public void setup() {
         this.bd = new Interface_2();
-        a(this.f, this.aA, this.az, this.bc, this.aY, this.aL, this.aD, this.Z, this.J, this.aK, this.U, this.S, this.aJ, this.N, this.aH, this.aT, this.s, this.av, this.i, this.aE, this.ao, this.m, this.Q, this.ag, this.aC, this.n, this.am, this.I, this.h, this.aQ, this.aR, this.aS, this.aI, this.al, this.aq, this.x, this.ar, this.g, this.aM, this.aG, this.aF, this.z, this.ax, this.aw, this.r, this.u, this.y, this.an, this.aj, this.ak, this.A, this.t, this.ah, this.V, this.W, this.as, this.q, this.P, this.ap, this.k, this.l, this.F, this.G, this.H, this.B, this.C, this.R, this.D, this.X, this.j, this.M, this.ay, this.L, this.K, this.o, this.E, this.ae, this.v, this.ac, this.af, this.T, this.ai, this.ab, this.aa, this.O, this.p, this.w, this.bd, this.at, this.au, this.aB, this.aO, this.e, this.aN, this.aP, this.aU, this.aV, this.aW, this.aX, this.aZ, this.ba, this.bb, this.Y);
+        a(this.f, this.aA, this.az, this.bc, this.aY, this.aL, this.aD, this.Z, this.J, this.aK, this.U, this.S, this.aJ, this.N, this.aH, this.aT, this.s, this.av, this.i, this.aE, this.ao, this.m, this.Q, this.ag, this.aC, this.n, this.am, this.I, this.h, this.aQ, this.aR, this.aS, this.aI, this.al, this.aq, this.x, this.ar, this.g, this.aM, this.aG, this.aF, this.z, this.ax, this.aw, this.r, this.u, this.y, this.an, this.aj, this.ak, this.A, this.t, this.ah, this.V, this.W, this.as, this.q, this.P, this.ap, this.k, this.l, this.F, this.G, this.H, this.B, this.C, this.R, this.D, this.X, this.j, this.M, this.ay, this.L, this.K, this.o, this.E, this.ae, this.v, this.ac, this.af, this.T, this.ai, this.ab, this.aa, this.O, this.p, this.w, this.bd, this.at, this.au, this.aB, this.aO, this.e, this.aN, this.aP, this.aU, this.aV, this.aW, this.aX, this.aZ, this.ba, this.bb, this.Y, this.be, this.bf, this.bg);
         super.setup();
     }
 
