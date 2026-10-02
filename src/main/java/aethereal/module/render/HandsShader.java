@@ -19,7 +19,7 @@ import net.minecraft.util.math.MathHelper;
 
 @ModuleRegister(a = "Hands Shader", b = "Накладывает шейдер на руку от первого лица", c = Category.Render)
 public class HandsShader extends Module {
-    private final ModeSetting mode = new ModeSetting("Режим", "Шум", "Шум", "Свечение", "Градиент", "Неон");
+    private final ModeSetting mode = new ModeSetting("Режим", "Шум", "Шум", "Свечение");
     private final BooleanSetting useTheme = new BooleanSetting("Использовать тему", false);
     private final ColorSetting color = new ColorSetting("Цвет", Integer.valueOf(ColorUtil.a(119, 101, 255, 255)));
     private final BooleanSetting gradient = new BooleanSetting("Градиент", false);
@@ -34,10 +34,9 @@ public class HandsShader extends Module {
 
     public HandsShader() {
         this.color.a(() -> !this.useTheme.c());
-        this.gradient.a(() -> !this.mode.l("Градиент"));
-        this.vtoroyColor.a(() -> this.gradient.c() || this.mode.l("Градиент") || this.mode.l("Свечение") || this.mode.l("Неон"));
-        this.speedGradienta.a(() -> this.gradient.c() || this.mode.l("Градиент") || this.mode.l("Свечение"));
-        this.radius.a(() -> this.mode.l("Свечение") || this.mode.l("Неон"));
+        this.vtoroyColor.a(this.gradient::c);
+        this.speedGradienta.a(this.gradient::c);
+        this.radius.a(() -> this.mode.l("Свечение"));
         this.strengthAnimacii.a(this.vklyuchitAnimaciyu::c);
         this.sizeAnimacii.a(this.vklyuchitAnimaciyu::c);
 
@@ -80,17 +79,10 @@ public class HandsShader extends Module {
             float r2 = (secondCol >> 16 & 0xFF) / 255.0f;
             float g2 = (secondCol >> 8 & 0xFF) / 255.0f;
             float b2 = (secondCol & 0xFF) / 255.0f;
-            boolean hasSecond = this.gradient.c() || this.mode.l("Градиент") || this.mode.l("Свечение") || this.mode.l("Неон");
+            boolean hasSecond = this.gradient.c();
             float a2 = hasSecond ? alpha : 0.0f;
 
-            int modeIndex = 0;
-            if (this.mode.l("Свечение")) {
-                modeIndex = 1;
-            } else if (this.mode.l("Градиент")) {
-                modeIndex = 2;
-            } else if (this.mode.l("Неон")) {
-                modeIndex = 3;
-            }
+            int modeIndex = this.mode.l("Свечение") ? 1 : 0;
 
             float brightnessMult = this.yarkost.c();
             float rad = this.radius.c();

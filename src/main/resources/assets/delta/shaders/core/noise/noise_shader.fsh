@@ -40,7 +40,7 @@ float noise(vec2 p) {
 float fbm(vec2 p) {
     float v = 0.0;
     float a = 0.5;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 5; i++) {
         v += noise(p) * a;
         p = p * 2.02 + vec2(8.4, 5.7);
         a *= 0.5;
@@ -83,10 +83,10 @@ void main() {
     vec2 uv = TexCoord;
     int m = int(Mode + 0.5);
 
-    // MODE 0: Шум (Procedural Noise & Veins)
+    // MODE 0: Шум (Оригинальный шейдер шума DELTA)
     if (m == 0) {
         float mask = noiseMask(uv);
-        if (mask < 0.005) discard;
+        if (mask < 0.01) discard;
 
         float t = Time;
         vec2 flow = uv * 2.5;
@@ -112,16 +112,16 @@ void main() {
             base = mix(TintColor.rgb, SecondColor.rgb, clamp(mist * 1.4, 0.0, 1.0));
         }
 
-        vec3 col = mix(base, mix(base, vec3(1.0), 0.45), clamp(core * 0.75 + sB * 0.25, 0.0, 1.0));
+        vec3 col = mix(base, mix(base, vec3(1.0), 0.4), clamp(core * 0.75 + sB * 0.25, 0.0, 1.0));
         float fill = mask * (0.26 + core * 0.82 + accent * 0.28) * Intensity;
-        float outA = clamp(TintColor.a * fill * mask, 0.0, 1.0);
+        float outA = clamp(TintColor.a * fill * 0.92 * mask, 0.0, 1.0);
 
         if (outA <= 0.001) discard;
         OutColor = vec4(col * fill, outA);
         return;
     }
 
-    // MODE 1: Свечение (HandGlow from System-1.21.4)
+    // MODE 1: Свечение (HandGlow из System DLC)
     if (m == 1) {
         vec2 sampleCoord = uv;
         float flicker = 1.0;
@@ -179,78 +179,6 @@ void main() {
         vec3 rgb = outlineRgb + fillRgb * (1.0 - outlineA);
 
         OutColor = vec4(rgb, alpha);
-        return;
-    }
-
-    // MODE 2: Градиент (Flowing Two-Color Gradient)
-    if (m == 2) {
-        float mask = noiseMask(uv);
-        if (mask < 0.005) discard;
-
-        float flow = uv.x * 1.5 + uv.y * 2.0 + Time * (GradientSpeed + 0.1) * 2.0;
-        float wave = sin(flow) * 0.5 + 0.5;
-        wave = smoothstep(0.15, 0.85, wave);
-
-        vec3 gradCol = mix(TintColor.rgb, SecondColor.rgb, wave);
-
-        // Moving glossy sheen highlight across the surface
-        float sheenFlow = uv.x * 3.0 - uv.y * 2.5 + Time * 3.0;
-        float sheen = pow(max(0.0, sin(sheenFlow)), 10.0) * 0.5;
-        gradCol = mix(gradCol, vec3(1.0), sheen);
-
-        // Subtle edge highlight
-        vec2 pStep = 2.0 / Resolution;
-        float edge = clamp(abs(noiseMask(uv + vec2(pStep.x, 0.0)) - noiseMask(uv - vec2(pStep.x, 0.0))) +
-                           abs(noiseMask(uv + vec2(0.0, pStep.y)) - noiseMask(uv - vec2(0.0, pStep.y))), 0.0, 1.0);
-        gradCol = mix(gradCol, vec3(1.0), edge * 0.35);
-
-        float outA = clamp(TintColor.a * mask * Intensity, 0.0, 1.0);
-        if (outA <= 0.001) discard;
-
-        OutColor = vec4(gradCol * Intensity, outA);
-        return;
-    }
-
-    // MODE 3: Неон (Cyberpunk Neon Outline & Core)
-    if (m == 3) {
-        vec2 pStep = (max(2.0, Radius * 0.4)) / Resolution;
-        float mask = noiseMask(uv);
-
-        // Sobel edge filter for razor-sharp contour
-        float gx = -noiseMask(uv + vec2(-pStep.x, -pStep.y)) + noiseMask(uv + vec2(pStep.x, -pStep.y))
-                   - 2.0 * noiseMask(uv + vec2(-pStep.x, 0.0)) + 2.0 * noiseMask(uv + vec2(pStep.x, 0.0))
-                   - noiseMask(uv + vec2(-pStep.x, pStep.y)) + noiseMask(uv + vec2(pStep.x, pStep.y));
-        float gy = -noiseMask(uv + vec2(-pStep.x, -pStep.y)) - 2.0 * noiseMask(uv + vec2(0.0, -pStep.y))
-                   - noiseMask(uv + vec2(pStep.x, -pStep.y)) + noiseMask(uv + vec2(-pStep.x, pStep.y))
-                   + 2.0 * noiseMask(uv + vec2(0.0, pStep.y)) + noiseMask(uv + vec2(pStep.x, pStep.y));
-        float edge = clamp(length(vec2(gx, gy)) * 1.4, 0.0, 1.0);
-
-        // Outer neon aura bloom
-        float outerHalo = (noiseMask(uv + vec2(pStep.x * 2.0, 0.0)) +
-                           noiseMask(uv - vec2(pStep.x * 2.0, 0.0)) +
-                           noiseMask(uv + vec2(0.0, pStep.y * 2.0)) +
-                           noiseMask(uv - vec2(0.0, pStep.y * 2.0))) * 0.25;
-        float halo = outerHalo * (1.0 - mask) * 0.75;
-
-        if (mask + edge + halo <= 0.002) discard;
-
-        // Animated neon core pulse
-        float pulse = 0.88 + 0.12 * sin(Time * 7.0 + uv.y * 12.0);
-        vec3 neonColor = mix(TintColor.rgb, vec3(1.0), 0.65) * pulse * 2.0;
-
-        // Cyber hand body with scanline effect
-        float scanline = 0.85 + 0.15 * sin(uv.y * Resolution.y * 0.5);
-        vec3 bodyColor = mix(SecondColor.rgb, TintColor.rgb, uv.y) * 0.3 * scanline;
-
-        vec3 finalCol = mix(bodyColor, neonColor, edge);
-        if (halo > 0.01) {
-            finalCol = mix(finalCol, TintColor.rgb * 1.5, halo);
-        }
-
-        float finalA = clamp((mask * 0.40 + edge * 0.85 + halo * 0.65) * TintColor.a * Intensity, 0.0, 1.0);
-        if (finalA <= 0.001) discard;
-
-        OutColor = vec4(finalCol, finalA);
         return;
     }
 
