@@ -550,18 +550,16 @@ public class MainScreen extends Screen {
         if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.SHADER) {
             Fonts.c.a(matrices, cfg.getShaderSelectionLabel(), mX + 12.0f, mY + 108.5f, 6.5f, ColorUtil.a(160, 165, 180, (int) (200.0f * mAlpha)));
             float sY1 = mY + 119.0f;
-            float sW1 = 65.0f;
-            float sH1 = 14.5f;
-            drawPill(matrices, draw, mX + 12.0f + 0 * 69.0f, sY1, sW1, sH1, MainMenuConfig.ShaderBackground.NEBULA.getDisplay(cfg.getLanguage()), cfg.getShaderBackground() == MainMenuConfig.ShaderBackground.NEBULA, mouseX, mouseY, primary, mAlpha, 6.0f);
-            drawPill(matrices, draw, mX + 12.0f + 1 * 69.0f, sY1, sW1, sH1, MainMenuConfig.ShaderBackground.AURORA.getDisplay(cfg.getLanguage()), cfg.getShaderBackground() == MainMenuConfig.ShaderBackground.AURORA, mouseX, mouseY, primary, mAlpha, 6.0f);
-            drawPill(matrices, draw, mX + 12.0f + 2 * 69.0f, sY1, sW1, sH1, MainMenuConfig.ShaderBackground.STARS.getDisplay(cfg.getLanguage()), cfg.getShaderBackground() == MainMenuConfig.ShaderBackground.STARS, mouseX, mouseY, primary, mAlpha, 6.0f);
-            drawPill(matrices, draw, mX + 12.0f + 3 * 69.0f, sY1, sW1, sH1, MainMenuConfig.ShaderBackground.PLASMA.getDisplay(cfg.getLanguage()), cfg.getShaderBackground() == MainMenuConfig.ShaderBackground.PLASMA, mouseX, mouseY, primary, mAlpha, 6.0f);
+            float sW1 = 86.0f;
+            float sH1 = 15.0f;
+            drawPill(matrices, draw, mX + 12.0f + 0 * 92.0f, sY1, sW1, sH1, MainMenuConfig.ShaderBackground.NEBULA.getDisplay(cfg.getLanguage()), cfg.getShaderBackground() == MainMenuConfig.ShaderBackground.NEBULA, mouseX, mouseY, primary, mAlpha, 6.25f);
+            drawPill(matrices, draw, mX + 12.0f + 1 * 92.0f, sY1, sW1, sH1, MainMenuConfig.ShaderBackground.AURORA.getDisplay(cfg.getLanguage()), cfg.getShaderBackground() == MainMenuConfig.ShaderBackground.AURORA, mouseX, mouseY, primary, mAlpha, 6.25f);
+            drawPill(matrices, draw, mX + 12.0f + 2 * 92.0f, sY1, sW1, sH1, MainMenuConfig.ShaderBackground.STARS.getDisplay(cfg.getLanguage()), cfg.getShaderBackground() == MainMenuConfig.ShaderBackground.STARS, mouseX, mouseY, primary, mAlpha, 6.25f);
 
             float sY2 = sY1 + sH1 + 3.0f;
-            float sW2 = 87.0f;
-            drawPill(matrices, draw, mX + 12.0f + 0 * 92.0f, sY2, sW2, sH1, MainMenuConfig.ShaderBackground.NEON.getDisplay(cfg.getLanguage()), cfg.getShaderBackground() == MainMenuConfig.ShaderBackground.NEON, mouseX, mouseY, primary, mAlpha, 6.0f);
-            drawPill(matrices, draw, mX + 12.0f + 1 * 92.0f, sY2, sW2, sH1, MainMenuConfig.ShaderBackground.COSMOS.getDisplay(cfg.getLanguage()), cfg.getShaderBackground() == MainMenuConfig.ShaderBackground.COSMOS, mouseX, mouseY, primary, mAlpha, 6.0f);
-            drawPill(matrices, draw, mX + 12.0f + 2 * 92.0f, sY2, sW2, sH1, MainMenuConfig.ShaderBackground.CYBER.getDisplay(cfg.getLanguage()), cfg.getShaderBackground() == MainMenuConfig.ShaderBackground.CYBER, mouseX, mouseY, primary, mAlpha, 6.0f);
+            float sW2 = 133.0f;
+            drawPill(matrices, draw, mX + 12.0f + 0 * 139.0f, sY2, sW2, sH1, MainMenuConfig.ShaderBackground.PLASMA.getDisplay(cfg.getLanguage()), cfg.getShaderBackground() == MainMenuConfig.ShaderBackground.PLASMA, mouseX, mouseY, primary, mAlpha, 6.25f);
+            drawPill(matrices, draw, mX + 12.0f + 1 * 139.0f, sY2, sW2, sH1, MainMenuConfig.ShaderBackground.NEON.getDisplay(cfg.getLanguage()), cfg.getShaderBackground() == MainMenuConfig.ShaderBackground.NEON, mouseX, mouseY, primary, mAlpha, 6.25f);
         } else if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.WALLPAPER) {
             Fonts.c.a(matrices, cfg.getWallpaperSelectionLabel(), mX + 12.0f, mY + 108.5f, 6.5f, ColorUtil.a(160, 165, 180, (int) (200.0f * mAlpha)));
             float wY = mY + 120.0f;
@@ -711,37 +709,29 @@ public class MainScreen extends Screen {
         // Sub-options
         if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.SHADER) {
             float sY1 = mY + 119.0f;
-            float sW1 = 65.0f;
-            float sH1 = 14.5f;
-            if (MathUtil.a(dA, dA2, mX + 12.0f + 0 * 69.0f, sY1, sW1, sH1)) {
+            float sW1 = 86.0f;
+            float sH1 = 15.0f;
+            if (MathUtil.a(dA, dA2, mX + 12.0f + 0 * 92.0f, sY1, sW1, sH1)) {
                 cfg.setShaderBackground(MainMenuConfig.ShaderBackground.NEBULA);
                 return true;
             }
-            if (MathUtil.a(dA, dA2, mX + 12.0f + 1 * 69.0f, sY1, sW1, sH1)) {
+            if (MathUtil.a(dA, dA2, mX + 12.0f + 1 * 92.0f, sY1, sW1, sH1)) {
                 cfg.setShaderBackground(MainMenuConfig.ShaderBackground.AURORA);
                 return true;
             }
-            if (MathUtil.a(dA, dA2, mX + 12.0f + 2 * 69.0f, sY1, sW1, sH1)) {
+            if (MathUtil.a(dA, dA2, mX + 12.0f + 2 * 92.0f, sY1, sW1, sH1)) {
                 cfg.setShaderBackground(MainMenuConfig.ShaderBackground.STARS);
-                return true;
-            }
-            if (MathUtil.a(dA, dA2, mX + 12.0f + 3 * 69.0f, sY1, sW1, sH1)) {
-                cfg.setShaderBackground(MainMenuConfig.ShaderBackground.PLASMA);
                 return true;
             }
 
             float sY2 = sY1 + sH1 + 3.0f;
-            float sW2 = 87.0f;
-            if (MathUtil.a(dA, dA2, mX + 12.0f + 0 * 92.0f, sY2, sW2, sH1)) {
+            float sW2 = 133.0f;
+            if (MathUtil.a(dA, dA2, mX + 12.0f + 0 * 139.0f, sY2, sW2, sH1)) {
+                cfg.setShaderBackground(MainMenuConfig.ShaderBackground.PLASMA);
+                return true;
+            }
+            if (MathUtil.a(dA, dA2, mX + 12.0f + 1 * 139.0f, sY2, sW2, sH1)) {
                 cfg.setShaderBackground(MainMenuConfig.ShaderBackground.NEON);
-                return true;
-            }
-            if (MathUtil.a(dA, dA2, mX + 12.0f + 1 * 92.0f, sY2, sW2, sH1)) {
-                cfg.setShaderBackground(MainMenuConfig.ShaderBackground.COSMOS);
-                return true;
-            }
-            if (MathUtil.a(dA, dA2, mX + 12.0f + 2 * 92.0f, sY2, sW2, sH1)) {
-                cfg.setShaderBackground(MainMenuConfig.ShaderBackground.CYBER);
                 return true;
             }
         } else if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.WALLPAPER) {

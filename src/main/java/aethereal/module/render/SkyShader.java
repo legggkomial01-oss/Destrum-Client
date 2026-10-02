@@ -47,12 +47,6 @@ public class SkyShader extends Module {
     private static final ShaderProgramKey SHADER_NEON = new ShaderProgramKey(
         Identifier.of("delta", "core/sky_neon"), VertexFormats.POSITION, Defines.EMPTY
     );
-    private static final ShaderProgramKey SHADER_COSMOS = new ShaderProgramKey(
-        Identifier.of("delta", "core/sky_cosmos"), VertexFormats.POSITION, Defines.EMPTY
-    );
-    private static final ShaderProgramKey SHADER_CYBER = new ShaderProgramKey(
-        Identifier.of("delta", "core/sky_cyber"), VertexFormats.POSITION, Defines.EMPTY
-    );
 
     private static final Map<String, ShaderProgram> MENU_PROGRAM_CACHE = new HashMap<>();
     private static long menuStartTime = -1L;
@@ -60,7 +54,7 @@ public class SkyShader extends Module {
     private static final Matrix4f MENU_ORTHO_MATRIX = new Matrix4f();
     private static final Matrix4f MENU_IDENTITY_MATRIX = new Matrix4f();
 
-    private final ModeSetting mode = new ModeSetting("Режим", "Туманность", "Туманность", "Аврора", "Звезды", "Плазма", "Неон", "Космос", "Киберпанк");
+    private final ModeSetting mode = new ModeSetting("Режим", "Туманность", "Туманность", "Аврора", "Звезды", "Плазма", "Неон");
     private final ColorSetting color = new ColorSetting("Цвет", Integer.valueOf(ColorUtil.a(50, 150, 255, 255)));
     private final ModeSetting neonPalette = new ModeSetting("Палитра неона", "RGB", "RGB", "Пастель", "Светлый", "Свой");
     private final ColorSetting neonColor1 = new ColorSetting("Неон цвет 1", Integer.valueOf(ColorUtil.a(255, 50, 50, 255)));
@@ -219,8 +213,6 @@ public class SkyShader extends Module {
             case "Звезды" -> SHADER_STARS;
             case "Плазма" -> SHADER_PLASMA;
             case "Неон" -> SHADER_NEON;
-            case "Космос" -> SHADER_COSMOS;
-            case "Киберпанк" -> SHADER_CYBER;
             default -> SHADER_NEBULA;
         };
 
@@ -244,8 +236,6 @@ public class SkyShader extends Module {
             case STARS -> SHADER_STARS;
             case PLASMA -> SHADER_PLASMA;
             case NEON -> SHADER_NEON;
-            case COSMOS -> SHADER_COSMOS;
-            case CYBER -> SHADER_CYBER;
             default -> SHADER_NEBULA;
         };
 
@@ -301,10 +291,6 @@ public class SkyShader extends Module {
             r = 0.2f; g = 0.95f; b = 0.65f;
         } else if (bg == MainMenuConfig.ShaderBackground.PLASMA) {
             r = 0.85f; g = 0.25f; b = 0.95f;
-        } else if (bg == MainMenuConfig.ShaderBackground.CYBER) {
-            r = 0.0f; g = 0.85f; b = 1.0f;
-        } else if (bg == MainMenuConfig.ShaderBackground.COSMOS) {
-            r = 0.45f; g = 0.35f; b = 0.95f;
         } else if (bg == MainMenuConfig.ShaderBackground.STARS) {
             r = 0.85f; g = 0.9f; b = 1.0f;
         }

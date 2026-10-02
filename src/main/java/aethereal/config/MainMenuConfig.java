@@ -57,9 +57,7 @@ public class MainMenuConfig {
         AURORA("Аврора", "Aurora", "core/sky_aurora"),
         STARS("Звезды", "Stars", "core/sky_stars"),
         PLASMA("Плазма", "Plasma", "core/sky_plasma"),
-        NEON("Неон", "Neon", "core/sky_neon"),
-        COSMOS("Космос", "Cosmos", "core/sky_cosmos"),
-        CYBER("Киберпанк", "Cyberpunk", "core/sky_cyber");
+        NEON("Неон", "Neon", "core/sky_neon");
 
         private final String ru;
         private final String en;
@@ -225,7 +223,11 @@ public class MainMenuConfig {
                 this.backgroundMode = BackgroundMode.valueOf(json.get("backgroundMode").getAsString());
             }
             if (json.has("shaderBackground")) {
-                this.shaderBackground = ShaderBackground.valueOf(json.get("shaderBackground").getAsString());
+                try {
+                    this.shaderBackground = ShaderBackground.valueOf(json.get("shaderBackground").getAsString());
+                } catch (Exception ignored) {
+                    this.shaderBackground = ShaderBackground.NEBULA;
+                }
             }
             if (json.has("wallpaperBackground")) {
                 this.wallpaperBackground = WallpaperBackground.valueOf(json.get("wallpaperBackground").getAsString());
