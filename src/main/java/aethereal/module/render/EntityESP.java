@@ -44,12 +44,30 @@ import net.minecraft.text.Style;
 import net.minecraft.text.MutableText;
 import net.minecraft.client.network.ClientPlayerEntity;
 import org.joml.Vector2f;
+import aethereal.ui.widget.NameTagWidget;
+import net.minecraft.client.network.AbstractClientPlayerEntity;
+import net.minecraft.client.util.DefaultSkinHelper;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.Identifier;
 
 @ModuleRegister(a = "NameTag", b = "Отображает информацию о сущностях над их головой", c = Category.Render)
 public class EntityESP extends Module {
-    private final ModeSetting mode = new ModeSetting("Режим", "Стандарт", "Стандарт", "Новый 1", "Новый 2");
+    private static EntityESP INSTANCE;
+
+    private final ModeSetting mode = new ModeSetting("Режим", "Новый 1", "Новый 1", "Стандарт", "Новый 2");
     private final MultiModeSetting b = new MultiModeSetting("Отслеживаемые сущности", new BooleanSetting("Игроки", true), new BooleanSetting("Животные", false), new BooleanSetting("Мобы", false), new BooleanSetting("Предметы", false));
     private final List<a> c = new ArrayList();
+
+    public static EntityESP getInstance() {
+        return INSTANCE;
+    }
+
+    public void syncFromWidget(NameTagWidget widget) {
+        if (widget == null) return;
+        if (!this.mode.l(widget.mode.c())) {
+            this.mode.a(widget.mode.c());
+        }
+    }
 
     @Generated
     public ModeSetting r() {
@@ -62,6 +80,7 @@ public class EntityESP extends Module {
     }
 
     public EntityESP() {
+        INSTANCE = this;
         a(this.mode, this.b);
     }
 
@@ -69,6 +88,11 @@ public class EntityESP extends Module {
     public void a(DrawEvent event) {
         String str;
         if (event.b()) {
+            NameTagWidget w = NameTagWidget.getInstance();
+            if (w != null && !this.mode.l(w.mode.c())) {
+                this.mode.a(w.mode.c());
+            }
+
             for (Entity class_746Var : aM_.world.getEntities()) {
                 if (class_746Var != aM_.player) {
                     if (class_746Var instanceof PlayerEntity) {
@@ -101,6 +125,11 @@ public class EntityESP extends Module {
     }
 
     private void a(Entity entity, DrawEvent event, Vector2f screenPos, float fontSize, float padding, int color) {
+        if (this.mode.l("Новый 1")) {
+            renderNew1(entity, event, screenPos);
+            return;
+        }
+
         StreamerMode streamerMode = Delta.h().d().t().aE();
         Text name = entity.getName();
         if (streamerMode.m() && streamerMode.r().c().booleanValue()) {
@@ -120,6 +149,193 @@ public class EntityESP extends Module {
         event.d().a(event.i().getMatrices(), bgX, textY, bgWidth, textHeight, 0.0f, color);
         Fonts.e.a(event.i().getMatrices(), text, textX, textY, fontSize);
         a(entity, event, bgWidth, bgX, textY, color, textHeight);
+    }
+
+    private void renderNew1(Entity entity, DrawEvent event, Vector2f screenPos) {
+        NameTagWidget w = NameTagWidget.getInstance();
+        boolean transparent = w != null ? w.transparentStyle.c().booleanValue() : true;
+        boolean rounded = w != null ? w.roundedCorners.c().booleanValue() : true;
+        boolean showGHP = w != null ? w.showGHP.c().booleanValue() : true;
+        boolean showSkin = w != null ? w.showSkin.c().booleanValue() : true;
+        boolean showArmor = w != null ? w.showArmor.c().booleanValue() : true;
+        boolean colorLowHp = w != null ? w.colorLowHp.c().booleanValue() : true;
+        boolean showHealth = w != null ? w.showHealth.c().booleanValue() : true;
+        String healthStyle = w != null ? w.healthStyle.c() : "Текст";
+        float scale = w != null ? w.getScale() : 0.9f;
+        float opacity = w != null ? w.getBgOpacity() : 0.85f;
+
+        StreamerMode streamerMode = Delta.h().d().t().aE();
+        String nameStr = entity.getName().getString();
+        if (streamerMode.m() && streamerMode.r().c().booleanValue()) {
+            nameStr = streamerMode.a(nameStr);
+        }
+        if (entity.getScoreboardTeam() != null) {
+            nameStr = entity.getScoreboardTeam().getPrefix().getString() + nameStr;
+        }
+
+        LivingEntity living = entity instanceof LivingEntity ? (LivingEntity) entity : null;
+        float hp = living != null ? ServerUtil.a.a(living) : 20.0f;
+        float maxHp = living != null ? living.getMaxHealth() : 20.0f;
+        float abs = living != null ? living.getAbsorptionAmount() : 0.0f;
+        String hpText = ((int) Math.ceil(hp)) + " HP";
+        String ghpText = ((int) Math.ceil(abs)) + " GHP";
+
+        List<ItemStack> armorList = new ArrayList<>();
+        if (showArmor && living != null) {
+            EquipmentSlot[] slots = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
+            for (EquipmentSlot slot : slots) {
+                ItemStack stack = living.getEquippedStack(slot);
+                if (!stack.isEmpty()) {
+                    armorList.add(stack);
+                }
+            }
+        }
+
+        List<ItemStack> handList = new ArrayList<>();
+        if (living != null) {
+            ItemStack offHand = living.getOffHandStack();
+            ItemStack mainHand = living.getMainHandStack();
+            if (!offHand.isEmpty()) {
+                handList.add(offHand);
+            }
+            if (!mainHand.isEmpty()) {
+                handList.add(mainHand);
+            }
+        }
+
+        float fontSize = 5.75f;
+        float h = 13.0f;
+        float pad = 3.5f;
+        float gap = 3.5f;
+        float skinSize = 9.5f;
+        float itemSize = 8.0f;
+
+        boolean hasSkin = showSkin && (entity instanceof PlayerEntity);
+        float skinW = hasSkin ? skinSize : 0.0f;
+        float nameW = Fonts.e.a(nameStr, fontSize);
+        boolean drawHpText = showHealth && (healthStyle.equals("Текст") || healthStyle.equals("Текст и кольцо"));
+        boolean drawHpRing = showHealth && (healthStyle.equals("Кольцо") || healthStyle.equals("Текст и кольцо"));
+        float hpW = drawHpText ? Fonts.e.a(hpText, fontSize) : 0.0f;
+        float ringW = drawHpRing ? 8.0f : 0.0f;
+        float ghpW = (showGHP && abs > 0.0f) ? Fonts.e.a(ghpText, fontSize) : 0.0f;
+        float armorW = armorList.size() > 0 ? (armorList.size() * (itemSize + 1.0f)) : 0.0f;
+        float handsW = handList.size() > 0 ? (handList.size() * (itemSize + 1.0f)) : 0.0f;
+
+        float totalW = pad;
+        if (skinW > 0) totalW += skinW + gap;
+        totalW += nameW;
+        if (hpW > 0) totalW += gap + hpW;
+        if (ringW > 0) totalW += gap + ringW;
+        if (ghpW > 0) totalW += gap + ghpW;
+        if (armorW > 0) totalW += gap + armorW;
+        if (handsW > 0) totalW += gap + handsW;
+        totalW += pad;
+
+        float x = screenPos.x() - (totalW / 2.0f);
+        float y = screenPos.y() - h;
+
+        MatrixStack matrices = event.i().getMatrices();
+        boolean transform = Math.abs(scale - 1.0f) > 0.01f;
+        if (transform) {
+            matrices.push();
+            matrices.translate(screenPos.x(), y + (h / 2.0f), 0.0f);
+            matrices.scale(scale, scale, 1.0f);
+            matrices.translate(-screenPos.x(), -(y + (h / 2.0f)), 0.0f);
+        }
+
+        float radius = rounded ? (h / 2.0f) : 3.0f;
+        int bgAlpha = (int) (opacity * (transparent ? 175 : 235));
+        int bg = ColorUtil.a(16, 17, 23, bgAlpha);
+        int outline = ColorUtil.a(255, 255, 255, (int) (opacity * 25));
+
+        event.d().a(matrices, x, y, totalW, h, radius, bg);
+        event.d().a(matrices, x, y, totalW, h, radius, 0.5f, outline);
+
+        float curX = x + pad;
+
+        if (skinW > 0 && (entity instanceof PlayerEntity player)) {
+            float avatarY = y + ((h - skinSize) / 2.0f);
+            Identifier skin = null;
+            if (player instanceof AbstractClientPlayerEntity clientPlayer) {
+                skin = clientPlayer.getSkinTextures().texture();
+            }
+            if (skin == null) {
+                skin = DefaultSkinHelper.getSkinTextures(player.getUuid()).texture();
+            }
+            if (skin != null) {
+                int texId = aM_.getTextureManager().getTexture(skin).getGlId();
+                event.d().a(matrices, curX, avatarY, skinSize, skinSize, 2.0f, -1, 0.125f, 0.125f, 0.125f, 0.125f, texId);
+                event.d().a(matrices, curX, avatarY, skinSize, skinSize, 2.0f, -1, 0.625f, 0.125f, 0.125f, 0.125f, texId);
+            }
+            curX += skinW + gap;
+        }
+
+        float textY = y + ((h - Fonts.e.a(fontSize)) / 2.0f) - 0.25f;
+        Fonts.e.a(event.h(), nameStr, curX, textY, fontSize, -1);
+        curX += nameW;
+
+        if (hpW > 0) {
+            curX += gap;
+            int hpColor = -1;
+            if (colorLowHp) {
+                if (hp <= 6.0f) {
+                    hpColor = ColorUtil.a(255, 75, 75, 255);
+                } else if (hp <= 12.0f) {
+                    hpColor = ColorUtil.a(255, 205, 60, 255);
+                } else {
+                    hpColor = ColorUtil.a(120, 255, 140, 255);
+                }
+            }
+            Fonts.e.a(event.h(), hpText, curX, textY, fontSize, hpColor);
+            curX += hpW;
+        }
+
+        if (ringW > 0) {
+            curX += gap;
+            float ringY = y + ((h - 8.0f) / 2.0f);
+            int ringBg = ColorUtil.a(40, 42, 54, 200);
+            event.d().a(matrices, curX, ringY, 8.0f, 8.0f, 4.0f, 1.0f, ringBg);
+            int ringColor = (hp <= 6.0f) ? ColorUtil.a(255, 75, 75, 255) : ColorUtil.a(120, 255, 140, 255);
+            event.d().a(matrices, curX + 2.0f, ringY + 2.0f, 4.0f, 4.0f, 2.0f, ringColor);
+            curX += ringW;
+        }
+
+        if (ghpW > 0) {
+            curX += gap;
+            int ghpColor = ColorUtil.a(255, 215, 0, 255);
+            Fonts.e.a(event.h(), ghpText, curX, textY, fontSize, ghpColor);
+            curX += ghpW;
+        }
+
+        if (armorList.size() > 0) {
+            curX += gap;
+            for (ItemStack stack : armorList) {
+                float itemY = y + ((h - itemSize) / 2.0f) - 0.5f;
+                event.e().a(event.i(), InventoryUtil.a(stack), curX, itemY, 0, 1.0f, itemSize / 16.0f, false);
+                if (stack.isDamageable()) {
+                    float barY = itemY + itemSize;
+                    float barW = itemSize - 1.0f;
+                    float dur = Math.max(0.0f, 1.0f - (float) stack.getDamage() / (float) stack.getMaxDamage());
+                    event.d().a(matrices, curX + 0.5f, barY, barW, 0.9f, 0.45f, ColorUtil.a(25, 25, 30, 180));
+                    int barColor = ColorUtil.a(140, 120, 255, 240);
+                    event.d().a(matrices, curX + 0.5f, barY, barW * dur, 0.9f, 0.45f, barColor);
+                }
+                curX += itemSize + 1.0f;
+            }
+        }
+
+        if (handList.size() > 0) {
+            curX += gap;
+            for (ItemStack stack : handList) {
+                float itemY = y + ((h - itemSize) / 2.0f) - 0.5f;
+                event.e().a(event.i(), InventoryUtil.a(stack), curX, itemY, 0, 1.0f, itemSize / 16.0f, false);
+                curX += itemSize + 1.0f;
+            }
+        }
+
+        if (transform) {
+            matrices.pop();
+        }
     }
 
     private void a(Entity entity, DrawEvent event, float nameTagWidth, float nameTagX, float nameTagY, int color, float textHeight) {

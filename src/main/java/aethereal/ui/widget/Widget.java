@@ -108,6 +108,10 @@ public class Widget {
         a(this.widgetScale, this.widgetBgOpacity);
     }
 
+    public boolean handleMouse(double mouseX, double mouseY, int button, int action) {
+        return false;
+    }
+
     protected final void a(Setting<?>... settings) {
         for (Setting<?> setting : settings) {
             this.f.add(setting);

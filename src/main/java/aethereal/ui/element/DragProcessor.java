@@ -141,6 +141,10 @@ public class DragProcessor extends ConfigProcessor<DragInfo> implements Interfac
             boolean popupHandled = false;
             for (DragInfo dragInfo : e()) {
                 if (dragInfo.e() != null && dragInfo.e().g()) {
+                    if (event.b() && dragInfo.e().handleMouse(event.f(), event.g(), event.h(), 0)) {
+                        popupHandled = true;
+                        break;
+                    }
                     for (Element_2<?> element : dragInfo.e().c()) {
                         if (element.a() && MathUtil.a(event.f(), event.g(), element.d().x, element.d().y, element.d().z, element.d().w)) {
                             if (event.b()) {
@@ -157,6 +161,10 @@ public class DragProcessor extends ConfigProcessor<DragInfo> implements Interfac
             if (event.d() && event.h() == 0) {
                 for (DragInfo dragInfo : e()) {
                     if (dragInfo.e() != null && dragInfo.e().g()) {
+                        if (dragInfo.e().handleMouse(event.f(), event.g(), event.h(), 1)) {
+                            popupHandled = true;
+                            break;
+                        }
                         for (Element_2<?> element : dragInfo.e().c()) {
                             if (element.a(event.f(), event.g(), event.h(), 0, 0)) {
                                 popupHandled = true;
@@ -170,6 +178,9 @@ public class DragProcessor extends ConfigProcessor<DragInfo> implements Interfac
             if (event.c() && event.h() == 0) {
                 for (DragInfo dragInfo : e()) {
                     if (dragInfo.e() != null && dragInfo.e().g()) {
+                        if (dragInfo.e().handleMouse(event.f(), event.g(), event.h(), 2)) {
+                            popupHandled = true;
+                        }
                         for (Element_2<?> element : dragInfo.e().c()) {
                             element.b(event.f(), event.g(), event.h());
                         }
