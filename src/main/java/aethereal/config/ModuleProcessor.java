@@ -271,6 +271,8 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
                 if (name.equalsIgnoreCase(strL)) return true;
                 if ((name.equalsIgnoreCase("KillAura") || name.equalsIgnoreCase("Kill Aura")) && strL.equalsIgnoreCase("Aura")) return true;
                 if (name.equalsIgnoreCase("Aura") && (strL.equalsIgnoreCase("KillAura") || strL.equalsIgnoreCase("Kill Aura"))) return true;
+                if ((name.equalsIgnoreCase("NameTag") || name.equalsIgnoreCase("Nametag")) && (strL.equalsIgnoreCase("Entity ESP") || strL.equalsIgnoreCase("EntityESP") || strL.equalsIgnoreCase("Entity_ESP"))) return true;
+                if ((name.equalsIgnoreCase("Entity ESP") || name.equalsIgnoreCase("EntityESP")) && (strL.equalsIgnoreCase("NameTag") || strL.equalsIgnoreCase("Nametag"))) return true;
                 return false;
             };
             if (stream == null) {

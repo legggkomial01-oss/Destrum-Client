@@ -54,6 +54,8 @@ public class BindCommand extends BaseCommand {
                 if (name.equalsIgnoreCase(moduleName)) return true;
                 if ((name.equalsIgnoreCase("KillAura") || name.equalsIgnoreCase("Kill Aura")) && moduleName.equalsIgnoreCase("Aura")) return true;
                 if (name.equalsIgnoreCase("Aura") && (moduleName.equalsIgnoreCase("KillAura") || moduleName.equalsIgnoreCase("Kill Aura"))) return true;
+                if ((name.equalsIgnoreCase("NameTag") || name.equalsIgnoreCase("Nametag")) && (moduleName.equalsIgnoreCase("Entity ESP") || moduleName.equalsIgnoreCase("EntityESP") || moduleName.equalsIgnoreCase("Entity_ESP"))) return true;
+                if ((name.equalsIgnoreCase("Entity ESP") || name.equalsIgnoreCase("EntityESP")) && (moduleName.equalsIgnoreCase("NameTag") || moduleName.equalsIgnoreCase("Nametag"))) return true;
                 return false;
             }).findFirst().orElse(null);
             if (module == null) {

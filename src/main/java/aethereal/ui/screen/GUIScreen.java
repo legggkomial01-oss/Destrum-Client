@@ -379,6 +379,11 @@ public class GUIScreen extends Screen {
                 && cleanName.contains("predictions")) {
             return true;
         }
+        // NameTag / Entity ESP
+        if ((cleanQuery.contains("nametag") || cleanQuery.contains("нейм") || cleanQuery.contains("тег") || cleanQuery.contains("tag") || cleanQuery.contains("entityesp") || cleanQuery.contains("enety") || cleanQuery.contains("ники") || cleanQuery.contains("ник")) 
+                && (cleanName.contains("nametag") || cleanName.contains("entityesp"))) {
+            return true;
+        }
 
         return false;
     }

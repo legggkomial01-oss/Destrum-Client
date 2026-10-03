@@ -19,7 +19,7 @@ import aethereal.core.ModuleRegister;
 import aethereal.event.DrawEvent;
 import aethereal.module.misc.StreamerMode;
 import aethereal.setting.BooleanSetting;
-
+import aethereal.setting.ModeSetting;
 import aethereal.setting.MultiModeSetting;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,10 +45,16 @@ import net.minecraft.text.MutableText;
 import net.minecraft.client.network.ClientPlayerEntity;
 import org.joml.Vector2f;
 
-@ModuleRegister(a = "Entity ESP", b = "Отображает информацию о сущностях над их головой", c = Category.Render)
+@ModuleRegister(a = "NameTag", b = "Отображает информацию о сущностях над их головой", c = Category.Render)
 public class EntityESP extends Module {
+    private final ModeSetting mode = new ModeSetting("Режим", "Стандарт", "Стандарт", "Новый 1", "Новый 2");
     private final MultiModeSetting b = new MultiModeSetting("Отслеживаемые сущности", new BooleanSetting("Игроки", true), new BooleanSetting("Животные", false), new BooleanSetting("Мобы", false), new BooleanSetting("Предметы", false));
     private final List<a> c = new ArrayList();
+
+    @Generated
+    public ModeSetting r() {
+        return this.mode;
+    }
 
     @Generated
     public List<a> q() {
@@ -56,7 +62,7 @@ public class EntityESP extends Module {
     }
 
     public EntityESP() {
-        a(this.b);
+        a(this.mode, this.b);
     }
 
     @EventTarget
