@@ -39,7 +39,7 @@ public class HotkeysWidget extends Widget implements Interface {
                 targetWidth = Math.max(targetWidth, 19.0f + Fonts.e.a(module.j(), 6.5f) + 8.0f + Fonts.e.a(KeyUtil.b(module.p()), 6.5f) + 4.0f + rightWidth + 5.0f + 2.0f);
             }
         }
-        float width = MathUtil.c(j().f(), targetWidth, 0.5f);
+        float width = MathUtil.c(j().getRawWidth(), targetWidth, 0.5f);
         j().c(width);
         a(event, "Q", "Hot-keys", width, a());
         for (Module module2 : Delta.h().d().t().e()) {

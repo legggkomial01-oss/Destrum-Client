@@ -74,7 +74,7 @@ public class PotionWidget extends Widget implements Interface {
                 targetWidth = Math.max(targetWidth, 19.0f + Fonts.e.a(name, 6.5f) + 8.0f + Fonts.e.a(iStatusEffectInstance.getDuration() > 1000000 ? "∞" : ((iStatusEffectInstance.getDuration() / 20) / 60) + ":" + String.format("%02d", Integer.valueOf((iStatusEffectInstance.getDuration() / 20) % 60)), 6.5f) + 5.0f + 2.0f);
             }
         }
-        float width = MathUtil.c(j().f(), targetWidth, 0.5f);
+        float width = MathUtil.c(j().getRawWidth(), targetWidth, 0.5f);
         j().c(width);
         if (a() > 0.0f) {
             a(event, "E", "Potion-list", width, a());

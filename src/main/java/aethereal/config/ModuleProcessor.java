@@ -47,6 +47,7 @@ import aethereal.module.render.ChinaHat;
 import aethereal.module.misc.ClanUpgrader;
 import aethereal.module.player.ClickAction;
 import aethereal.module.misc.Collector_2;
+import aethereal.module.render.Cosmetics;
 import aethereal.module.render.Crosshair;
 import aethereal.module.player.ElytraHelper;
 import aethereal.module.movement.ElytraTarget;
@@ -91,9 +92,11 @@ import aethereal.module.movement.Scaffold;
 import aethereal.module.movement.ScreenWalk;
 import aethereal.module.render.SeeInvisibles;
 import aethereal.module.misc.ServerAssistant;
+import aethereal.module.render.JumpCircles;
 import aethereal.module.render.ShaderESP;
 import aethereal.module.combat.ShiftTAP;
 import aethereal.module.render.ShulkerPreview;
+import aethereal.module.render.SkyShader;
 import aethereal.module.render.SoundESP;
 import aethereal.module.player.SoundReducer;
 import aethereal.module.misc.Sounds;
@@ -102,6 +105,7 @@ import aethereal.module.misc.StreamerMode;
 import aethereal.module.player.Structures;
 import aethereal.module.render.SwingAnimation;
 import aethereal.module.combat.TapeMouse;
+import aethereal.module.render.TargetESP;
 import aethereal.module.player.ThirdPerson;
 import aethereal.module.combat.TriggerBot;
 import aethereal.module.player.UseTracker;
@@ -201,6 +205,7 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     private final ShulkerPreview aw = new ShulkerPreview();
     private final NoDelay ax = new NoDelay();
     private final ChinaHat ay = new ChinaHat();
+    private final Cosmetics az = new Cosmetics();
     private final AspectRatio aB = new AspectRatio();
     private final Predictions aC = new Predictions();
     private final StreamerMode aE = new StreamerMode();
@@ -226,12 +231,15 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     private final AutoLeave bb = new AutoLeave();
     private final Velocity bc = new Velocity();
     private Interface_2 bd;
+    private final JumpCircles be = new JumpCircles();
+    private final TargetESP bf = new TargetESP();
+    private final SkyShader bg = new SkyShader();
 
     @Override
     @Compile
     public void setup() {
         this.bd = new Interface_2();
-        a(this.f, this.bc, this.aY, this.aL, this.Z, this.aK, this.U, this.S, this.aJ, this.N, this.aH, this.aT, this.s, this.av, this.i, this.aE, this.ao, this.m, this.Q, this.ag, this.aC, this.n, this.am, this.I, this.h, this.aR, this.aS, this.aI, this.al, this.aq, this.x, this.ar, this.aM, this.aF, this.z, this.ax, this.aw, this.r, this.u, this.aj, this.ak, this.A, this.t, this.ah, this.V, this.W, this.as, this.q, this.ap, this.k, this.l, this.F, this.G, this.H, this.B, this.C, this.R, this.D, this.X, this.j, this.M, this.ay, this.L, this.K, this.o, this.ae, this.v, this.ac, this.af, this.T, this.ai, this.ab, this.aa, this.O, this.p, this.w, this.bd, this.at, this.au, this.aB, this.aO, this.aN, this.aP, this.aV, this.aW, this.aX, this.aZ, this.ba, this.bb, this.Y);
+        a(this.f, this.bc, this.aY, this.aL, this.Z, this.aK, this.U, this.S, this.aJ, this.N, this.aH, this.aT, this.s, this.av, this.i, this.aE, this.ao, this.m, this.Q, this.ag, this.aC, this.n, this.am, this.I, this.h, this.aR, this.aS, this.aI, this.al, this.aq, this.x, this.ar, this.aM, this.aF, this.z, this.ax, this.aw, this.r, this.u, this.aj, this.ak, this.A, this.t, this.ah, this.V, this.W, this.as, this.q, this.ap, this.k, this.l, this.F, this.G, this.H, this.B, this.C, this.R, this.D, this.X, this.j, this.M, this.ay, this.az, this.L, this.K, this.o, this.ae, this.v, this.ac, this.af, this.T, this.ai, this.ab, this.aa, this.ad, this.O, this.p, this.w, this.bd, this.at, this.au, this.aB, this.aO, this.aN, this.aP, this.aV, this.aW, this.aX, this.aZ, this.ba, this.bb, this.Y, this.be, this.bf, this.bg);
         super.setup();
     }
 
@@ -258,7 +266,13 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
                 throw new NullPointerException();
             }
             Stream<Module> stream = listE.stream();
-            Predicate<? super Module> predicate = obj -> ((Module) obj).j().equalsIgnoreCase(strL);
+            Predicate<? super Module> predicate = obj -> {
+                String name = ((Module) obj).j();
+                if (name.equalsIgnoreCase(strL)) return true;
+                if ((name.equalsIgnoreCase("KillAura") || name.equalsIgnoreCase("Kill Aura")) && strL.equalsIgnoreCase("Aura")) return true;
+                if (name.equalsIgnoreCase("Aura") && (strL.equalsIgnoreCase("KillAura") || strL.equalsIgnoreCase("Kill Aura"))) return true;
+                return false;
+            };
             if (stream == null) {
                 throw new NullPointerException();
             }
@@ -835,6 +849,11 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     }
 
     @Generated
+    public Cosmetics az() {
+        return this.az;
+    }
+
+    @Generated
     public AspectRatio aB() {
         return this.aB;
     }
@@ -957,6 +976,21 @@ public class ModuleProcessor extends ConfigProcessor<Module> {
     @Generated
     public Interface_2 bd() {
         return this.bd;
+    }
+
+    @Generated
+    public JumpCircles be() {
+        return this.be;
+    }
+
+    @Generated
+    public TargetESP bf() {
+        return this.bf;
+    }
+
+    @Generated
+    public SkyShader bg() {
+        return this.bg;
     }
 
     @Override

@@ -59,7 +59,7 @@ import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.entity.passive.AllayEntity;
 
-@ModuleRegister(a = "Aura", b = "Автоматически атакует цели рядом с вами", c = Category.Combat)
+@ModuleRegister(a = "KillAura", b = "Автоматически атакует цели рядом с вами", c = Category.Combat)
 public class Aura extends Module {
 
     @Generated

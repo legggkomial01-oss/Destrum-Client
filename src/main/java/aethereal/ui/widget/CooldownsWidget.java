@@ -49,7 +49,7 @@ public class CooldownsWidget extends Widget implements Interface {
                 targetWidth = Math.max(targetWidth, 19.0f + Fonts.e.a(item.getName().getString(), 6.5f) + 8.0f + Fonts.e.a(String.format("%.1fс", Float.valueOf(remaining / 20.0f)), 6.5f) + 5.0f + 2.0f);
             }
         }
-        float width = MathUtil.c(j().f(), targetWidth, 0.5f);
+        float width = MathUtil.c(j().getRawWidth(), targetWidth, 0.5f);
         j().c(width);
         if (a() > 0.0f) {
             a(event, "d", "Cooldowns", width, a());

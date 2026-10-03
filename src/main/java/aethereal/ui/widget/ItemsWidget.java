@@ -65,7 +65,7 @@ public class ItemsWidget extends Widget implements Interface {
             }
             i++;
         }
-        j().c(MathUtil.c(j().f(), Math.max(0.0f, (contentX - x) - 2.0f), 0.5f));
+        j().c(MathUtil.c(j().getRawWidth(), Math.max(0.0f, (contentX - x) - 2.0f), 0.5f));
         j().d((active || example) ? this.d : 0.0f);
         super.a(event);
     }

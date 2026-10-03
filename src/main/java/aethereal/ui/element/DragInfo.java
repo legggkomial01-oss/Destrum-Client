@@ -37,12 +37,12 @@ public class DragInfo implements Interface {
 
     @Generated
     public void c(float width) {
-        this.e = width;
+        this.e = sanitizeSize(width);
     }
 
     @Generated
     public void d(float height) {
-        this.f = height;
+        this.f = sanitizeSize(height);
     }
 
     @Generated
@@ -169,13 +169,11 @@ public class DragInfo implements Interface {
     }
 
     public float getVisualX() {
-        float scale = (this.b != null) ? this.b.getScale() : 1.0f;
-        return a() + (this.e / 2.0f) * (1.0f - scale);
+        return a();
     }
 
     public float getVisualY() {
-        float scale = (this.b != null) ? this.b.getScale() : 1.0f;
-        return b() + (this.f / 2.0f) * (1.0f - scale);
+        return b();
     }
 
     public float c() {
@@ -184,5 +182,12 @@ public class DragInfo implements Interface {
 
     public float d() {
         return this.d;
+    }
+
+    private float sanitizeSize(float value) {
+        if (!Float.isFinite(value) || value < 0.0f) {
+            return 0.0f;
+        }
+        return Math.min(value, 4096.0f);
     }
 }

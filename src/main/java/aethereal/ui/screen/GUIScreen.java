@@ -10,7 +10,10 @@ import aethereal.core.Module;
 import aethereal.render.EasingList;
 import aethereal.render.Fonts;
 import aethereal.render.ColorUtil;
+import aethereal.render.Draw2DProcessor;
 import aethereal.util.MathUtil;
+import aethereal.config.ThemeInfo;
+import aethereal.config.ThemeProcessor;
 
 import aethereal.ui.screen.GUIPanel;
 
@@ -100,7 +103,13 @@ public class GUIScreen extends Screen {
     public boolean mouseClicked(final double mouseX, final double mouseY, final int button) {
         TextField textField = this.a;
         List<GUIPanel> list = this.c;
-        textField.a(MathUtil.scale(mouseX, 2), MathUtil.scale(mouseY, 2), button);
+        double scaledX = MathUtil.scale(mouseX, 2);
+        double scaledY = MathUtil.scale(mouseY, 2);
+        if (button == 0 && isWaypointButton(scaledX, scaledY)) {
+            aM_.setScreen(new WaypointScreen(this));
+            return true;
+        }
+        textField.a(scaledX, scaledY, button);
         if (list.stream().filter(obj -> GUIScreen.f((GUIPanel) obj)).anyMatch(obj -> ((GUIPanel) obj).a(MathUtil.scale(mouseX, 2), MathUtil.scale(mouseY, 2), button))) {
             return true;
         }
@@ -219,14 +228,186 @@ public class GUIScreen extends Screen {
     public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
     }
 
+    private static final String RU_KEYBOARD = "йцукенгшщзхъфывапролджэячсмитьбю.ё";
+    private static final String EN_KEYBOARD = "qwertyuiop[]asdfghjkl;'zxcvbnm,./`";
+
+    private static String ruToEn(String text) {
+        StringBuilder sb = new StringBuilder();
+        for (char c : text.toCharArray()) {
+            int idx = RU_KEYBOARD.indexOf(Character.toLowerCase(c));
+            if (idx >= 0 && idx < EN_KEYBOARD.length()) {
+                sb.append(EN_KEYBOARD.charAt(idx));
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    private static String enToRu(String text) {
+        StringBuilder sb = new StringBuilder();
+        for (char c : text.toCharArray()) {
+            int idx = EN_KEYBOARD.indexOf(Character.toLowerCase(c));
+            if (idx >= 0 && idx < RU_KEYBOARD.length()) {
+                sb.append(RU_KEYBOARD.charAt(idx));
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
     public boolean a(GUIPanel panel, Module module) {
-        return module.l() == panel.c() && module.j().toLowerCase().contains(this.a.g().toString().toLowerCase());
+        if (module.l() != panel.c()) {
+            return false;
+        }
+        String query = this.a.g().toString().trim().toLowerCase();
+        if (query.isEmpty()) {
+            return true;
+        }
+        return matchesSearch(module, query);
+    }
+
+    private boolean matchesSearch(Module module, String query) {
+        String name = module.j().toLowerCase();
+        String desc = module.k() != null ? module.k().toLowerCase() : "";
+        String cleanName = name.replace(" ", "");
+        String cleanQuery = query.replace(" ", "");
+
+        // 1. Direct match on name or description
+        if (name.contains(query) || cleanName.contains(cleanQuery)) {
+            return true;
+        }
+        if (desc.contains(query)) {
+            return true;
+        }
+
+        // 2. Keyboard layout switch (e.g. user typed Russian on English layout or vice-versa)
+        String queryEn = ruToEn(query);
+        String cleanQueryEn = queryEn.replace(" ", "");
+        if (name.contains(queryEn) || cleanName.contains(cleanQueryEn)) {
+            return true;
+        }
+        String queryRu = enToRu(query);
+        if (desc.contains(queryRu)) {
+            return true;
+        }
+
+        // 3. Common Russian/slang aliases:
+        // KillAura / Aura
+        if ((cleanQuery.contains("кил") || cleanQuery.contains("аур") || cleanQuery.contains("killaura") || cleanQuery.contains("aura")) 
+                && (cleanName.contains("killaura") || cleanName.contains("aura"))) {
+            return true;
+        }
+        // Target ESP
+        if ((cleanQuery.contains("таргет") || cleanQuery.contains("target")) 
+                && cleanName.contains("target")) {
+            return true;
+        }
+        // ESP modules
+        if ((cleanQuery.equals("есп") || cleanQuery.equals("эсп") || cleanQuery.equals("esp")) 
+                && (cleanName.contains("esp") || desc.contains("esp") || desc.contains("подсвет"))) {
+            return true;
+        }
+        // Jump Circles
+        if ((cleanQuery.contains("джамп") || cleanQuery.contains("круг") || cleanQuery.contains("jump") || cleanQuery.contains("circle")) 
+                && cleanName.contains("jumpcircles")) {
+            return true;
+        }
+        // Sky Shader
+        if ((cleanQuery.contains("скай") || cleanQuery.contains("небо") || cleanQuery.contains("sky")) 
+                && cleanName.contains("skyshader")) {
+            return true;
+        }
+        // Hands Shader
+        if ((cleanQuery.contains("хэнд") || cleanQuery.contains("рук") || cleanQuery.contains("hand")) 
+                && cleanName.contains("handsshader")) {
+            return true;
+        }
+        // Shaders general
+        if ((cleanQuery.contains("шейдер") || cleanQuery.contains("shader")) 
+                && cleanName.contains("shader")) {
+            return true;
+        }
+        // Velocity
+        if ((cleanQuery.contains("велос") || cleanQuery.contains("акб") || cleanQuery.contains("отдач")) 
+                && cleanName.contains("velocity")) {
+            return true;
+        }
+        // AntiBot
+        if ((cleanQuery.contains("бот") || cleanQuery.contains("антибот")) 
+                && cleanName.contains("antibot")) {
+            return true;
+        }
+        // AutoArmor
+        if ((cleanQuery.contains("брон") || cleanQuery.contains("армор")) 
+                && cleanName.contains("autoarmor")) {
+            return true;
+        }
+        // AutoTotem
+        if ((cleanQuery.contains("тотем") || cleanQuery.contains("totem")) 
+                && cleanName.contains("autototem")) {
+            return true;
+        }
+        // TriggerBot
+        if ((cleanQuery.contains("триг") || cleanQuery.contains("тригер") || cleanQuery.contains("trigger")) 
+                && cleanName.contains("triggerbot")) {
+            return true;
+        }
+        // HitBoxes
+        if ((cleanQuery.contains("хитбокс") || cleanQuery.contains("hitbox")) 
+                && cleanName.contains("hitboxes")) {
+            return true;
+        }
+        // Scaffold
+        if ((cleanQuery.contains("скаф") || cleanQuery.contains("мост") || cleanQuery.contains("строит")) 
+                && cleanName.contains("scaffold")) {
+            return true;
+        }
+        // FullBright
+        if ((cleanQuery.contains("гамм") || cleanQuery.contains("ярк") || cleanQuery.contains("свет")) 
+                && cleanName.contains("fullbright")) {
+            return true;
+        }
+        // Cosmetics
+        if ((cleanQuery.contains("космет") || cleanQuery.contains("крыл") || cleanQuery.contains("плащ") || cleanQuery.contains("шапк")) 
+                && cleanName.contains("cosmetics")) {
+            return true;
+        }
+        // Predictions
+        if ((cleanQuery.contains("предикт") || cleanQuery.contains("перл") || cleanQuery.contains("траект")) 
+                && cleanName.contains("predictions")) {
+            return true;
+        }
+
+        return false;
     }
 
     private void a(DrawContext context, float centerX, float panelBottom, int mouseX, int mouseY, float delta) {
         this.a.b(new Vector2f(100.0f, 20.0f));
-        this.a.a(new Vector2f(centerX - 50.0f, panelBottom + 12.0f));
+        this.a.a(new Vector2f(centerX - 62.0f, panelBottom + 12.0f));
         this.a.a(context, mouseX, mouseY, delta, 1.0f);
+        Draw2DProcessor draw = Delta.h().d().i();
+        ThemeProcessor theme = Delta.h().d().o();
+        MatrixStack matrices = context.getMatrices();
+        float buttonX = centerX + 44.0f;
+        float buttonY = panelBottom + 12.0f;
+        boolean hovered = MathUtil.a(mouseX, mouseY, buttonX, buttonY, 20.0f, 20.0f);
+        int primary = theme.a(ThemeInfo.PRIMARY).a();
+        int background = ColorUtil.a(theme.a(ThemeInfo.BACKGROUND_GUI).a(), primary, hovered ? 0.12f : 0.05f);
+        draw.a(matrices, buttonX, buttonY, 20.0f, 20.0f, 6.0f, ColorUtil.a(background, 0.92f));
+        Fonts.a.a(matrices, "F", buttonX + ((20.0f - Fonts.a.a("F", 8.0f)) / 2.0f), buttonY + ((20.0f - Fonts.a.a(8.0f)) / 2.0f), 8.0f, hovered ? primary : theme.a(ThemeInfo.TEXT).a());
+    }
+
+    private boolean isWaypointButton(double mouseX, double mouseY) {
+        if (this.c.isEmpty()) {
+            return false;
+        }
+        GUIPanel first = this.c.getFirst();
+        GUIPanel last = this.c.getLast();
+        float centerX = (first.f().x + last.f().x + last.f().z) * 0.5f;
+        float buttonY = first.f().y + first.f().w + 12.0f;
+        return MathUtil.a(mouseX, mouseY, centerX + 44.0f, buttonY, 20.0f, 20.0f);
     }
 
     private void a(MatrixStack matrices, float centerX, float panelTop, float delta) {

@@ -39,7 +39,7 @@ public class StaffWidget extends Widget implements Interface {
                 active = true;
             }
         }
-        float width = MathUtil.c(j().f(), targetWidth, 0.5f);
+        float width = MathUtil.c(j().getRawWidth(), targetWidth, 0.5f);
         j().c(width);
         if (a() > 0.0f) {
             a(event, "i", "Staff-list", width, a());

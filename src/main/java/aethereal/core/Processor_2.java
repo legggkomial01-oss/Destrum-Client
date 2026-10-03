@@ -27,6 +27,7 @@ import aethereal.config.ResourcePacksProcessor;
 import aethereal.handler.RotationProcessor;
 import aethereal.staff.StaffProcessor;
 import aethereal.config.ThemeProcessor;
+import aethereal.waypoint.WaypointProcessor;
 import aethereal.api.Compile;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,10 +60,11 @@ public class Processor_2 implements Interface {
     private final ModuleProcessor t;
     private final CommandProcessor u;
     private final HandlerProcessor v;
+    private final WaypointProcessor w;
 
     @Compile
     public void a() {
-        Collections.addAll(this.c, this.d, this.p, this.q, this.r, this.e, this.m, this.n, this.f, this.o, this.h, this.t, this.k, this.g, this.i, this.s, this.j, this.u, this.l, this.v);
+        Collections.addAll(this.c, this.d, this.p, this.q, this.r, this.e, this.m, this.n, this.f, this.o, this.h, this.t, this.k, this.g, this.i, this.s, this.j, this.u, this.l, this.v, this.w);
         this.c.forEach(new Consumer() {
             @Override
             public void accept(Object obj) {
@@ -104,6 +106,7 @@ public class Processor_2 implements Interface {
         this.t = new ModuleProcessor();
         this.u = new CommandProcessor();
         this.v = new HandlerProcessor();
+        this.w = new WaypointProcessor();
     }
 
     @Generated
@@ -204,6 +207,11 @@ public class Processor_2 implements Interface {
     @Generated
     public HandlerProcessor v() {
         return this.v;
+    }
+
+    @Generated
+    public WaypointProcessor w() {
+        return this.w;
     }
 
     public void b() {

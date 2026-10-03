@@ -63,6 +63,8 @@ public class DragProcessor extends ConfigProcessor<DragInfo> implements Interfac
                                 ConverterUtil.a(setting2, jSONObjectJ2.a(setting2.i()));
                             }
                         }
+                        dragInfo2.c(dragInfo2.getRawWidth());
+                        dragInfo2.d(dragInfo2.getRawHeight());
                     } else {
                         continue;
                     }

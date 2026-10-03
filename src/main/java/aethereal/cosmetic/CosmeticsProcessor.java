@@ -11,6 +11,8 @@ import aethereal.cosmetic.Cosmetic;
 import aethereal.cosmetic.CosmeticsCategory;
 import aethereal.cosmetic.CosmeticsRenderer;
 import aethereal.cosmetic.CosmeticsType;
+import aethereal.cosmetic.LocalCosmeticFactory;
+import aethereal.cosmetic.LocalCosmeticPreset;
 import aethereal.event.BackendEvent;
 import aethereal.network.PacketSecurity;
 
@@ -128,7 +130,7 @@ public class CosmeticsProcessor extends BaseProcessor {
 
     public Cosmetic register(Cosmetic cosmetic) {
         this.cosmetics.removeIf(existing -> {
-            return existing.getType() == cosmetic.getType() && existing.getCategory() == cosmetic.getCategory() && Objects.equals(existing.getUuid(), cosmetic.getUuid());
+            return existing.getType() == cosmetic.getType() && existing.getCategory() == cosmetic.getCategory() && existing.isLocal() == cosmetic.isLocal() && Objects.equals(existing.getUuid(), cosmetic.getUuid());
         });
         this.cosmetics.add(cosmetic);
         return cosmetic;
@@ -136,7 +138,29 @@ public class CosmeticsProcessor extends BaseProcessor {
 
     public void unregisterCosmetic(UUID uuid, CosmeticsCategory category) {
         this.cosmetics.removeIf(existing -> {
-            return existing.getType() == CosmeticsType.COSMETIC && existing.getCategory() == category && Objects.equals(existing.getUuid(), uuid);
+            return existing.getType() == CosmeticsType.COSMETIC && !existing.isLocal() && existing.getCategory() == category && Objects.equals(existing.getUuid(), uuid);
+        });
+    }
+
+    public void setLocalCosmetic(UUID uuid, LocalCosmeticPreset preset) {
+        unregisterLocalCosmetic(uuid);
+        if (preset != null && preset != LocalCosmeticPreset.NONE) {
+            register(LocalCosmeticFactory.create(uuid, preset));
+        }
+    }
+
+    public void unregisterLocalCosmetic(UUID uuid) {
+        this.cosmetics.removeIf(existing -> {
+            return existing.getType() == CosmeticsType.COSMETIC && existing.isLocal() && Objects.equals(existing.getUuid(), uuid);
+        });
+    }
+
+    public boolean hasLocalCosmetic(UUID uuid, LocalCosmeticPreset preset) {
+        if (preset == null || preset == LocalCosmeticPreset.NONE) {
+            return this.cosmetics.stream().noneMatch(existing -> existing.isLocal() && Objects.equals(existing.getUuid(), uuid));
+        }
+        return this.cosmetics.stream().anyMatch(existing -> {
+            return existing.getType() == CosmeticsType.COSMETIC && existing.isLocal() && existing.getCategory() == preset.category() && Objects.equals(existing.getUuid(), uuid);
         });
     }
 

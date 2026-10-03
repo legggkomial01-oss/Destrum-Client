@@ -198,8 +198,8 @@ public class WatermarkWidget extends Widget implements Interface {
                     // Check snap-attach back to watermark bar
                     float barX = j().a();
                     float barY = j().b();
-                    float barW = j().f();
-                    float barH = j().g();
+                    float barW = j().getRawWidth();
+                    float barH = j().getRawHeight();
                     if (MathUtil.a(newX, newY, barX - 20.0f, barY - 20.0f, barW + 40.0f, barH + 40.0f)) {
                         this.draggedPill.detached = false;
                     }

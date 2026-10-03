@@ -50,7 +50,11 @@ public class BindCommand extends BaseCommand {
                 return 1;
             }
             Module module = processor.e().stream().filter(m -> {
-                return m.j().equalsIgnoreCase(moduleName);
+                String name = m.j();
+                if (name.equalsIgnoreCase(moduleName)) return true;
+                if ((name.equalsIgnoreCase("KillAura") || name.equalsIgnoreCase("Kill Aura")) && moduleName.equalsIgnoreCase("Aura")) return true;
+                if (name.equalsIgnoreCase("Aura") && (moduleName.equalsIgnoreCase("KillAura") || moduleName.equalsIgnoreCase("Kill Aura"))) return true;
+                return false;
             }).findFirst().orElse(null);
             if (module == null) {
                 ChatUtil.a((Object) ("Модуль " + moduleName + " не найден."));

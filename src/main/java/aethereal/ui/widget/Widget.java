@@ -130,13 +130,11 @@ public class Widget {
         MatrixStack matrices = event.i().getMatrices();
         float wx = this.i != null ? this.i.a() : 0.0f;
         float wy = this.i != null ? this.i.b() : 0.0f;
-        float cx = wx + (this.i != null ? this.i.getRawWidth() / 2.0f : 0.0f);
-        float cy = wy + (this.i != null ? this.i.getRawHeight() / 2.0f : 0.0f);
         if (transform) {
             matrices.push();
-            matrices.translate(cx, cy, 0.0f);
+            matrices.translate(wx, wy, 0.0f);
             matrices.scale(scale, scale, 1.0f);
-            matrices.translate(-cx, -cy, 0.0f);
+            matrices.translate(-wx, -wy, 0.0f);
         }
 
         a(event);

@@ -36,6 +36,7 @@ public class Cosmetic implements GeoAnimatable {
     private final BakedGeoModel bakedModel;
     private final BakedAnimations bakedAnimations;
     private final Identifier image;
+    private final boolean local;
 
     @Generated
     public AnimatableInstanceCache getCache() {
@@ -92,7 +93,16 @@ public class Cosmetic implements GeoAnimatable {
         return this.image;
     }
 
+    @Generated
+    public boolean isLocal() {
+        return this.local;
+    }
+
     public Cosmetic(String name, UUID uuid, CosmeticsCategory category, float scale, Vector3f offset, BakedGeoModel bakedModel, BakedAnimations bakedAnimations, NativeImage image) {
+        this(name, uuid, category, scale, offset, bakedModel, bakedAnimations, image, false);
+    }
+
+    public Cosmetic(String name, UUID uuid, CosmeticsCategory category, float scale, Vector3f offset, BakedGeoModel bakedModel, BakedAnimations bakedAnimations, NativeImage image, boolean local) {
         this.cache = GeckoLibUtil.createInstanceCache(this);
         this.name = name;
         this.uuid = uuid;
@@ -103,6 +113,7 @@ public class Cosmetic implements GeoAnimatable {
         this.bakedModel = bakedModel;
         this.bakedAnimations = bakedAnimations;
         this.image = Identifier.of("delta", "cosmetics/" + name);
+        this.local = local;
         this.renderer = new GeoObjectRenderer<>(new CosmeticsGeoModel(this));
         Interface.aM_.getTextureManager().registerTexture(this.image, new NativeImageBackedTexture(image));
     }
@@ -118,6 +129,7 @@ public class Cosmetic implements GeoAnimatable {
         this.bakedModel = null;
         this.bakedAnimations = bakedAnimations;
         this.image = null;
+        this.local = false;
         this.renderer = null;
     }
 

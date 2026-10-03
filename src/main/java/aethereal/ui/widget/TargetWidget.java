@@ -56,9 +56,9 @@ public class TargetWidget extends Widget {
             j().d(24.0f);
             float x = j().a();
             float y = j().b();
-            a(event, x, y, j().f(), j().g(), true, a());
-            float headSize = j().g() / 1.35f;
-            float headY = y + ((j().g() - headSize) / 2.0f);
+            a(event, x, y, j().getRawWidth(), j().getRawHeight(), true, a());
+            float headSize = j().getRawHeight() / 1.35f;
+            float headY = y + ((j().getRawHeight() - headSize) / 2.0f);
             if (this.j instanceof AbstractClientPlayerEntity player) {
                 event.d().a(event.h(), x + 5.0f, headY, headSize, headSize, 2.0f, ColorUtil.a(-1, a()), 0.125f, 0.125f, 0.125f, 0.125f, Interface.aM_.getTextureManager().getTexture(player.getSkinTextures().texture()).getGlId());
             } else if (this.j != null) {
@@ -81,7 +81,7 @@ public class TargetWidget extends Widget {
                 int i = 0;
                 for (ItemStack stack : new ItemStack[]{this.j.getEquippedStack(EquipmentSlot.FEET), this.j.getEquippedStack(EquipmentSlot.LEGS), this.j.getEquippedStack(EquipmentSlot.CHEST), this.j.getEquippedStack(EquipmentSlot.HEAD), this.j.getOffHandStack(), this.j.getMainHandStack()}) {
                     if (!stack.isEmpty()) {
-                        event.e().a(event.i(), InventoryUtil.a(stack), ((x + j().f()) - 10.0f) - (i * 9), y + j().g(), 0, a(), 0.55f, true);
+                        event.e().a(event.i(), InventoryUtil.a(stack), ((x + j().getRawWidth()) - 10.0f) - (i * 9), y + j().getRawHeight(), 0, a(), 0.55f, true);
                         i++;
                     }
                 }
@@ -92,7 +92,7 @@ public class TargetWidget extends Widget {
                 this.k = hpValue;
             }
             float progress = hpValue.equals(this.k) ? 1.0f : this.i.a(0.0f, 1.0f, 0.75f);
-            a(event, hpValue, this.k, ((x + j().f()) - 5.0f) - Fonts.e.a(hpValue, 7.0f), headY + 0.5f, 7.0f, primary, progress);
+            a(event, hpValue, this.k, ((x + j().getRawWidth()) - 5.0f) - Fonts.e.a(hpValue, 7.0f), headY + 0.5f, 7.0f, primary, progress);
             if (progress >= 0.99f) {
                 this.k = hpValue;
                 this.i.c(0.0f);
