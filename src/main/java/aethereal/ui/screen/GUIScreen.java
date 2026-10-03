@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
@@ -206,7 +207,7 @@ public class GUIScreen extends Screen {
         for (Category category : Category.values()) {
             this.c.add(new GUIPanel(category));
         }
-        this.a.a("Поиск по модулям");
+        this.a.a("????? ?? ???????");
     }
 
     public void close() {
@@ -219,8 +220,24 @@ public class GUIScreen extends Screen {
     public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
     }
 
+    private static final Set<String> EXCLUDED_MODULE_NAMES = Set.of(
+        "fly", "strafe", "chest stealer", "cheststealer",
+        "auto respawn", "autorespawn", "death coords", "deathcoords",
+        "fake lags", "fakelags", "open walls", "openwalls",
+        "ancient farmer", "ancientfarmer", "apple farmer", "applefarmer",
+        "auto warden", "autowarden", "communication", "portal bypass",
+        "portalbypass", "server joiner", "serverjoiner", "x ray", "xray"
+    );
+
     public boolean a(GUIPanel panel, Module module) {
-        return module.l() == panel.c() && module.j().toLowerCase().contains(this.a.g().toString().toLowerCase());
+        if (module == null || module.j() == null) {
+            return false;
+        }
+        String name = module.j().toLowerCase().trim();
+        if (EXCLUDED_MODULE_NAMES.contains(name)) {
+            return false;
+        }
+        return module.l() == panel.c() && name.contains(this.a.g().toString().toLowerCase());
     }
 
     private void a(DrawContext context, float centerX, float panelBottom, int mouseX, int mouseY, float delta) {
