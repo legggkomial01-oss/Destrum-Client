@@ -41,6 +41,7 @@ public class PotionWidget extends Widget implements Interface {
     private static final Identifier GRID_STYLE_TEXTURE = Identifier.of("delta", "pictures/potions/grid.png");
     private static final Identifier INLINED_STYLE_TEXTURE = Identifier.of("delta", "pictures/potions/inlined.png");
     private static final Identifier COMPACT_STYLE_TEXTURE = Identifier.of("delta", "pictures/potions/compact.png");
+    private static final Identifier CLASSIC_STYLE_TEXTURE = Identifier.of("delta", "pictures/potions/classic.png");
 
     private final ModeSetting mode;
     private final BooleanSetting transparentStyle;
@@ -604,10 +605,12 @@ public class PotionWidget extends Widget implements Interface {
             float imgY = thumbY + (thumbH - imgH) / 2.0f;
             event.d().a(matrices, COMPACT_STYLE_TEXTURE, imgX, imgY, imgW, imgH, 2.0f, ColorUtil.a(-1, anim));
         } else {
-            // Mini classic Destrum header + rows
-            event.d().a(matrices, thumbX + 2.0f, thumbY + 1.5f, thumbW - 4.0f, 3.5f, 1.0f, ColorUtil.a(primary, (int) (180 * anim)));
-            event.d().a(matrices, thumbX + 2.0f, thumbY + 6.0f, thumbW - 4.0f, 3.0f, 1.0f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
-            event.d().a(matrices, thumbX + 2.0f, thumbY + 10.0f, thumbW - 4.0f, 3.0f, 1.0f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
+            // Image 1: classic.png
+            float imgH = thumbH - 1.0f;
+            float imgW = Math.min(thumbW - 2.0f, imgH * (219.0f / 80.0f));
+            float imgX = thumbX + (thumbW - imgW) / 2.0f;
+            float imgY = thumbY + (thumbH - imgH) / 2.0f;
+            event.d().a(matrices, CLASSIC_STYLE_TEXTURE, imgX, imgY, imgW, imgH, 2.0f, ColorUtil.a(-1, anim));
         }
 
         Fonts.e.a(event.h(), title, x + 4.0f, y + 20.0f, 5.5f, ColorUtil.a(active ? primary : -1, anim));

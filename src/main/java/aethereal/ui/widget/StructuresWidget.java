@@ -26,9 +26,13 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.util.Identifier;
 
 public class StructuresWidget extends Widget implements Interface {
     private static StructuresWidget INSTANCE;
+
+    private static final Identifier INTERFACE_STYLE_TEXTURE = Identifier.of("delta", "pictures/structures/interface.png");
+    private static final Identifier STANDARD_STYLE_TEXTURE = Identifier.of("delta", "pictures/structures/standard.png");
 
     private final ModeSetting mode;
     private final BooleanSetting transparentStyle;
@@ -360,18 +364,19 @@ public class StructuresWidget extends Widget implements Interface {
         event.d().a(matrices, thumbX, thumbY, thumbW, thumbH, 3.0f, ColorUtil.a(8, 8, 14, (int) (220 * anim)));
 
         if ("Интерфейс".equals(modeTarget)) {
-            // Mini capsule
-            float pillW = thumbW - 6.0f;
-            float pillH = 7.0f;
-            event.d().a(matrices, thumbX + 3.0f, thumbY + 4.5f, pillW, pillH, 3.5f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
-            event.d().a(matrices, thumbX + 5.0f, thumbY + 6.0f, 4.0f, 4.0f, 1.0f, ColorUtil.a(primary, anim));
-            event.d().a(matrices, thumbX + 11.0f, thumbY + 7.0f, 20.0f, 2.0f, 0.5f, ColorUtil.a(-1, (int) (200 * anim)));
-            event.d().a(matrices, thumbX + pillW - 10.0f, thumbY + 5.5f, 9.0f, 5.0f, 2.5f, ColorUtil.a(primary, (int) (180 * anim)));
+            // Image 5: interface.png (pill)
+            float imgH = thumbH - 1.0f;
+            float imgW = Math.min(thumbW - 2.0f, imgH * (228.0f / 73.0f));
+            float imgX = thumbX + (thumbW - imgW) / 2.0f;
+            float imgY = thumbY + (thumbH - imgH) / 2.0f;
+            event.d().a(matrices, INTERFACE_STYLE_TEXTURE, imgX, imgY, imgW, imgH, 2.0f, ColorUtil.a(-1, anim));
         } else {
-            // Mini header
-            float barW = thumbW - 10.0f;
-            event.d().a(matrices, thumbX + 5.0f, thumbY + 4.5f, barW, 7.0f, 2.0f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
-            event.d().a(matrices, thumbX + 8.0f, thumbY + 7.0f, 18.0f, 2.0f, 0.5f, ColorUtil.a(-1, (int) (200 * anim)));
+            // Image 3: standard.png (classic structures header & row)
+            float imgH = thumbH - 1.0f;
+            float imgW = Math.min(thumbW - 2.0f, imgH * (156.0f / 93.0f));
+            float imgX = thumbX + (thumbW - imgW) / 2.0f;
+            float imgY = thumbY + (thumbH - imgH) / 2.0f;
+            event.d().a(matrices, STANDARD_STYLE_TEXTURE, imgX, imgY, imgW, imgH, 2.0f, ColorUtil.a(-1, anim));
         }
 
         Fonts.e.a(event.h(), title, x + 4.0f, y + 23.0f, 5.75f, ColorUtil.a(active ? primary : -1, anim));
