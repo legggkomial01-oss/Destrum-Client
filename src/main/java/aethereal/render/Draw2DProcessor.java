@@ -23,6 +23,7 @@ import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.util.Identifier;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.math.MatrixStack;
@@ -361,5 +362,70 @@ public class Draw2DProcessor extends BaseProcessor implements Interface {
         buffer.vertex(matrix, x, y + height, 0.0f).texture(u, v + textureHeight).color(color);
         buffer.vertex(matrix, x + width, y + height, 0.0f).texture(u + textureWidth, v + textureHeight).color(color);
         buffer.vertex(matrix, x + width, y, 0.0f).texture(u + textureWidth, v).color(color);
+    }
+
+    public void drawArc(MatrixStack matrices, float cx, float cy, float innerR, float outerR, double startAngle, double endAngle, int color) {
+        if (Math.abs(endAngle - startAngle) < 0.001) return;
+        Matrix4f matrix = matrices.peek().getPositionMatrix();
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
+
+        int segments = Math.max(24, (int) (Math.abs(endAngle - startAngle) / (Math.PI * 2.0) * 48.0));
+        double step = (endAngle - startAngle) / (double) segments;
+
+        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
+        for (int i = 0; i <= segments; i++) {
+            double angle = startAngle + (step * (double) i);
+            float cos = (float) Math.cos(angle);
+            float sin = (float) Math.sin(angle);
+            buffer.vertex(matrix, cx + (cos * outerR), cy + (sin * outerR), 0.0f).color(color);
+            buffer.vertex(matrix, cx + (cos * innerR), cy + (sin * innerR), 0.0f).color(color);
+        }
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
+    }
+
+    public void drawRing(MatrixStack matrices, float cx, float cy, float innerR, float outerR, int color) {
+        drawArc(matrices, cx, cy, innerR, outerR, 0.0, Math.PI * 2.0, color);
+    }
+
+    public void drawProgressRing(MatrixStack matrices, float cx, float cy, float radius, float thickness, float progress, int color, float anim, boolean spin) {
+        if (anim <= 0.001f) return;
+        float innerR = Math.max(0.5f, radius - thickness);
+        float outerR = radius;
+        int trackColor = ColorUtil.a(color, 0.22f * anim);
+        drawRing(matrices, cx, cy, innerR, outerR, trackColor);
+
+        float clampedProgress = Math.max(0.08f, Math.min(1.0f, progress));
+        double startAngle = spin ? (((System.currentTimeMillis() % 2400L) / 2400.0) * Math.PI * 2.0) : (-Math.PI / 2.0);
+        double sweepAngle = (double) clampedProgress * Math.PI * 2.0;
+        int activeColor = ColorUtil.a(color, anim);
+        drawArc(matrices, cx, cy, innerR, outerR, startAngle, startAngle + sweepAngle, activeColor);
+    }
+
+    public void drawDynamicHealthRing(MatrixStack matrices, float cx, float cy, float radius, float thickness, float curHp, float maxHp, float anim) {
+        if (anim <= 0.001f) return;
+        float hpRatio = Math.max(0.0f, Math.min(1.0f, curHp / Math.max(1.0f, maxHp)));
+        int activeColor = getHealthRingColor(hpRatio, anim);
+        drawProgressRing(matrices, cx, cy, radius, thickness, hpRatio, activeColor, anim, true);
+    }
+
+    public static int getHealthRingColor(float ratio, float anim) {
+        ratio = Math.max(0.0f, Math.min(1.0f, ratio));
+        float r, g, b;
+        if (ratio >= 0.5f) {
+            float t = (ratio - 0.5f) / 0.5f;
+            // 50%: Amber (235, 175, 75) -> 100%: Purple (142, 120, 255)
+            r = (235.0f + (142.0f - 235.0f) * t) / 255.0f;
+            g = (175.0f + (120.0f - 175.0f) * t) / 255.0f;
+            b = (75.0f + (255.0f - 75.0f) * t) / 255.0f;
+        } else {
+            float t = ratio / 0.5f;
+            // 0%: Red (255, 60, 75) -> 50%: Amber (235, 175, 75)
+            r = (255.0f + (235.0f - 255.0f) * t) / 255.0f;
+            g = (60.0f + (175.0f - 60.0f) * t) / 255.0f;
+            b = (75.0f + (75.0f - 75.0f) * t) / 255.0f;
+        }
+        return ColorUtil.a((int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(255 * anim));
     }
 }

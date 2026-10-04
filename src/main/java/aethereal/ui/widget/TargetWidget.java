@@ -6,6 +6,7 @@ import aethereal.core.Interface;
 import aethereal.render.EasingList;
 import aethereal.render.Fonts;
 import aethereal.render.ColorUtil;
+import aethereal.render.Draw2DProcessor;
 import aethereal.util.InventoryUtil;
 import aethereal.util.MathUtil;
 import aethereal.util.ServerUtil;
@@ -148,26 +149,26 @@ public class TargetWidget extends Widget {
 
         String hpStr = String.valueOf(hp);
         String statStr = String.valueOf(stat);
-        float ringSize = 6.0f;
-        float heartSize = 6.5f;
+        float ringSize = 7.0f;
+        float ringSpacing = 4.5f;
 
-        float heartW = Fonts.a.a(":", heartSize);
         float hpW = Fonts.d.a(hpStr, 7.5f);
         float nameW = Fonts.d.a(name, 7.5f);
         float statW = Fonts.d.a(statStr, 7.5f);
-        float rowW = heartW + 2.5f + hpW + 4.0f + ringSize + 4.0f + nameW + 4.0f + ringSize + 4.0f + statW;
+        float rowW = hpW + ringSpacing + ringSize + ringSpacing + nameW + ringSpacing + ringSize + ringSpacing + statW;
 
-        float totalW = Math.max(140.0f, rowW + 20.0f);
+        float totalW = Math.max(140.0f, rowW + 24.0f);
         j().c(totalW);
-        j().d(38.0f);
+        j().d(36.0f);
 
         // 1. Cooldowns row ("Откаты цели") above ПРОТИВНИК
         if (this.showTargetCooldowns.c().booleanValue()) {
             boolean isUsing = (target.isUsingItem()) || isPreview;
-            float topY = y - 24.0f;
+            float topY = y - 27.0f;
 
-            float slotSize = 15.0f;
-            float slotGap = 3.5f;
+            float slotW = 16.0f;
+            float slotH = 22.0f;
+            float slotGap = 4.0f;
 
             ItemStack[] cooldownItems = {
                 new ItemStack(Items.GOLDEN_APPLE),
@@ -175,52 +176,67 @@ public class TargetWidget extends Widget {
                 new ItemStack(Items.ENDER_PEARL)
             };
 
-            float slotsW = (cooldownItems.length * slotSize) + ((cooldownItems.length - 1) * slotGap);
+            float slotsW = (cooldownItems.length * slotW) + ((cooldownItems.length - 1) * slotGap);
             float activeBadgeW = 28.0f;
-            float activeBadgeH = 22.0f;
+            float activeBadgeH = 26.0f;
 
             float rowTotalW = slotsW + (isUsing ? activeBadgeW + 5.0f : 0.0f);
             float startCdX = cx - (rowTotalW / 2.0f);
 
-            // Cooldown icons
+            // Cooldown slots
             for (int i = 0; i < cooldownItems.length; i++) {
-                float sx = startCdX + (i * (slotSize + slotGap));
-                float sy = topY + 4.0f;
+                float sx = startCdX + (i * (slotW + slotGap));
+                float sy = topY + (activeBadgeH - slotH);
 
-                a(event, sx, sy, slotSize, slotSize, 3.5f, false, anim);
+                a(event, sx, sy, slotW, slotH, 4.0f, false, anim);
 
-                event.e().a(event.i(), cooldownItems[i], sx + 2.0f, sy + 2.0f, 0, anim, 0.50f, false);
+                event.e().a(event.i(), cooldownItems[i], sx + 3.0f, sy + 2.5f, 0, anim, 0.60f, false);
 
-                // Small cooldown indicator bar
-                float barY = sy + slotSize - 2.0f;
-                event.d().a(matrices, sx + 2.0f, barY, slotSize - 4.0f, 1.0f, 0.5f, ColorUtil.a(primary, 0.85f * anim));
+                // Cooldown bar underneath
+                float barX = sx + 2.5f;
+                float barY = sy + slotH - 3.0f;
+                float barW = slotW - 5.0f;
+                float barH = 1.25f;
+                event.d().a(matrices, barX, barY, barW, barH, 0.5f, ColorUtil.a(255, 255, 255, (int) (25 * bgFactor)));
+                event.d().a(matrices, barX, barY, barW * 0.7f, barH, 0.5f, ColorUtil.a(142, 120, 255, (int) (220 * anim)));
             }
 
-            // Active item using badge: [ИСПОЛЬЗУЕТ / 1.32s]
+            // Active item using badge: [ИСПОЛЬЗУЕТ / Player Head eating item / 1.32s]
             if (isUsing) {
                 float bx = startCdX + slotsW + 5.0f;
-                float by = topY + 0.5f;
+                float by = topY;
 
                 float timeLeft = target.isUsingItem() ? ((float) target.getItemUseTimeLeft() / 20.0f) : 1.32f;
                 ItemStack usingStack = target.isUsingItem() ? target.getActiveItem() : new ItemStack(Items.GOLDEN_APPLE);
 
-                // Warm yellow/amber badge
-                int badgeBg = ColorUtil.a(215, 175, 95, (int) (215 * bgFactor));
-                event.d().a(matrices, bx, by, activeBadgeW, activeBadgeH, 4.0f, badgeBg);
-                event.d().a(matrices, bx, by, activeBadgeW, activeBadgeH, 4.0f, 0.5f, ColorUtil.a(255, 220, 130, (int) (120 * bgFactor)));
+                // 1. Olive/khaki-gold rounded background card
+                int badgeBg = ColorUtil.a(148, 136, 76, (int) (240 * bgFactor));
+                int badgeBorder = ColorUtil.a(185, 172, 98, (int) (180 * bgFactor));
+                event.d().a(matrices, bx, by, activeBadgeW, activeBadgeH, 4.5f, badgeBg);
+                event.d().a(matrices, bx, by, activeBadgeW, activeBadgeH, 4.5f, 0.6f, badgeBorder);
 
-                // "ИСПОЛЬЗУЕТ"
+                // 2. Target Player Head (avatar of entity eating item)
+                float headSize = 19.0f;
+                float headX = bx + (activeBadgeW - headSize) / 2.0f;
+                float headY = by + 3.5f;
+                EntityESP.drawEntityHead(matrices, event, target, headX, headY, headSize, 3.0f, anim);
+
+                // 3. Item being eaten rendered in center/mouth of head
+                float itemX = bx + (activeBadgeW - 10.0f) / 2.0f;
+                float itemY = headY + 5.0f;
+                event.e().a(event.i(), usingStack, itemX, itemY, 0, anim, 0.58f, false);
+
+                // 4. "ИСПОЛЬЗУЕТ" label in violet/purple with shadow
                 String useTitle = "ИСПОЛЬЗУЕТ";
-                float utw = Fonts.e.a(useTitle, 4.25f);
-                Fonts.e.a(event.h(), useTitle, bx + ((activeBadgeW - utw) / 2.0f), by + 2.25f, 4.25f, ColorUtil.a(45, 35, 20, (int) (230 * anim)));
+                float utw = Fonts.e.a(useTitle, 4.5f);
+                Fonts.e.a(event.h(), useTitle, bx + ((activeBadgeW - utw) / 2.0f) + 0.5f, by + 2.5f, 4.5f, ColorUtil.a(0, 0, 0, (int) (160 * anim)));
+                Fonts.e.a(event.h(), useTitle, bx + ((activeBadgeW - utw) / 2.0f), by + 2.0f, 4.5f, ColorUtil.a(145, 135, 235, (int) (255 * anim)));
 
-                // Using item icon
-                event.e().a(event.i(), usingStack, bx + ((activeBadgeW - 8.0f) / 2.0f) - 1.0f, by + 6.5f, 0, anim, 0.45f, false);
-
-                // Time remaining
+                // 5. Time remaining "1.32s" in bold white with shadow
                 String timeStr = String.format(Locale.US, "%.2fs", timeLeft);
-                float tsw = Fonts.d.a(timeStr, 5.25f);
-                Fonts.d.a(matrices, timeStr, bx + ((activeBadgeW - tsw) / 2.0f), by + 15.0f, 5.25f, ColorUtil.a(40, 30, 15, (int) (245 * anim)));
+                float tsw = Fonts.d.a(timeStr, 5.5f);
+                Fonts.d.a(matrices, timeStr, bx + ((activeBadgeW - tsw) / 2.0f) + 0.5f, by + activeBadgeH - 6.0f, 5.5f, ColorUtil.a(0, 0, 0, (int) (180 * anim)));
+                Fonts.d.a(matrices, timeStr, bx + ((activeBadgeW - tsw) / 2.0f), by + activeBadgeH - 6.5f, 5.5f, ColorUtil.a(-1, anim));
             }
         }
 
@@ -229,51 +245,50 @@ public class TargetWidget extends Widget {
         float elW = Fonts.e.a(enemyLabel, 5.0f);
         Fonts.e.a(event.h(), enemyLabel, cx - (elW / 2.0f), y, 5.0f, ColorUtil.a(255, 95, 115, (int) (235 * anim)));
 
-        // 3. Name & Stats row: Heart + 13 ◯ Vorilr2kz49oi ◯ 6
-        float textY = y + 7.5f;
+        // 3. Name & Stats row: 13 ◯ Vorilr2kz49oi ◯ 6
+        float textY = y + 8.5f;
         float startX = cx - (rowW / 2.0f);
 
-        // Heart icon next to HP
-        Fonts.a.a(matrices, ":", startX, textY + 0.75f, heartSize, ColorUtil.a(255, 75, 95, (int) (255 * anim)));
+        float maxHp = isPreview ? 20.0f : target.getMaxHealth();
+        float curHp = isPreview ? 13.0f : ServerUtil.a.a(target);
 
         // HP number (13)
-        float curTextX = startX + heartW + 2.5f;
+        float curTextX = startX;
         Fonts.d.a(matrices, hpStr, curTextX, textY, 7.5f, ColorUtil.a(-1, anim));
+        curTextX += hpW + ringSpacing;
 
-        // Purple circular ring ◯
-        float rx1 = curTextX + hpW + 4.0f;
-        float ry = textY + 1.25f;
-        int ring1Color = ColorUtil.a(140, 120, 255, 255);
-        event.d().a(matrices, rx1, ry, ringSize, ringSize, ringSize / 2.0f, 0.7f, ColorUtil.a(ring1Color, 0.25f * anim));
-        event.d().a(matrices, rx1, ry, ringSize, ringSize, ringSize / 2.0f, 0.85f, ColorUtil.a(ring1Color, anim));
+        // Circular dynamic Health Ring ◯ (smooth arc, rotates, changes color by HP)
+        float ringCenterY = textY + 3.75f;
+        float ring1CenterX = curTextX + (ringSize / 2.0f);
+        event.d().drawDynamicHealthRing(matrices, ring1CenterX, ringCenterY, ringSize / 2.0f, 1.15f, curHp, maxHp, anim);
+        curTextX += ringSize + ringSpacing;
 
         // Name
-        float nx = rx1 + ringSize + 4.0f;
-        Fonts.d.a(matrices, name, nx, textY, 7.5f, ColorUtil.a(-1, anim));
+        Fonts.d.a(matrices, name, curTextX, textY, 7.5f, ColorUtil.a(-1, anim));
+        curTextX += nameW + ringSpacing;
 
-        // Amber circular ring ◯
-        float rx2 = nx + nameW + 4.0f;
+        // Circular Amber Ring ◯ (smooth arc, rotates)
+        float ring2CenterX = curTextX + (ringSize / 2.0f);
         int ring2Color = ColorUtil.a(235, 175, 75, 255);
-        event.d().a(matrices, rx2, ry, ringSize, ringSize, ringSize / 2.0f, 0.7f, ColorUtil.a(ring2Color, 0.25f * anim));
-        event.d().a(matrices, rx2, ry, ringSize, ringSize, ringSize / 2.0f, 0.85f, ColorUtil.a(ring2Color, anim));
+        float distRatio = Math.max(0.15f, Math.min(1.0f, 1.0f - (stat / 30.0f)));
+        event.d().drawProgressRing(matrices, ring2CenterX, ringCenterY, ringSize / 2.0f, 1.15f, distRatio, ring2Color, anim, true);
+        curTextX += ringSize + ringSpacing;
 
         // Distance / stat (6)
-        float sx = rx2 + ringSize + 4.0f;
-        Fonts.d.a(matrices, statStr, sx, textY, 7.5f, ColorUtil.a(-1, anim));
+        Fonts.d.a(matrices, statStr, curTextX, textY, 7.5f, ColorUtil.a(-1, anim));
 
         // 4. Sleek gradient health bar underneath
         float barW = Math.max(105.0f, rowW);
         float barH = 1.75f;
         float barX = cx - (barW / 2.0f);
-        float barY = textY + 10.5f;
+        float barY = textY + 11.5f;
 
-        float maxHp = isPreview ? 20.0f : target.getMaxHealth();
-        float curHp = isPreview ? 13.0f : ServerUtil.a.a(target);
         float targetPercent = MathUtil.b(curHp / Math.max(1.0f, maxHp), 0.0f, 1.0f);
         float smoothHp = this.lineAnim.a(targetPercent, targetPercent, 0.4f);
 
         event.d().a(matrices, barX, barY, barW, barH, 0.75f, ColorUtil.a(255, 255, 255, (int) (30 * bgFactor)));
-        event.d().a(matrices, barX, barY, barW * smoothHp, barH, 0.75f, ColorUtil.a(primary, anim));
+        int hpColor = Draw2DProcessor.getHealthRingColor(smoothHp, anim);
+        event.d().a(matrices, barX, barY, barW * smoothHp, barH, 0.75f, hpColor);
 
         super.a(event);
     }
@@ -431,11 +446,15 @@ public class TargetWidget extends Widget {
             }
         }
 
+        float maxHp = isPreview ? 20.0f : target.getMaxHealth();
+        float curHp = isPreview ? 18.0f : ServerUtil.a.a(target);
+        float targetPercent = MathUtil.b(curHp / Math.max(1.0f, maxHp), 0.0f, 1.0f);
+
         // Row 2: Nickname + Heart + HP + Amber Ring ◯
         float nameY = y + 14.5f;
         Fonts.e.a(event.h(), name, contentX, nameY, 6.75f, ColorUtil.a(-1, anim));
 
-        String hpStr = String.valueOf(hp);
+        String hpStr = String.valueOf((int) Math.ceil(curHp));
         float hpW = Fonts.e.a(hpStr, 6.25f);
         float heartSize = 5.75f;
         float heartW = Fonts.a.a(":", heartSize);
@@ -451,8 +470,9 @@ public class TargetWidget extends Widget {
         // HP number
         Fonts.e.a(event.h(), hpStr, hpX, nameY, 6.25f, ColorUtil.a(-1, anim));
         // Amber ring ◯
-        event.d().a(matrices, ringX, nameY + 1.0f, ringSize, ringSize, ringSize / 2.0f, 0.7f, ColorUtil.a(235, 175, 75, (int) (70 * anim)));
-        event.d().a(matrices, ringX, nameY + 1.0f, ringSize, ringSize, ringSize / 2.0f, 0.85f, ColorUtil.a(235, 175, 75, (int) (230 * anim)));
+        float ringCenterX = ringX + (ringSize / 2.0f);
+        float ringCenterY = nameY + 0.75f + (ringSize / 2.0f);
+        event.d().drawProgressRing(matrices, ringCenterX, ringCenterY, ringSize / 2.0f, 1.0f, targetPercent, ColorUtil.a(235, 175, 75, 255), anim, true);
 
         // Row 3: Animated health bar underneath nickname
         float barX = contentX;
@@ -460,9 +480,6 @@ public class TargetWidget extends Widget {
         float barW = leftSectionW;
         float barH = 1.75f;
 
-        float maxHp = isPreview ? 20.0f : target.getMaxHealth();
-        float curHp = isPreview ? 18.0f : ServerUtil.a.a(target);
-        float targetPercent = MathUtil.b(curHp / Math.max(1.0f, maxHp), 0.0f, 1.0f);
         float smoothHp = this.lineAnim.a(targetPercent, targetPercent, 0.4f);
 
         event.d().a(matrices, barX, barY, barW, barH, 0.5f, ColorUtil.a(255, 255, 255, (int) (30 * bgFactor)));
@@ -511,11 +528,12 @@ public class TargetWidget extends Widget {
 
                 // Effect progress ring on the far right
                 float eRingSize = 5.0f;
-                float eRingX = (x + cardW) - eRingSize - 3.5f;
+                float eRingCenterX = ((x + cardW) - eRingSize - 3.5f) + (eRingSize / 2.0f);
+                float eRingCenterY = effectY + 1.0f + (eRingSize / 2.0f);
                 int ringColor = harmful ? ColorUtil.a(255, 76, 79, 255) : primary;
+                float eProgress = Math.max(0.1f, Math.min(1.0f, (float) inst.getDuration() / 1200.0f));
 
-                event.d().a(matrices, eRingX, effectY + 1.0f, eRingSize, eRingSize, eRingSize / 2.0f, 0.7f, ColorUtil.a(ringColor, 0.28f * anim));
-                event.d().a(matrices, eRingX, effectY + 1.0f, eRingSize, eRingSize, eRingSize / 2.0f, 0.85f, ColorUtil.a(ringColor, anim));
+                event.d().drawProgressRing(matrices, eRingCenterX, eRingCenterY, eRingSize / 2.0f, 0.9f, eProgress, ringColor, anim, false);
 
                 effectY += 9.5f;
             }
