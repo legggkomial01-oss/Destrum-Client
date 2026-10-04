@@ -57,7 +57,7 @@ public class TargetWidget extends Widget {
     private float modalX = Float.NaN;
     private float modalY = Float.NaN;
     private final float modalW = 220.0f;
-    private final float modalH = 188.0f;
+    private final float modalH = 205.0f;
 
     private boolean draggingScaleSlider = false;
     private boolean draggingOpacitySlider = false;
@@ -70,10 +70,10 @@ public class TargetWidget extends Widget {
         super(new DragInfo("Таргет-худ", 0.0f, 0.0f, 0.0f, 0.0f));
         INSTANCE = this;
 
-        this.mode = new ModeSetting("Режим", "Встроенный", "Встроенный", "Стандарт");
+        this.mode = new ModeSetting("Режим", "Стиль виджета", "Стиль виджета", "Стандарт", "Встроенный");
         this.transparentStyle = new BooleanSetting("Прозрачный стиль", true);
         this.showOnHover = new BooleanSetting("Показывать при наводке", false);
-        this.showTargetEffects = new BooleanSetting("Эффекты цели", false);
+        this.showTargetEffects = new BooleanSetting("Эффекты цели", true);
         this.showTargetCooldowns = new BooleanSetting("Откаты цели", true);
         this.effectTimeFormat = new BooleanSetting("Формат времени эффектов", true);
 
@@ -104,8 +104,10 @@ public class TargetWidget extends Widget {
 
         if (this.mode.l("Встроенный")) {
             renderIntegrated(event, target);
-        } else {
+        } else if (this.mode.l("Стандарт")) {
             renderStandard(event, target);
+        } else {
+            renderWidgetStyle(event, target);
         }
 
         j().a(0);
@@ -126,7 +128,8 @@ public class TargetWidget extends Widget {
         MatrixStack matrices = event.i().getMatrices();
         ThemeProcessor theme = Delta.h().d().o();
         int primary = theme.a(ThemeInfo.PRIMARY).a();
-        float opacity = a() * getBgOpacity();
+        float anim = a();
+        float bgFactor = anim * getBgOpacity();
 
         // Default position centered above hotbar if not dragged
         if (j().a() == 0.0f && j().b() == 0.0f) {
@@ -146,11 +149,13 @@ public class TargetWidget extends Widget {
         String hpStr = String.valueOf(hp);
         String statStr = String.valueOf(stat);
         float ringSize = 6.0f;
+        float heartSize = 6.5f;
 
+        float heartW = Fonts.a.a(":", heartSize);
         float hpW = Fonts.d.a(hpStr, 7.5f);
         float nameW = Fonts.d.a(name, 7.5f);
         float statW = Fonts.d.a(statStr, 7.5f);
-        float rowW = hpW + 4.0f + ringSize + 4.0f + nameW + 4.0f + ringSize + 4.0f + statW;
+        float rowW = heartW + 2.5f + hpW + 4.0f + ringSize + 4.0f + nameW + 4.0f + ringSize + 4.0f + statW;
 
         float totalW = Math.max(140.0f, rowW + 20.0f);
         j().c(totalW);
@@ -182,15 +187,15 @@ public class TargetWidget extends Widget {
                 float sx = startCdX + (i * (slotSize + slotGap));
                 float sy = topY + 4.0f;
 
-                int slotBg = ColorUtil.a(20, 22, 30, (int) (190 * opacity));
+                int slotBg = ColorUtil.a(20, 22, 30, (int) (190 * bgFactor));
                 event.d().a(matrices, sx, sy, slotSize, slotSize, 3.5f, slotBg);
-                event.d().a(matrices, sx, sy, slotSize, slotSize, 3.5f, 0.5f, ColorUtil.a(255, 255, 255, (int) (20 * opacity)));
+                event.d().a(matrices, sx, sy, slotSize, slotSize, 3.5f, 0.5f, ColorUtil.a(255, 255, 255, (int) (20 * bgFactor)));
 
-                event.e().a(event.i(), cooldownItems[i], sx + 2.0f, sy + 2.0f, 0, opacity, 0.50f, false);
+                event.e().a(event.i(), cooldownItems[i], sx + 2.0f, sy + 2.0f, 0, anim, 0.50f, false);
 
                 // Small cooldown indicator bar
                 float barY = sy + slotSize - 2.0f;
-                event.d().a(matrices, sx + 2.0f, barY, slotSize - 4.0f, 1.0f, 0.5f, ColorUtil.a(primary, 0.85f * opacity));
+                event.d().a(matrices, sx + 2.0f, barY, slotSize - 4.0f, 1.0f, 0.5f, ColorUtil.a(primary, 0.85f * anim));
             }
 
             // Active item using badge: [ИСПОЛЬЗУЕТ / 1.32s]
@@ -201,58 +206,62 @@ public class TargetWidget extends Widget {
                 float timeLeft = target.isUsingItem() ? ((float) target.getItemUseTimeLeft() / 20.0f) : 1.32f;
                 ItemStack usingStack = target.isUsingItem() ? target.getActiveItem() : new ItemStack(Items.GOLDEN_APPLE);
 
-                // Warm yellow/amber badge matching screenshot
-                int badgeBg = ColorUtil.a(215, 175, 95, (int) (215 * opacity));
+                // Warm yellow/amber badge
+                int badgeBg = ColorUtil.a(215, 175, 95, (int) (215 * bgFactor));
                 event.d().a(matrices, bx, by, activeBadgeW, activeBadgeH, 4.0f, badgeBg);
-                event.d().a(matrices, bx, by, activeBadgeW, activeBadgeH, 4.0f, 0.5f, ColorUtil.a(255, 220, 130, (int) (120 * opacity)));
+                event.d().a(matrices, bx, by, activeBadgeW, activeBadgeH, 4.0f, 0.5f, ColorUtil.a(255, 220, 130, (int) (120 * bgFactor)));
 
                 // "ИСПОЛЬЗУЕТ"
                 String useTitle = "ИСПОЛЬЗУЕТ";
                 float utw = Fonts.e.a(useTitle, 4.25f);
-                Fonts.e.a(event.h(), useTitle, bx + ((activeBadgeW - utw) / 2.0f), by + 2.25f, 4.25f, ColorUtil.a(45, 35, 20, (int) (230 * opacity)));
+                Fonts.e.a(event.h(), useTitle, bx + ((activeBadgeW - utw) / 2.0f), by + 2.25f, 4.25f, ColorUtil.a(45, 35, 20, (int) (230 * anim)));
 
                 // Using item icon
-                event.e().a(event.i(), usingStack, bx + ((activeBadgeW - 8.0f) / 2.0f) - 1.0f, by + 6.5f, 0, opacity, 0.45f, false);
+                event.e().a(event.i(), usingStack, bx + ((activeBadgeW - 8.0f) / 2.0f) - 1.0f, by + 6.5f, 0, anim, 0.45f, false);
 
-                // Time remaining e.g. "1.32s"
+                // Time remaining
                 String timeStr = String.format(Locale.US, "%.2fs", timeLeft);
                 float tsw = Fonts.d.a(timeStr, 5.25f);
-                Fonts.d.a(matrices, timeStr, bx + ((activeBadgeW - tsw) / 2.0f), by + 15.0f, 5.25f, ColorUtil.a(40, 30, 15, (int) (245 * opacity)));
+                Fonts.d.a(matrices, timeStr, bx + ((activeBadgeW - tsw) / 2.0f), by + 15.0f, 5.25f, ColorUtil.a(40, 30, 15, (int) (245 * anim)));
             }
         }
 
         // 2. Coral red label "ПРОТИВНИК"
         String enemyLabel = "ПРОТИВНИК";
         float elW = Fonts.e.a(enemyLabel, 5.0f);
-        Fonts.e.a(event.h(), enemyLabel, cx - (elW / 2.0f), y, 5.0f, ColorUtil.a(255, 95, 115, (int) (235 * opacity)));
+        Fonts.e.a(event.h(), enemyLabel, cx - (elW / 2.0f), y, 5.0f, ColorUtil.a(255, 95, 115, (int) (235 * anim)));
 
-        // 3. Name & Stats row: "13 ◯ Vorilr2kz49oi ◯ 6"
+        // 3. Name & Stats row: Heart + 13 ◯ Vorilr2kz49oi ◯ 6
         float textY = y + 7.5f;
         float startX = cx - (rowW / 2.0f);
 
+        // Heart icon next to HP
+        Fonts.a.a(matrices, ":", startX, textY + 0.75f, heartSize, ColorUtil.a(255, 75, 95, (int) (255 * anim)));
+
         // HP number (13)
-        Fonts.d.a(matrices, hpStr, startX, textY, 7.5f, ColorUtil.a(-1, opacity));
+        float curTextX = startX + heartW + 2.5f;
+        Fonts.d.a(matrices, hpStr, curTextX, textY, 7.5f, ColorUtil.a(-1, anim));
 
         // Purple circular ring ◯
-        float rx1 = startX + hpW + 4.0f;
+        float rx1 = curTextX + hpW + 4.0f;
         float ry = textY + 1.25f;
         int ring1Color = ColorUtil.a(140, 120, 255, 255);
-        event.d().a(matrices, rx1, ry, ringSize, ringSize, ringSize / 2.0f, 0.7f, ColorUtil.a(ring1Color, 0.25f * opacity));
-        event.d().a(matrices, rx1, ry, ringSize, ringSize, ringSize / 2.0f, 0.85f, ColorUtil.a(ring1Color, opacity));
+        event.d().a(matrices, rx1, ry, ringSize, ringSize, ringSize / 2.0f, 0.7f, ColorUtil.a(ring1Color, 0.25f * anim));
+        event.d().a(matrices, rx1, ry, ringSize, ringSize, ringSize / 2.0f, 0.85f, ColorUtil.a(ring1Color, anim));
 
         // Name
         float nx = rx1 + ringSize + 4.0f;
-        Fonts.d.a(matrices, name, nx, textY, 7.5f, ColorUtil.a(-1, opacity));
+        Fonts.d.a(matrices, name, nx, textY, 7.5f, ColorUtil.a(-1, anim));
 
         // Amber circular ring ◯
         float rx2 = nx + nameW + 4.0f;
         int ring2Color = ColorUtil.a(235, 175, 75, 255);
-        event.d().a(matrices, rx2, ry, ringSize, ringSize, ringSize / 2.0f, 0.7f, ColorUtil.a(ring2Color, 0.25f * opacity));
-        event.d().a(matrices, rx2, ry, ringSize, ringSize, ringSize / 2.0f, 0.85f, ColorUtil.a(ring2Color, opacity));
+        event.d().a(matrices, rx2, ry, ringSize, ringSize, ringSize / 2.0f, 0.7f, ColorUtil.a(ring2Color, 0.25f * anim));
+        event.d().a(matrices, rx2, ry, ringSize, ringSize, ringSize / 2.0f, 0.85f, ColorUtil.a(ring2Color, anim));
 
         // Distance / stat (6)
         float sx = rx2 + ringSize + 4.0f;
-        Fonts.d.a(matrices, statStr, sx, textY, 7.5f, ColorUtil.a(-1, opacity));
+        Fonts.d.a(matrices, statStr, sx, textY, 7.5f, ColorUtil.a(-1, anim));
 
         // 4. Sleek gradient health bar underneath
         float barW = Math.max(105.0f, rowW);
@@ -265,17 +274,16 @@ public class TargetWidget extends Widget {
         float targetPercent = MathUtil.b(curHp / Math.max(1.0f, maxHp), 0.0f, 1.0f);
         float smoothHp = this.lineAnim.a(targetPercent, targetPercent, 0.4f);
 
-        event.d().a(matrices, barX, barY, barW, barH, 0.75f, ColorUtil.a(255, 255, 255, (int) (30 * opacity)));
-        event.d().a(matrices, barX, barY, barW * smoothHp, barH, 0.75f, ColorUtil.a(primary, opacity));
+        event.d().a(matrices, barX, barY, barW, barH, 0.75f, ColorUtil.a(255, 255, 255, (int) (30 * bgFactor)));
+        event.d().a(matrices, barX, barY, barW * smoothHp, barH, 0.75f, ColorUtil.a(primary, anim));
 
         super.a(event);
     }
 
     /**
-     * Mode: "Стандарт" (Стиль виджета)
-     * Matches card 1:
-     * Compact card with avatar, name, health, armor row,
-     * effects list on right, and animated health bar.
+     * Mode: "Стандарт" (Classic Destrum Target HUD from image)
+     * Compact card 108x26:
+     * Avatar on left, Nickname + Heart + HP, 6 armor items row, health bar.
      */
     private void renderStandard(DrawEvent event, LivingEntity target) {
         float x = j().a();
@@ -283,42 +291,51 @@ public class TargetWidget extends Widget {
         MatrixStack matrices = event.i().getMatrices();
         ThemeProcessor theme = Delta.h().d().o();
         int primary = theme.a(ThemeInfo.PRIMARY).a();
-        float opacity = a() * getBgOpacity();
+        float anim = a();
+        float bgFactor = anim * getBgOpacity();
 
-        boolean showEffects = this.showTargetEffects.c().booleanValue();
-        float cardW = showEffects ? 172.0f : 122.0f;
-        float cardH = 38.0f;
-
+        float cardW = 108.0f;
+        float cardH = 26.0f;
         j().c(cardW);
         j().d(cardH);
 
-        int bgAlpha = (int) (opacity * (this.transparentStyle.c().booleanValue() ? 175 : 240));
-        event.d().a(matrices, x, y, cardW, cardH, 5.0f, ColorUtil.a(16, 17, 23, bgAlpha));
-        event.d().a(matrices, x, y, cardW, cardH, 5.0f, 0.5f, ColorUtil.a(255, 255, 255, (int) (20 * opacity)));
+        int bgAlpha = (int) (bgFactor * (this.transparentStyle.c().booleanValue() ? 150 : 235));
+        event.d().a(matrices, x, y, cardW, cardH, 4.0f, ColorUtil.a(16, 17, 23, bgAlpha));
+        event.d().a(matrices, x, y, cardW, cardH, 4.0f, 0.5f, ColorUtil.a(255, 255, 255, (int) (bgFactor * 20)));
 
         boolean isPreview = (target == aM_.player) && (aM_.currentScreen instanceof ChatScreen);
         String name = isPreview ? "annihilatorq" : getTargetName(target);
         int hp = isPreview ? 18 : (int) Math.ceil(ServerUtil.a.a(target));
 
         // Target Avatar Head
-        float headSize = 20.0f;
-        float headX = x + 5.0f;
-        float headY = y + 5.0f;
-        EntityESP.drawEntityHead(matrices, event, target, headX, headY, headSize, 3.0f, opacity);
+        float headSize = 18.0f;
+        float headX = x + 4.0f;
+        float headY = y + 4.0f;
+        EntityESP.drawEntityHead(matrices, event, target, headX, headY, headSize, 2.5f, anim);
+
+        float textX = headX + headSize + 4.5f;
 
         // Nickname
-        float textX = headX + headSize + 5.0f;
-        Fonts.e.a(event.h(), name, textX, headY + 1.0f, 6.75f, ColorUtil.a(-1, opacity));
+        if (name.length() > 10) {
+            Fonts.e.c(event.h(), name, textX, y + 3.5f, 6.75f, ColorUtil.a(-1, anim), Fonts.e.a(name.substring(0, 10), 6.75f));
+        } else {
+            Fonts.e.a(event.h(), name, textX, y + 3.5f, 6.75f, ColorUtil.a(-1, anim));
+        }
 
-        // Health + Ring
-        String hpStr = hp + " ◯";
-        float hpW = Fonts.e.a(hpStr, 6.0f);
-        float hpX = (showEffects ? x + 105.0f : (x + cardW) - 6.0f) - hpW;
-        Fonts.e.a(event.h(), hpStr, hpX, headY + 1.5f, 6.0f, ColorUtil.a(primary, opacity));
+        // Heart icon + HP value on the right
+        String hpStr = String.valueOf(hp);
+        float hpW = Fonts.e.a(hpStr, 6.5f);
+        float heartSize = 5.5f;
+        float heartW = Fonts.a.a(":", heartSize);
+        float hpX = (x + cardW) - 4.5f - hpW;
+        float heartX = hpX - heartW - 2.0f;
+
+        Fonts.a.a(matrices, ":", heartX, y + 3.75f, heartSize, ColorUtil.a(255, 75, 95, (int) (255 * anim)));
+        Fonts.e.a(event.h(), hpStr, hpX, y + 3.5f, 6.5f, ColorUtil.a(primary, anim));
 
         // Armor row below nickname
-        float itemSize = 8.5f;
-        float itemY = headY + 11.5f;
+        float itemSize = 8.0f;
+        float itemY = y + 12.0f;
         float curItemX = textX;
 
         ItemStack[] armorStacks = {
@@ -334,27 +351,160 @@ public class TargetWidget extends Widget {
             if (stack.isEmpty() && isPreview) {
                 stack = new ItemStack(Items.NETHERITE_CHESTPLATE);
             }
-            event.d().a(matrices, curItemX, itemY, itemSize, itemSize, 2.0f, ColorUtil.a(28, 30, 40, (int) (220 * opacity)));
+            event.d().a(matrices, curItemX, itemY, itemSize, itemSize, 1.5f, ColorUtil.a(28, 30, 40, (int) (220 * bgFactor)));
             if (!stack.isEmpty()) {
-                event.e().a(event.i(), InventoryUtil.a(stack), curItemX + 0.5f, itemY + 0.5f, 0, opacity, itemSize / 16.0f, false);
+                event.e().a(event.i(), InventoryUtil.a(stack), curItemX + 0.5f, itemY + 0.5f, 0, anim, itemSize / 16.0f, false);
             }
-            curItemX += itemSize + 1.5f;
+            curItemX += itemSize + 1.25f;
+        }
+
+        // Bottom animated health bar
+        float barX = textX;
+        float barY = y + 22.0f;
+        float barW = (x + cardW) - textX - 4.0f;
+        float barH = 1.75f;
+
+        float maxHp = isPreview ? 20.0f : target.getMaxHealth();
+        float curHp = isPreview ? 18.0f : ServerUtil.a.a(target);
+        float targetPercent = MathUtil.b(curHp / Math.max(1.0f, maxHp), 0.0f, 1.0f);
+        float smoothHp = this.lineAnim.a(targetPercent, targetPercent, 0.4f);
+
+        event.d().a(matrices, barX, barY, barW, barH, 0.5f, ColorUtil.a(255, 255, 255, (int) (30 * bgFactor)));
+        event.d().a(matrices, barX, barY, barW * smoothHp, barH, 0.5f, ColorUtil.a(primary, anim));
+
+        super.a(event);
+    }
+
+    /**
+     * Mode: "Стиль виджета"
+     * Matches crop_cards.png Card 1:
+     * Full card with avatar, armor row, nickname, heart, amber ring,
+     * animated health bar, cooldowns row below, and effects list on right.
+     */
+    private void renderWidgetStyle(DrawEvent event, LivingEntity target) {
+        float x = j().a();
+        float y = j().b();
+        MatrixStack matrices = event.i().getMatrices();
+        ThemeProcessor theme = Delta.h().d().o();
+        int primary = theme.a(ThemeInfo.PRIMARY).a();
+        float anim = a();
+        float bgFactor = anim * getBgOpacity();
+
+        boolean showEffects = this.showTargetEffects.c().booleanValue();
+        float cardW = showEffects ? 184.0f : 124.0f;
+        float cardH = 46.0f;
+
+        j().c(cardW);
+        j().d(cardH);
+
+        int bgAlpha = (int) (bgFactor * (this.transparentStyle.c().booleanValue() ? 150 : 235));
+        event.d().a(matrices, x, y, cardW, cardH, 5.0f, ColorUtil.a(16, 17, 23, bgAlpha));
+        event.d().a(matrices, x, y, cardW, cardH, 5.0f, 0.5f, ColorUtil.a(255, 255, 255, (int) (bgFactor * 20)));
+
+        boolean isPreview = (target == aM_.player) && (aM_.currentScreen instanceof ChatScreen);
+        String name = isPreview ? "annihilatorq" : getTargetName(target);
+        int hp = isPreview ? 18 : (int) Math.ceil(ServerUtil.a.a(target));
+
+        // Target Avatar Head on left
+        float headSize = 22.0f;
+        float headX = x + 5.0f;
+        float headY = y + 5.0f;
+        EntityESP.drawEntityHead(matrices, event, target, headX, headY, headSize, 3.0f, anim);
+
+        float contentX = headX + headSize + 5.0f;
+        float leftSectionW = 88.0f;
+
+        // Row 1: Armor row above nickname (4 pieces: Boots, Leggings, Chest, Helmet)
+        float armorSize = 7.5f;
+        float armorY = y + 4.5f;
+        float curArmorX = contentX;
+
+        ItemStack[] armorStacks = {
+            target.getEquippedStack(EquipmentSlot.FEET),
+            target.getEquippedStack(EquipmentSlot.LEGS),
+            target.getEquippedStack(EquipmentSlot.CHEST),
+            target.getEquippedStack(EquipmentSlot.HEAD)
+        };
+
+        for (ItemStack stack : armorStacks) {
+            if (stack.isEmpty() && isPreview) {
+                stack = new ItemStack(Items.DIAMOND_CHESTPLATE);
+            }
+            if (!stack.isEmpty()) {
+                event.e().a(event.i(), InventoryUtil.a(stack), curArmorX, armorY, 0, anim, armorSize / 16.0f, false);
+                Fonts.e.a(event.h(), "✕", curArmorX + armorSize + 0.5f, armorY + 1.5f, 4.0f, ColorUtil.a(140, 145, 160, (int) (180 * anim)));
+                curArmorX += armorSize + 5.0f;
+            }
+        }
+
+        // Row 2: Nickname + Heart + HP + Amber Ring ◯
+        float nameY = y + 14.5f;
+        Fonts.e.a(event.h(), name, contentX, nameY, 6.75f, ColorUtil.a(-1, anim));
+
+        String hpStr = String.valueOf(hp);
+        float hpW = Fonts.e.a(hpStr, 6.25f);
+        float heartSize = 5.75f;
+        float heartW = Fonts.a.a(":", heartSize);
+        float ringSize = 5.5f;
+
+        float rightStatX = contentX + leftSectionW;
+        float ringX = rightStatX - ringSize;
+        float hpX = ringX - hpW - 2.5f;
+        float heartX = hpX - heartW - 2.0f;
+
+        // Heart ❤️
+        Fonts.a.a(matrices, ":", heartX, nameY + 0.75f, heartSize, ColorUtil.a(255, 75, 95, (int) (255 * anim)));
+        // HP number
+        Fonts.e.a(event.h(), hpStr, hpX, nameY, 6.25f, ColorUtil.a(-1, anim));
+        // Amber ring ◯
+        event.d().a(matrices, ringX, nameY + 1.0f, ringSize, ringSize, ringSize / 2.0f, 0.7f, ColorUtil.a(235, 175, 75, (int) (70 * anim)));
+        event.d().a(matrices, ringX, nameY + 1.0f, ringSize, ringSize, ringSize / 2.0f, 0.85f, ColorUtil.a(235, 175, 75, (int) (230 * anim)));
+
+        // Row 3: Animated health bar underneath nickname
+        float barX = contentX;
+        float barY = y + 23.5f;
+        float barW = leftSectionW;
+        float barH = 1.75f;
+
+        float maxHp = isPreview ? 20.0f : target.getMaxHealth();
+        float curHp = isPreview ? 18.0f : ServerUtil.a.a(target);
+        float targetPercent = MathUtil.b(curHp / Math.max(1.0f, maxHp), 0.0f, 1.0f);
+        float smoothHp = this.lineAnim.a(targetPercent, targetPercent, 0.4f);
+
+        event.d().a(matrices, barX, barY, barW, barH, 0.5f, ColorUtil.a(255, 255, 255, (int) (30 * bgFactor)));
+        event.d().a(matrices, barX, barY, barW * smoothHp, barH, 0.5f, ColorUtil.a(primary, anim));
+
+        // Row 4: Items / cooldowns row below the bar
+        float itemRowY = y + 28.5f;
+        float curItemX = contentX;
+        float subItemSize = 7.5f;
+
+        ItemStack[] bottomStacks = {
+            new ItemStack(Items.GOLDEN_APPLE),
+            new ItemStack(Items.SPLASH_POTION),
+            new ItemStack(Items.ENDER_PEARL),
+            new ItemStack(Items.TOTEM_OF_UNDYING)
+        };
+
+        for (ItemStack bStack : bottomStacks) {
+            event.e().a(event.i(), bStack, curItemX, itemRowY, 0, anim, subItemSize / 16.0f, false);
+            curItemX += subItemSize + 4.5f;
         }
 
         // Right side: Effects list
         if (showEffects) {
-            float divX = x + 112.0f;
-            event.d().a(matrices, divX, y + 4.0f, 0.5f, cardH - 8.0f, 0.0f, ColorUtil.a(255, 255, 255, (int) (18 * opacity)));
+            float divX = x + 124.0f;
+            event.d().a(matrices, divX, y + 4.0f, 0.5f, cardH - 8.0f, 0.0f, ColorUtil.a(255, 255, 255, (int) (18 * bgFactor)));
 
             List<StatusEffectInstance> effects = getTargetEffects(target, isPreview);
-            float effectY = y + 4.5f;
-            int maxDraw = Math.min(3, effects.size());
+            float effectY = y + 3.5f;
+            int maxDraw = Math.min(4, effects.size());
 
             for (int i = 0; i < maxDraw; i++) {
                 StatusEffectInstance inst = effects.get(i);
                 Sprite sprite = aM_.getStatusEffectSpriteManager().getSprite(inst.getEffectType());
                 if (sprite != null) {
-                    event.e().a(event.i(), sprite, divX + 4.0f, effectY + 1.0f, 0, 0.40f, opacity);
+                    event.e().a(event.i(), sprite, divX + 3.5f, effectY + 0.5f, 0, 0.38f, anim);
                 }
 
                 String eName = Text.translatable(((StatusEffect) inst.getEffectType().value()).getTranslationKey()).getString();
@@ -363,30 +513,19 @@ public class TargetWidget extends Widget {
 
                 boolean harmful = ((StatusEffect) inst.getEffectType().value()).getCategory() == StatusEffectCategory.HARMFUL;
                 int nColor = harmful ? ColorUtil.a(255, 76, 79, 255) : -1;
-                Fonts.e.a(event.h(), eName, divX + 13.0f, effectY + 1.5f, 5.0f, ColorUtil.a(nColor, opacity));
+                Fonts.e.a(event.h(), eName, divX + 11.5f, effectY + 1.0f, 4.75f, ColorUtil.a(nColor, anim));
 
-                int sec = inst.getDuration() / 20;
-                String timeStr = String.format("%02d:%02d", sec / 60, sec % 60);
-                float tw = Fonts.e.a(timeStr, 4.75f);
-                Fonts.e.a(event.h(), timeStr, (x + cardW) - tw - 4.0f, effectY + 1.5f, 4.75f, ColorUtil.a(180, 185, 200, (int) (200 * opacity)));
+                // Effect progress ring on the far right
+                float eRingSize = 5.0f;
+                float eRingX = (x + cardW) - eRingSize - 3.5f;
+                int ringColor = harmful ? ColorUtil.a(255, 76, 79, 255) : primary;
+
+                event.d().a(matrices, eRingX, effectY + 1.0f, eRingSize, eRingSize, eRingSize / 2.0f, 0.7f, ColorUtil.a(ringColor, 0.28f * anim));
+                event.d().a(matrices, eRingX, effectY + 1.0f, eRingSize, eRingSize, eRingSize / 2.0f, 0.85f, ColorUtil.a(ringColor, anim));
 
                 effectY += 9.5f;
             }
         }
-
-        // Bottom animated health bar
-        float barX = x + 5.0f;
-        float barY = (y + cardH) - 4.0f;
-        float barW = cardW - 10.0f;
-        float barH = 2.0f;
-
-        float maxHp = isPreview ? 20.0f : target.getMaxHealth();
-        float curHp = isPreview ? 18.0f : ServerUtil.a.a(target);
-        float targetPercent = MathUtil.b(curHp / Math.max(1.0f, maxHp), 0.0f, 1.0f);
-        float smoothHp = this.lineAnim.a(targetPercent, targetPercent, 0.4f);
-
-        event.d().a(matrices, barX, barY, barW, barH, 1.0f, ColorUtil.a(255, 255, 255, (int) (30 * opacity)));
-        event.d().a(matrices, barX, barY, barW * smoothHp, barH, 1.0f, ColorUtil.a(primary, opacity));
 
         super.a(event);
     }
@@ -440,16 +579,21 @@ public class TargetWidget extends Widget {
         event.d().a(matrices, btnX, btnY, btnSize, btnSize, 3.5f, ColorUtil.a(primary, 0.22f * anim));
         Fonts.a.a(matrices, "J", btnX + 3.0f, btnY + 2.5f, 7.0f, ColorUtil.a(primary, anim));
 
-        // Style Cards
+        // Style Cards (3 cards)
         float cardW = (mw - 24.0f) / 2.0f;
-        float cardH = 44.0f;
+        float cardH = 38.0f;
         float startCardY = my + 27.0f;
 
-        drawStyleCard(event, mx + 10.0f, startCardY, cardW, cardH, "Стиль виджета", "Компактный виджет, плотно набитый содержимым.", "Стандарт", anim, primary);
-        drawStyleCard(event, mx + 14.0f + cardW, startCardY, cardW, cardH, "Встроенный стиль", "Совершенно новый и свежий стиль в мире Minecraft.", "Встроенный", anim, primary);
+        // Row 1: Стиль виджета & Стандарт
+        drawStyleCard(event, mx + 10.0f, startCardY, cardW, cardH, "Стиль виджета", "Карточка с головой и эффектами.", "Стиль виджета", anim, primary);
+        drawStyleCard(event, mx + 14.0f + cardW, startCardY, cardW, cardH, "Стандарт", "Классический компактный виджет.", "Стандарт", anim, primary);
+
+        // Row 2: Встроенный стиль
+        float row2Y = startCardY + cardH + 4.0f;
+        drawStyleCard(event, mx + 10.0f, row2Y, mw - 20.0f, 26.0f, "Встроенный стиль", "Свежий стиль над хотбаром с откатами.", "Встроенный", anim, primary);
 
         // SECTION: НАСТРОЙКИ ВИДЖЕТА
-        float secY = startCardY + cardH + 6.0f;
+        float secY = row2Y + 26.0f + 6.0f;
         Fonts.e.a(event.h(), "НАСТРОЙКИ ВИДЖЕТА", mx + 10.0f, secY, 5.25f, ColorUtil.a(theme.a(ThemeInfo.TEXT_DISABLED).a(), 0.75f * anim));
 
         // 2 Columns of Checkboxes
@@ -467,7 +611,7 @@ public class TargetWidget extends Widget {
         drawCheckbox(event, mx + 10.0f, chkY3, "Формат времени эффектов", this.effectTimeFormat.c().booleanValue(), anim, primary);
 
         // Sliders: Размер & Прозрачность
-        float sliderY = chkY3 + 17.5f;
+        float sliderY = chkY3 + 16.5f;
         drawSlider(event, mx + 10.0f, sliderY, mw - 20.0f, "Размер", String.format("%.2fx", getScale()), (getScale() - 0.5f) / 1.0f, anim, primary);
         drawSlider(event, mx + 10.0f, sliderY + 14.5f, mw - 20.0f, "Прозрачность", String.format("%d%%", (int)(getBgOpacity() * 100)), getBgOpacity(), anim, primary);
     }
@@ -487,27 +631,37 @@ public class TargetWidget extends Widget {
         event.d().a(matrices, tagX, y + 3.0f, tagW, 6.0f, 2.0f, ColorUtil.a(primary, 0.25f * anim));
         Fonts.e.a(event.h(), "v2.0", tagX + 2.0f, y + 3.5f, 4.75f, ColorUtil.a(primary, anim));
 
-        float thumbW = w - 6.0f;
-        float thumbH = 17.0f;
-        float thumbX = x + 3.0f;
-        float thumbY = y + 3.0f;
-        event.d().a(matrices, thumbX, thumbY, thumbW, thumbH, 3.0f, ColorUtil.a(12, 13, 18, (int) (210 * anim)));
+        if (h > 30.0f) {
+            float thumbW = w - 6.0f;
+            float thumbH = 15.0f;
+            float thumbX = x + 3.0f;
+            float thumbY = y + 3.0f;
+            event.d().a(matrices, thumbX, thumbY, thumbW, thumbH, 2.5f, ColorUtil.a(12, 13, 18, (int) (210 * anim)));
 
-        if ("Встроенный".equals(modeTarget)) {
-            // Mini integrated preview: hotbar outline + arc / enemy text
-            float midX = thumbX + (thumbW / 2.0f);
-            event.d().a(matrices, midX - 10.0f, thumbY + 3.0f, 20.0f, 2.0f, 0.5f, ColorUtil.a(255, 95, 115, (int) (220 * anim)));
-            event.d().a(matrices, midX - 14.0f, thumbY + 6.5f, 28.0f, 3.0f, 0.5f, ColorUtil.a(-1, (int) (220 * anim)));
-            event.d().a(matrices, midX - 16.0f, thumbY + 11.5f, 32.0f, 1.5f, 0.5f, ColorUtil.a(primary, (int) (200 * anim)));
+            if ("Стиль виджета".equals(modeTarget)) {
+                // Mini widget style: head + armor/bar + right effects
+                event.d().a(matrices, thumbX + 2.0f, thumbY + 2.5f, 10.0f, 10.0f, 1.5f, ColorUtil.a(primary, (int) (200 * anim)));
+                event.d().a(matrices, thumbX + 14.0f, thumbY + 3.0f, 20.0f, 2.5f, 0.5f, ColorUtil.a(-1, (int) (200 * anim)));
+                event.d().a(matrices, thumbX + 14.0f, thumbY + 7.0f, 22.0f, 2.0f, 0.5f, ColorUtil.a(120, 255, 140, (int) (200 * anim)));
+                event.d().a(matrices, thumbX + 14.0f, thumbY + 10.5f, 16.0f, 2.0f, 0.5f, ColorUtil.a(235, 175, 75, (int) (200 * anim)));
+                // Right effects column
+                event.d().a(matrices, thumbX + thumbW - 8.0f, thumbY + 3.0f, 6.0f, 4.0f, 1.0f, ColorUtil.a(255, 76, 79, (int) (180 * anim)));
+                event.d().a(matrices, thumbX + thumbW - 8.0f, thumbY + 8.5f, 6.0f, 4.0f, 1.0f, ColorUtil.a(140, 120, 255, (int) (180 * anim)));
+            } else {
+                // Mini classic Destrum standard: head + name + armor dots + bar
+                event.d().a(matrices, thumbX + 2.0f, thumbY + 3.0f, 9.0f, 9.0f, 1.5f, ColorUtil.a(primary, (int) (200 * anim)));
+                event.d().a(matrices, thumbX + 13.0f, thumbY + 3.5f, 18.0f, 2.0f, 0.5f, ColorUtil.a(-1, (int) (200 * anim)));
+                event.d().a(matrices, thumbX + 13.0f, thumbY + 7.0f, 24.0f, 2.0f, 0.5f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
+                event.d().a(matrices, thumbX + 13.0f, thumbY + 10.5f, 24.0f, 1.5f, 0.5f, ColorUtil.a(primary, (int) (200 * anim)));
+            }
+
+            Fonts.e.a(event.h(), title, x + 4.0f, y + 21.0f, 5.5f, ColorUtil.a(active ? primary : -1, anim));
+            Fonts.e.a(event.h(), sub, x + 4.0f, y + 28.5f, 4.5f, ColorUtil.a(ColorUtil.a(160, 165, 180, 255), 0.75f * anim));
         } else {
-            // Mini standard card preview
-            event.d().a(matrices, thumbX + 2.0f, thumbY + 3.0f, 10.0f, 10.0f, 1.5f, ColorUtil.a(primary, (int) (200 * anim)));
-            event.d().a(matrices, thumbX + 14.0f, thumbY + 4.0f, 18.0f, 2.5f, 0.5f, ColorUtil.a(-1, (int) (200 * anim)));
-            event.d().a(matrices, thumbX + 14.0f, thumbY + 8.5f, 22.0f, 2.5f, 0.5f, ColorUtil.a(120, 255, 140, (int) (200 * anim)));
+            // Horizontal compact card for Встроенный стиль
+            Fonts.e.a(event.h(), title, x + 6.0f, y + 5.5f, 6.0f, ColorUtil.a(active ? primary : -1, anim));
+            Fonts.e.a(event.h(), sub, x + 6.0f, y + 14.5f, 4.75f, ColorUtil.a(ColorUtil.a(160, 165, 180, 255), 0.75f * anim));
         }
-
-        Fonts.e.a(event.h(), title, x + 4.0f, y + 24.0f, 5.75f, ColorUtil.a(active ? primary : -1, anim));
-        Fonts.e.a(event.h(), sub, x + 4.0f, y + 33.0f, 4.5f, ColorUtil.a(ColorUtil.a(160, 165, 180, 255), 0.75f * anim));
     }
 
     private void drawCheckbox(DrawEvent event, float x, float y, String label, boolean checked, float anim, int primary) {
@@ -560,8 +714,9 @@ public class TargetWidget extends Widget {
         }
 
         float cardW = (mw - 24.0f) / 2.0f;
-        float cardH = 44.0f;
+        float cardH = 38.0f;
         float startCardY = my + 27.0f;
+        float row2Y = startCardY + cardH + 4.0f;
 
         if (action == 0 && button == 0) {
             // Close button
@@ -573,14 +728,20 @@ public class TargetWidget extends Widget {
                 return true;
             }
 
-            // Style Card 1 (Стандарт / Стиль виджета)
+            // Style Card 1 (Стиль виджета)
             if (MathUtil.a(mouseX, mouseY, mx + 10.0f, startCardY, cardW, cardH)) {
+                this.mode.a("Стиль виджета");
+                return true;
+            }
+
+            // Style Card 2 (Стандарт)
+            if (MathUtil.a(mouseX, mouseY, mx + 14.0f + cardW, startCardY, cardW, cardH)) {
                 this.mode.a("Стандарт");
                 return true;
             }
 
-            // Style Card 2 (Встроенный стиль)
-            if (MathUtil.a(mouseX, mouseY, mx + 14.0f + cardW, startCardY, cardW, cardH)) {
+            // Style Card 3 (Встроенный стиль)
+            if (MathUtil.a(mouseX, mouseY, mx + 10.0f, row2Y, mw - 20.0f, 26.0f)) {
                 this.mode.a("Встроенный");
                 return true;
             }
@@ -588,7 +749,7 @@ public class TargetWidget extends Widget {
             // Checkboxes
             float col2X = mx + (mw / 2.0f) + 4.0f;
             float chkW = (mw / 2.0f) - 10.0f;
-            float secY = startCardY + cardH + 6.0f;
+            float secY = row2Y + 26.0f + 6.0f;
             float chkY1 = secY + 8.5f;
 
             // Прозрачный стиль
@@ -622,7 +783,7 @@ public class TargetWidget extends Widget {
             }
 
             // Sliders
-            float sliderY = chkY3 + 17.5f;
+            float sliderY = chkY3 + 16.5f;
             float sliderW = mw - 20.0f;
             if (MathUtil.a(mouseX, mouseY, mx + 10.0f, sliderY + 4.0f, sliderW, 10.0f)) {
                 this.draggingScaleSlider = true;
@@ -637,8 +798,8 @@ public class TargetWidget extends Widget {
         }
 
         if (action == 1) {
-            float secY = startCardY + cardH + 6.0f;
-            float sliderY = secY + 8.5f + 22.0f + 17.5f;
+            float secY = row2Y + 26.0f + 6.0f;
+            float sliderY = secY + 8.5f + 22.0f + 16.5f;
             float sliderW = mw - 20.0f;
             if (this.draggingScaleSlider) {
                 updateScaleFromMouse(mouseX, mx + 10.0f, sliderW);

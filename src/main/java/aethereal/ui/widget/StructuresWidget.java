@@ -100,7 +100,8 @@ public class StructuresWidget extends Widget implements Interface {
         float x = j().a();
         float y = j().b();
         MatrixStack matrices = event.i().getMatrices();
-        float opacity = a() * getBgOpacity();
+        float anim = a();
+        float bgFactor = anim * getBgOpacity();
 
         List<StructureData> list = getActiveStructures();
         if (list.isEmpty()) {
@@ -134,23 +135,23 @@ public class StructuresWidget extends Widget implements Interface {
             float totalW = 4.5f + 10.0f + 4.0f + labelW + 6.0f + innerPillW + 3.5f;
             maxW = Math.max(maxW, totalW);
 
-            // Capsule background
-            int bgAlpha = (int) (opacity * (this.transparentStyle.c().booleanValue() ? 175 : 240));
+            // Capsule background (respects background opacity)
+            int bgAlpha = (int) (bgFactor * (this.transparentStyle.c().booleanValue() ? 150 : 240));
             event.d().a(matrices, x, curY, totalW, h, radius, ColorUtil.a(18, 19, 26, bgAlpha));
-            event.d().a(matrices, x, curY, totalW, h, radius, 0.5f, ColorUtil.a(255, 255, 255, (int) (opacity * 20)));
+            event.d().a(matrices, x, curY, totalW, h, radius, 0.5f, ColorUtil.a(255, 255, 255, (int) (bgFactor * 20)));
 
             // Left icon (Netherite scrap item)
             ItemStack stack = data.item.getDefaultStack();
-            event.e().a(event.i(), stack, x + 4.5f, curY + 3.25f, 0, opacity, 0.58f, false);
+            event.e().a(event.i(), stack, x + 4.5f, curY + 3.25f, 0, anim, 0.58f, false);
 
             // Text "ТРАПКА ИСЧЕЗАЕТ"
             float labelY = curY + ((h - Fonts.d.a(5.75f)) / 2.0f) - 0.25f;
-            Fonts.d.a(matrices, label, x + 17.5f, labelY, 5.75f, ColorUtil.a(-1, opacity));
+            Fonts.d.a(matrices, label, x + 17.5f, labelY, 5.75f, ColorUtil.a(-1, anim));
 
             // Right inner pill container
             float innerX = (x + totalW) - 3.5f - innerPillW;
             float innerY = curY + ((h - innerPillH) / 2.0f);
-            event.d().a(matrices, innerX, innerY, innerPillW, innerPillH, innerRadius, ColorUtil.a(12, 13, 18, (int) (220 * opacity)));
+            event.d().a(matrices, innerX, innerY, innerPillW, innerPillH, innerRadius, ColorUtil.a(12, 13, 18, (int) (220 * bgFactor)));
 
             // Ring
             float rx = innerX + 3.5f;
@@ -160,14 +161,14 @@ public class StructuresWidget extends Widget implements Interface {
             int ringColor = expiring ? ColorUtil.a(235, 175, 75, 255) : ColorUtil.a(140, 120, 255, 255);
 
             // Ring track & outline
-            event.d().a(matrices, rx, ry, ringSize, ringSize, ringSize / 2.0f, 0.7f, ColorUtil.a(ringColor, 0.25f * opacity));
-            event.d().a(matrices, rx, ry, ringSize, ringSize, ringSize / 2.0f, 0.85f, ColorUtil.a(ringColor, opacity));
+            event.d().a(matrices, rx, ry, ringSize, ringSize, ringSize / 2.0f, 0.7f, ColorUtil.a(ringColor, 0.25f * anim));
+            event.d().a(matrices, rx, ry, ringSize, ringSize, ringSize / 2.0f, 0.85f, ColorUtil.a(ringColor, anim));
 
             // Time text
             if (showText) {
                 float tx = rx + ringSize + 3.0f;
                 float ty = innerY + ((innerPillH - Fonts.e.a(5.75f)) / 2.0f) - 0.25f;
-                Fonts.e.a(event.h(), timeStr, tx, ty, 5.75f, ColorUtil.a(-1, 0.9f * opacity));
+                Fonts.e.a(event.h(), timeStr, tx, ty, 5.75f, ColorUtil.a(-1, anim));
             }
 
             curY += h + gap;
@@ -187,7 +188,10 @@ public class StructuresWidget extends Widget implements Interface {
         float x = j().a();
         float y = j().b();
         MatrixStack matrices = event.i().getMatrices();
-        float opacity = a() * getBgOpacity();
+        ThemeProcessor theme = Delta.h().d().o();
+        int primary = theme.a(ThemeInfo.PRIMARY).a();
+        float anim = a();
+        float bgFactor = anim * getBgOpacity();
 
         List<StructureData> list = getActiveStructures();
         if (list.isEmpty()) {
@@ -201,7 +205,7 @@ public class StructuresWidget extends Widget implements Interface {
         float rowH = 13.0f;
         float gap = 2.0f;
 
-        float maxRowW = 14.5f + Fonts.e.a("Structures", 7.0f) + 12.0f;
+        float maxRowW = 14.5f + Fonts.a.a("U", 7.0f) + 3.5f + Fonts.e.a("Structures", 7.0f) + 12.0f;
         for (StructureData data : list) {
             String time = formatTime(data.remaining);
             float w = 18.0f + Fonts.e.a(data.displayName, 6.25f) + 12.0f + Fonts.e.a(time, 5.75f) + 8.0f;
@@ -215,9 +219,9 @@ public class StructuresWidget extends Widget implements Interface {
         j().c(totalW);
         j().d(totalH);
 
-        int bgAlpha = (int) (opacity * (this.transparentStyle.c().booleanValue() ? 165 : 235));
+        int bgAlpha = (int) (bgFactor * (this.transparentStyle.c().booleanValue() ? 150 : 235));
         int outerBg = ColorUtil.a(16, 17, 23, bgAlpha);
-        int outerOutline = ColorUtil.a(255, 255, 255, (int) (opacity * 20));
+        int outerOutline = ColorUtil.a(255, 255, 255, (int) (bgFactor * 20));
 
         boolean rounded = this.roundedCorners.c().booleanValue();
         float radius = rounded ? 5.5f : 3.5f;
@@ -225,26 +229,28 @@ public class StructuresWidget extends Widget implements Interface {
         event.d().a(matrices, x, y, totalW, totalH, radius, outerBg);
         event.d().a(matrices, x, y, totalW, totalH, radius, 0.5f, outerOutline);
 
-        // Header: "Structures"
-        Fonts.e.a(event.h(), "Structures", x + 5.5f, y + 4.0f, 6.75f, ColorUtil.a(-1, opacity));
+        // Header: "U" icon + "Structures"
+        Fonts.a.a(matrices, "U", x + 5.5f, y + 4.0f, 7.0f, ColorUtil.a(primary, anim));
+        float titleX = x + 5.5f + Fonts.a.a("U", 7.0f) + 3.5f;
+        Fonts.e.a(event.h(), "Structures", titleX, y + 4.0f, 6.75f, ColorUtil.a(-1, anim));
 
         float curY = y + headerH + 1.0f;
         for (StructureData data : list) {
             float rowX = x + 3.0f;
             float rowW = totalW - 6.0f;
 
-            int rowAlpha = (int) (opacity * (this.transparentStyle.c().booleanValue() ? 140 : 210));
+            int rowAlpha = (int) (bgFactor * (this.transparentStyle.c().booleanValue() ? 120 : 210));
             event.d().a(matrices, rowX, curY, rowW, rowH, 3.0f, ColorUtil.a(25, 26, 35, rowAlpha));
 
             ItemStack stack = data.item.getDefaultStack();
-            event.e().a(event.i(), stack, rowX + 2.5f, curY + 2.0f, 0, opacity, 0.50f, false);
+            event.e().a(event.i(), stack, rowX + 2.5f, curY + 2.0f, 0, anim, 0.50f, false);
 
-            Fonts.e.a(event.h(), data.displayName, rowX + 16.0f, curY + 3.25f, 6.0f, ColorUtil.a(-1, opacity));
+            Fonts.e.a(event.h(), data.displayName, rowX + 16.0f, curY + 3.25f, 6.0f, ColorUtil.a(-1, anim));
 
             String timeStr = formatTime(data.remaining);
             float timeW = Fonts.e.a(timeStr, 5.5f);
             float timeX = (rowX + rowW) - timeW - 4.0f;
-            Fonts.e.a(event.h(), timeStr, timeX, curY + 3.5f, 5.5f, ColorUtil.a(180, 185, 200, (int) (210 * opacity)));
+            Fonts.e.a(event.h(), timeStr, timeX, curY + 3.5f, 5.5f, ColorUtil.a(180, 185, 200, (int) (210 * anim)));
 
             curY += rowH + gap;
         }
@@ -291,8 +297,10 @@ public class StructuresWidget extends Widget implements Interface {
         event.d().a(event.h(), mx, my, mw, mh, 8.0f, modalBg, anim, ColorUtil.a(primary, 0.12f * anim), 12.0f);
         event.d().a(matrices, mx, my, mw, mh, 8.0f, 0.5f, modalOutline);
 
-        // Header
-        Fonts.e.a(event.h(), "Настройки виджета Trap Timer", mx + 10.0f, my + 8.0f, 7.5f, ColorUtil.a(-1, anim));
+        // Header with "U" trap structure icon
+        Fonts.a.a(matrices, "U", mx + 10.0f, my + 8.5f, 7.5f, ColorUtil.a(primary, anim));
+        float titleX = mx + 10.0f + Fonts.a.a("U", 7.5f) + 4.0f;
+        Fonts.e.a(event.h(), "Настройки виджета Trap Timer", titleX, my + 8.0f, 7.5f, ColorUtil.a(-1, anim));
         Fonts.e.a(event.h(), "Настройте стиль виджета по своему вкусу", mx + 10.0f, my + 17.5f, 5.25f, ColorUtil.a(theme.a(ThemeInfo.TEXT_DISABLED).a(), anim));
 
         float btnSize = 13.0f;

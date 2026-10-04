@@ -64,7 +64,7 @@ public class PotionWidget extends Widget implements Interface {
         super(new DragInfo("Зелья", 0.0f, 0.0f, 0.0f, 0.0f));
         INSTANCE = this;
 
-        this.mode = new ModeSetting("Режим", "Карточки", "Карточки", "Стандарт", "Бафф");
+        this.mode = new ModeSetting("Режим", "Карточки", "Карточки", "Инлайн", "Бафф", "Стандарт");
         this.transparentStyle = new BooleanSetting("Прозрачный стиль", true);
         this.harmfulColor = new ColorSetting("Цвет негативных", ColorUtil.a(255, 76, 79, 255));
         this.expiringColor = new ColorSetting("Цвет заканчивающихся", ColorUtil.a(227, 186, 99, 255));
@@ -91,8 +91,10 @@ public class PotionWidget extends Widget implements Interface {
 
         if (this.mode.l("Бафф")) {
             renderFloatingPills(event);
-        } else if (this.mode.l("Стандарт") || this.mode.l("Дашборд")) {
+        } else if (this.mode.l("Инлайн")) {
             renderInlined(event);
+        } else if (this.mode.l("Стандарт")) {
+            renderStandardList(event);
         } else {
             renderCardGrid(event);
         }
@@ -113,7 +115,8 @@ public class PotionWidget extends Widget implements Interface {
         MatrixStack matrices = event.i().getMatrices();
         ThemeProcessor theme = Delta.h().d().o();
         int primary = theme.a(ThemeInfo.PRIMARY).a();
-        float opacity = a() * getBgOpacity();
+        float anim = a();
+        float bgFactor = anim * getBgOpacity();
 
         List<StatusEffectInstance> effects = k();
         if (effects.isEmpty() && !(aM_.currentScreen instanceof ChatScreen)) {
@@ -151,21 +154,23 @@ public class PotionWidget extends Widget implements Interface {
         j().c(totalW);
         j().d(totalH);
 
-        int bgAlpha = (int) (opacity * (this.transparentStyle.c().booleanValue() ? 165 : 235));
+        int bgAlpha = (int) (bgFactor * (this.transparentStyle.c().booleanValue() ? 150 : 235));
         int outerBg = ColorUtil.a(16, 17, 23, bgAlpha);
-        int outerOutline = ColorUtil.a(255, 255, 255, (int) (opacity * 20));
+        int outerOutline = ColorUtil.a(255, 255, 255, (int) (bgFactor * 20));
 
         event.d().a(matrices, x, y, totalW, totalH, 5.5f, outerBg);
         event.d().a(matrices, x, y, totalW, totalH, 5.5f, 0.5f, outerOutline);
 
-        // Header
-        Fonts.e.a(event.h(), "Effects", x + 5.5f, y + 4.0f, 6.75f, ColorUtil.a(-1, opacity));
+        // Header with "E" potion icon
+        Fonts.a.a(matrices, "E", x + 5.5f, y + 4.0f, 7.0f, ColorUtil.a(primary, anim));
+        float titleX = x + 5.5f + Fonts.a.a("E", 7.0f) + 3.5f;
+        Fonts.e.a(event.h(), "Effects", titleX, y + 4.0f, 6.75f, ColorUtil.a(-1, anim));
 
         float sparkleSize = 10.0f;
         float sparkleX = (x + totalW) - 5.5f - sparkleSize;
         float sparkleY = y + 2.5f;
-        event.d().a(matrices, sparkleX, sparkleY, sparkleSize, sparkleSize, 2.5f, ColorUtil.a(primary, 0.22f * opacity));
-        Fonts.e.a(event.h(), "✦", sparkleX + 1.75f, sparkleY + 1.75f, 5.75f, ColorUtil.a(primary, opacity));
+        event.d().a(matrices, sparkleX, sparkleY, sparkleSize, sparkleSize, 2.5f, ColorUtil.a(primary, 0.22f * anim));
+        Fonts.e.a(event.h(), "✦", sparkleX + 1.75f, sparkleY + 1.75f, 5.75f, ColorUtil.a(primary, anim));
 
         // Cards grid
         float startGridX = x + 4.0f;
@@ -178,23 +183,23 @@ public class PotionWidget extends Widget implements Interface {
             float cx = startGridX + (col * (cardW + gap));
             float cy = startGridY + (row * (cardH + gap));
 
-            int cardAlpha = (int) (opacity * (this.transparentStyle.c().booleanValue() ? 190 : 242));
+            int cardAlpha = (int) (bgFactor * (this.transparentStyle.c().booleanValue() ? 175 : 242));
             int cardBg = ColorUtil.a(25, 26, 35, cardAlpha);
-            int cardOutline = ColorUtil.a(255, 255, 255, (int) (opacity * 16));
+            int cardOutline = ColorUtil.a(255, 255, 255, (int) (bgFactor * 16));
 
             event.d().a(matrices, cx, cy, cardW, cardH, 4.0f, cardBg);
             event.d().a(matrices, cx, cy, cardW, cardH, 4.0f, 0.5f, cardOutline);
 
             Sprite sprite = aM_.getStatusEffectSpriteManager().getSprite(effect.getEffectType());
 
-            // Watermark behind content
+            // Watermark behind content (scales with bgFactor)
             if (sprite != null) {
-                event.e().a(event.i(), sprite, cx + cardW - 20.0f, cy + cardH - 20.0f, 0.0f, 1.05f, 0.09f * opacity);
+                event.e().a(event.i(), sprite, cx + cardW - 20.0f, cy + cardH - 20.0f, 0.0f, 1.05f, 0.09f * bgFactor);
             }
 
             // Top row: Sprite icon on left
             if (sprite != null) {
-                event.e().a(event.i(), sprite, cx + 3.5f, cy + 3.0f, 0.0f, 0.52f, opacity);
+                event.e().a(event.i(), sprite, cx + 3.5f, cy + 3.0f, 0.0f, 0.52f, anim);
             }
 
             // Top row: Progress ring and timer on right
@@ -213,18 +218,18 @@ public class PotionWidget extends Widget implements Interface {
             float ringY = cy + 4.0f;
 
             // Circular ring outline
-            event.d().a(matrices, ringX, ringY, ringSize, ringSize, ringSize / 2.0f, 0.7f, ColorUtil.a(ringColor, 0.28f * opacity));
-            event.d().a(matrices, ringX, ringY, ringSize, ringSize, ringSize / 2.0f, 0.85f, ColorUtil.a(ringColor, opacity));
+            event.d().a(matrices, ringX, ringY, ringSize, ringSize, ringSize / 2.0f, 0.7f, ColorUtil.a(ringColor, 0.28f * anim));
+            event.d().a(matrices, ringX, ringY, ringSize, ringSize, ringSize / 2.0f, 0.85f, ColorUtil.a(ringColor, anim));
 
             // Timer text
-            int timeTextColor = expiring ? this.expiringColor.c().intValue() : ColorUtil.a(-1, 0.85f * opacity);
+            int timeTextColor = expiring ? this.expiringColor.c().intValue() : ColorUtil.a(-1, 0.85f * anim);
             Fonts.e.a(event.h(), timeStr, timeX, cy + 4.25f, 5.5f, timeTextColor);
 
             // Bottom row: Effect name + level
             String fullText = getEffectDisplayName(effect);
             String displayName = this.nameOverflow.l("Обрезать") ? truncateText(fullText, 5.75f, cardW - 7.0f) : fullText;
             int nameColor = harmful ? this.harmfulColor.c().intValue() : -1;
-            Fonts.e.a(event.h(), displayName, cx + 4.0f, cy + 15.5f, 5.75f, ColorUtil.a(nameColor, opacity));
+            Fonts.e.a(event.h(), displayName, cx + 4.0f, cy + 15.5f, 5.75f, ColorUtil.a(nameColor, anim));
         }
 
         super.a(event);
@@ -233,7 +238,7 @@ public class PotionWidget extends Widget implements Interface {
     /**
      * Mode 2: Inlined Style
      * Matches image 1 (card 2):
-     * Header with "Effects" and sparkle icon, vertical rows with sprite,
+     * Header with "E" + "Effects" and sparkle icon, vertical rows with sprite,
      * effect name, and circular ring + timer on right.
      */
     private void renderInlined(DrawEvent event) {
@@ -242,7 +247,8 @@ public class PotionWidget extends Widget implements Interface {
         MatrixStack matrices = event.i().getMatrices();
         ThemeProcessor theme = Delta.h().d().o();
         int primary = theme.a(ThemeInfo.PRIMARY).a();
-        float opacity = a() * getBgOpacity();
+        float anim = a();
+        float bgFactor = anim * getBgOpacity();
 
         List<StatusEffectInstance> effects = k();
         if (effects.isEmpty() && !(aM_.currentScreen instanceof ChatScreen)) {
@@ -271,33 +277,35 @@ public class PotionWidget extends Widget implements Interface {
         j().c(totalW);
         j().d(totalH);
 
-        int bgAlpha = (int) (opacity * (this.transparentStyle.c().booleanValue() ? 165 : 235));
+        int bgAlpha = (int) (bgFactor * (this.transparentStyle.c().booleanValue() ? 150 : 235));
         int outerBg = ColorUtil.a(16, 17, 23, bgAlpha);
-        int outerOutline = ColorUtil.a(255, 255, 255, (int) (opacity * 20));
+        int outerOutline = ColorUtil.a(255, 255, 255, (int) (bgFactor * 20));
 
         event.d().a(matrices, x, y, totalW, totalH, 5.5f, outerBg);
         event.d().a(matrices, x, y, totalW, totalH, 5.5f, 0.5f, outerOutline);
 
-        // Header
-        Fonts.e.a(event.h(), "Effects", x + 5.5f, y + 4.0f, 6.75f, ColorUtil.a(-1, opacity));
+        // Header with "E" potion icon
+        Fonts.a.a(matrices, "E", x + 5.5f, y + 4.0f, 7.0f, ColorUtil.a(primary, anim));
+        float titleX = x + 5.5f + Fonts.a.a("E", 7.0f) + 3.5f;
+        Fonts.e.a(event.h(), "Effects", titleX, y + 4.0f, 6.75f, ColorUtil.a(-1, anim));
 
         float sparkleSize = 10.0f;
         float sparkleX = (x + totalW) - 5.5f - sparkleSize;
         float sparkleY = y + 2.5f;
-        event.d().a(matrices, sparkleX, sparkleY, sparkleSize, sparkleSize, 2.5f, ColorUtil.a(primary, 0.22f * opacity));
-        Fonts.e.a(event.h(), "✦", sparkleX + 1.75f, sparkleY + 1.75f, 5.75f, ColorUtil.a(primary, opacity));
+        event.d().a(matrices, sparkleX, sparkleY, sparkleSize, sparkleSize, 2.5f, ColorUtil.a(primary, 0.22f * anim));
+        Fonts.e.a(event.h(), "✦", sparkleX + 1.75f, sparkleY + 1.75f, 5.75f, ColorUtil.a(primary, anim));
 
         float curY = y + headerH + 2.0f;
         for (StatusEffectInstance effect : effects) {
             float rowX = x + 3.5f;
             float rowW = totalW - 7.0f;
 
-            int rowAlpha = (int) (opacity * (this.transparentStyle.c().booleanValue() ? 140 : 210));
+            int rowAlpha = (int) (bgFactor * (this.transparentStyle.c().booleanValue() ? 120 : 210));
             event.d().a(matrices, rowX, curY, rowW, rowH, 3.0f, ColorUtil.a(25, 26, 35, rowAlpha));
 
             Sprite sprite = aM_.getStatusEffectSpriteManager().getSprite(effect.getEffectType());
             if (sprite != null) {
-                event.e().a(event.i(), sprite, rowX + 3.0f, curY + 2.0f, 0.0f, 0.48f, opacity);
+                event.e().a(event.i(), sprite, rowX + 3.0f, curY + 2.0f, 0.0f, 0.48f, anim);
             }
 
             int seconds = effect.getDuration() / 20;
@@ -309,7 +317,7 @@ public class PotionWidget extends Widget implements Interface {
 
             String name = getEffectDisplayName(effect);
             int nameColor = harmful ? this.harmfulColor.c().intValue() : -1;
-            Fonts.e.a(event.h(), name, rowX + 16.0f, curY + 3.25f, 6.0f, ColorUtil.a(nameColor, opacity));
+            Fonts.e.a(event.h(), name, rowX + 16.0f, curY + 3.25f, 6.0f, ColorUtil.a(nameColor, anim));
 
             String timeStr = formatDuration(seconds);
             float timeW = Fonts.e.a(timeStr, 5.5f);
@@ -318,10 +326,10 @@ public class PotionWidget extends Widget implements Interface {
             float ringX = timeX - ringSize - 2.5f;
             float ringY = curY + 3.5f;
 
-            event.d().a(matrices, ringX, ringY, ringSize, ringSize, ringSize / 2.0f, 0.7f, ColorUtil.a(ringColor, 0.28f * opacity));
-            event.d().a(matrices, ringX, ringY, ringSize, ringSize, ringSize / 2.0f, 0.85f, ColorUtil.a(ringColor, opacity));
+            event.d().a(matrices, ringX, ringY, ringSize, ringSize, ringSize / 2.0f, 0.7f, ColorUtil.a(ringColor, 0.28f * anim));
+            event.d().a(matrices, ringX, ringY, ringSize, ringSize, ringSize / 2.0f, 0.85f, ColorUtil.a(ringColor, anim));
 
-            int timeTextColor = expiring ? this.expiringColor.c().intValue() : ColorUtil.a(-1, 0.75f * opacity);
+            int timeTextColor = expiring ? this.expiringColor.c().intValue() : ColorUtil.a(-1, 0.85f * anim);
             Fonts.e.a(event.h(), timeStr, timeX, curY + 3.5f, 5.5f, timeTextColor);
 
             curY += rowH + rowGap;
@@ -340,7 +348,8 @@ public class PotionWidget extends Widget implements Interface {
         float x = j().a();
         float y = j().b();
         MatrixStack matrices = event.i().getMatrices();
-        float opacity = a() * getBgOpacity();
+        float anim = a();
+        float bgFactor = anim * getBgOpacity();
 
         List<StatusEffectInstance> effects = k();
         if (effects.isEmpty() && !(aM_.currentScreen instanceof ChatScreen)) {
@@ -364,25 +373,25 @@ public class PotionWidget extends Widget implements Interface {
             float pillW = 20.0f + textW + 8.0f;
             maxW = Math.max(maxW, pillW);
 
-            int bgAlpha = (int) (opacity * (this.transparentStyle.c().booleanValue() ? 175 : 240));
+            int bgAlpha = (int) (bgFactor * (this.transparentStyle.c().booleanValue() ? 150 : 240));
             int pillBg = ColorUtil.a(18, 19, 26, bgAlpha);
-            int pillOutline = ColorUtil.a(255, 255, 255, (int) (opacity * 20));
+            int pillOutline = ColorUtil.a(255, 255, 255, (int) (bgFactor * 20));
 
             event.d().a(matrices, x, curY, pillW, pillH, 4.5f, pillBg);
             event.d().a(matrices, x, curY, pillW, pillH, 4.5f, 0.5f, pillOutline);
 
             Sprite sprite = aM_.getStatusEffectSpriteManager().getSprite(effect.getEffectType());
             if (sprite != null) {
-                event.e().a(event.i(), sprite, x + 4.5f, curY + 3.75f, 0.0f, 0.68f, opacity);
+                event.e().a(event.i(), sprite, x + 4.5f, curY + 3.75f, 0.0f, 0.68f, anim);
             }
 
             boolean harmful = ((StatusEffect) effect.getEffectType().value()).getCategory() == StatusEffectCategory.HARMFUL;
             boolean expiring = seconds <= 15;
 
             int nameColor = harmful ? this.harmfulColor.c().intValue() : -1;
-            Fonts.e.a(event.h(), name, x + 20.5f, curY + 3.5f, 6.5f, ColorUtil.a(nameColor, opacity));
+            Fonts.e.a(event.h(), name, x + 20.5f, curY + 3.5f, 6.5f, ColorUtil.a(nameColor, anim));
 
-            int timeColor = expiring ? this.expiringColor.c().intValue() : ColorUtil.a(175, 180, 195, (int) (210 * opacity));
+            int timeColor = expiring ? this.expiringColor.c().intValue() : ColorUtil.a(175, 180, 195, (int) (210 * anim));
             Fonts.e.a(event.h(), timeStr, x + 20.5f, curY + 12.25f, 5.75f, timeColor);
 
             curY += pillH + pillGap;
@@ -391,6 +400,72 @@ public class PotionWidget extends Widget implements Interface {
         j().c(maxW);
         j().d(Math.max(pillH, (curY - y) - pillGap));
 
+        super.a(event);
+    }
+
+    /**
+     * Mode 4: "Стандарт" (Classic Destrum Potion-list)
+     * Matches the original client style:
+     * Header with "E" and "Effects",
+     * list of effect rows with sprite, name, duration and divider.
+     */
+    private void renderStandardList(DrawEvent event) {
+        float x = j().a();
+        float y = j().b();
+        MatrixStack matrices = event.i().getMatrices();
+        float anim = a();
+        float targetWidth = 14.5f + Fonts.e.a("Effects", this.e) + 5.0f + 2.0f;
+        float contentY = y + this.d + 3.0f;
+
+        List<StatusEffectInstance> effects = k();
+        if (effects.isEmpty() && !(aM_.currentScreen instanceof ChatScreen)) {
+            j().c(0.0f);
+            j().d(0.0f);
+            super.a(event);
+            return;
+        }
+
+        boolean active = false;
+        for (StatusEffectInstance inst : effects) {
+            String name = getEffectDisplayName(inst);
+            int seconds = inst.getDuration() / 20;
+            String duration = formatDuration(seconds);
+            targetWidth = Math.max(targetWidth, 19.0f + Fonts.e.a(name, 6.5f) + 8.0f + Fonts.e.a(duration, 6.5f) + 5.0f + 2.0f);
+            active = true;
+        }
+
+        float width = MathUtil.c(j().getRawWidth(), targetWidth, 0.5f);
+        j().c(width);
+
+        if (anim > 0.0f) {
+            a(event, "E", "Effects", width, anim);
+        }
+
+        for (StatusEffectInstance inst : effects) {
+            String name = getEffectDisplayName(inst);
+            int seconds = inst.getDuration() / 20;
+            String duration = formatDuration(seconds);
+            float durationWidth = Fonts.e.a(duration, 6.5f);
+            float textY = (contentY + ((11.5f - Fonts.e.a(6.5f)) / 2.0f)) - 0.5f;
+
+            // Row plate using Widget's standard drawer (which respects getBgOpacity)
+            a(event, x, contentY, width, 11.5f, false, anim);
+            a(event, x + 15.0f, contentY, 11.5f, anim);
+
+            Sprite sprite = aM_.getStatusEffectSpriteManager().getSprite(inst.getEffectType());
+            if (sprite != null) {
+                event.e().a(event.i(), sprite, x + 5.0f, contentY + 2.0f, 0.0f, 0.4f, anim);
+            }
+
+            boolean harmful = ((StatusEffect) inst.getEffectType().value()).getCategory() == StatusEffectCategory.HARMFUL;
+            int nameColor = harmful ? this.harmfulColor.c().intValue() : -1;
+            Fonts.e.a(event.h(), name, x + 19.0f, textY, 6.5f, ColorUtil.a(nameColor, anim));
+            Fonts.e.a(event.h(), duration, (((x + width) - 5.0f) - durationWidth) - 1.0f, textY, 6.5f, ColorUtil.a(-1, 0.75f * anim));
+
+            contentY += 13.5f;
+        }
+
+        j().d(active ? (contentY - y) - 2.0f : this.d);
         super.a(event);
     }
 
@@ -443,20 +518,20 @@ public class PotionWidget extends Widget implements Interface {
         event.d().a(matrices, btnX, btnY, btnSize, btnSize, 3.5f, ColorUtil.a(primary, 0.22f * anim));
         Fonts.a.a(matrices, "J", btnX + 3.0f, btnY + 2.5f, 7.0f, ColorUtil.a(primary, anim));
 
-        // Style cards
+        // Style cards (2x2 grid of 4 cards)
         float cardW = (mw - 24.0f) / 2.0f;
-        float cardH = 46.0f;
+        float cardH = 36.0f;
         float startCardY = my + 27.0f;
 
-        drawStyleCard(event, mx + 10.0f, startCardY, cardW, cardH, "Card Grid Style", "Свежий и современный карточный дизайн.", "Карточки", anim, primary);
-        drawStyleCard(event, mx + 14.0f + cardW, startCardY, cardW, cardH, "Inlined Style", "Простой стиль, который легко читать.", "Стандарт", anim, primary);
+        drawStyleCard(event, mx + 10.0f, startCardY, cardW, cardH, "Card Grid Style", "Карточный дизайн.", "Карточки", anim, primary);
+        drawStyleCard(event, mx + 14.0f + cardW, startCardY, cardW, cardH, "Inlined Style", "Компактный список.", "Инлайн", anim, primary);
 
-        // Card 3: Бафф (Compact)
-        float card3Y = startCardY + cardH + 4.0f;
-        drawStyleCard(event, mx + 10.0f, card3Y, mw - 20.0f, 26.0f, "Бафф (Compact)", "Компактный стиль в виде отдельных плашек.", "Бафф", anim, primary);
+        float row2Y = startCardY + cardH + 4.0f;
+        drawStyleCard(event, mx + 10.0f, row2Y, cardW, cardH, "Бафф (Compact)", "Отдельные плашки.", "Бафф", anim, primary);
+        drawStyleCard(event, mx + 14.0f + cardW, row2Y, cardW, cardH, "Стандарт (Classic)", "Классический список.", "Стандарт", anim, primary);
 
         // SECTION: НАСТРОЙКИ ВИДЖЕТА
-        float secY = card3Y + 31.0f;
+        float secY = row2Y + cardH + 5.0f;
         Fonts.e.a(event.h(), "НАСТРОЙКИ ВИДЖЕТА", mx + 10.0f, secY, 5.25f, ColorUtil.a(theme.a(ThemeInfo.TEXT_DISABLED).a(), 0.75f * anim));
 
         // Checkbox: Прозрачный стиль
@@ -517,40 +592,38 @@ public class PotionWidget extends Widget implements Interface {
         event.d().a(matrices, x, y, w, h, 4.0f, bg);
         event.d().a(matrices, x, y, w, h, 4.0f, active ? 0.9f : 0.5f, border);
 
-        float tagW = Fonts.e.a("v2.0", 5.0f) + 4.0f;
-        float tagX = (x + w) - 4.0f - tagW;
-        event.d().a(matrices, tagX, y + 3.0f, tagW, 6.0f, 2.0f, ColorUtil.a(primary, 0.25f * anim));
-        Fonts.e.a(event.h(), "v2.0", tagX + 2.0f, y + 3.5f, 4.75f, ColorUtil.a(primary, anim));
+        float thumbW = w - 6.0f;
+        float thumbH = 15.0f;
+        float thumbX = x + 3.0f;
+        float thumbY = y + 3.0f;
+        event.d().a(matrices, thumbX, thumbY, thumbW, thumbH, 2.5f, ColorUtil.a(12, 13, 18, (int) (210 * anim)));
 
-        if (h > 35.0f) {
-            float thumbW = w - 6.0f;
-            float thumbH = 18.0f;
-            float thumbX = x + 3.0f;
-            float thumbY = y + 3.0f;
-            event.d().a(matrices, thumbX, thumbY, thumbW, thumbH, 3.0f, ColorUtil.a(12, 13, 18, (int) (210 * anim)));
-
-            if ("Карточки".equals(modeTarget)) {
-                // Mini 2x2 grid
-                float cw = (thumbW - 3.0f) / 2.0f;
-                float ch = 6.5f;
-                event.d().a(matrices, thumbX + 1.0f, thumbY + 1.5f, cw, ch, 1.5f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
-                event.d().a(matrices, thumbX + 2.0f + cw, thumbY + 1.5f, cw, ch, 1.5f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
-                event.d().a(matrices, thumbX + 1.0f, thumbY + 9.5f, cw, ch, 1.5f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
-                event.d().a(matrices, thumbX + 2.0f + cw, thumbY + 9.5f, cw, ch, 1.5f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
-            } else {
-                // Mini list
-                event.d().a(matrices, thumbX + 2.0f, thumbY + 2.0f, thumbW - 4.0f, 3.5f, 1.0f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
-                event.d().a(matrices, thumbX + 2.0f, thumbY + 7.0f, thumbW - 4.0f, 3.5f, 1.0f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
-                event.d().a(matrices, thumbX + 2.0f, thumbY + 12.0f, thumbW - 4.0f, 3.5f, 1.0f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
-            }
-
-            Fonts.e.a(event.h(), title, x + 4.0f, y + 25.0f, 5.75f, ColorUtil.a(active ? primary : -1, anim));
-            Fonts.e.a(event.h(), sub, x + 4.0f, y + 34.0f, 4.75f, ColorUtil.a(ColorUtil.a(160, 165, 180, 255), 0.75f * anim));
+        if ("Карточки".equals(modeTarget)) {
+            // Mini 2x2 grid
+            float cw = (thumbW - 3.0f) / 2.0f;
+            float ch = 5.5f;
+            event.d().a(matrices, thumbX + 1.0f, thumbY + 1.0f, cw, ch, 1.5f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
+            event.d().a(matrices, thumbX + 2.0f + cw, thumbY + 1.0f, cw, ch, 1.5f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
+            event.d().a(matrices, thumbX + 1.0f, thumbY + 7.5f, cw, ch, 1.5f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
+            event.d().a(matrices, thumbX + 2.0f + cw, thumbY + 7.5f, cw, ch, 1.5f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
+        } else if ("Инлайн".equals(modeTarget)) {
+            // Mini horizontal strips
+            event.d().a(matrices, thumbX + 2.0f, thumbY + 2.0f, thumbW - 4.0f, 3.0f, 1.0f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
+            event.d().a(matrices, thumbX + 2.0f, thumbY + 6.0f, thumbW - 4.0f, 3.0f, 1.0f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
+            event.d().a(matrices, thumbX + 2.0f, thumbY + 10.0f, thumbW - 4.0f, 3.0f, 1.0f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
+        } else if ("Бафф".equals(modeTarget)) {
+            // Mini pills
+            event.d().a(matrices, thumbX + 2.0f, thumbY + 2.0f, (thumbW - 6.0f) * 0.7f, 4.5f, 2.0f, ColorUtil.a(40, 42, 55, (int) (220 * anim)));
+            event.d().a(matrices, thumbX + 2.0f, thumbY + 8.0f, (thumbW - 6.0f) * 0.85f, 4.5f, 2.0f, ColorUtil.a(40, 42, 55, (int) (220 * anim)));
         } else {
-            // Horizontal compact card 3
-            Fonts.e.a(event.h(), title, x + 6.0f, y + 5.5f, 6.0f, ColorUtil.a(active ? primary : -1, anim));
-            Fonts.e.a(event.h(), sub, x + 6.0f, y + 14.5f, 4.75f, ColorUtil.a(ColorUtil.a(160, 165, 180, 255), 0.75f * anim));
+            // Mini classic Destrum header + rows
+            event.d().a(matrices, thumbX + 2.0f, thumbY + 1.5f, thumbW - 4.0f, 3.5f, 1.0f, ColorUtil.a(primary, (int) (180 * anim)));
+            event.d().a(matrices, thumbX + 2.0f, thumbY + 6.0f, thumbW - 4.0f, 3.0f, 1.0f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
+            event.d().a(matrices, thumbX + 2.0f, thumbY + 10.0f, thumbW - 4.0f, 3.0f, 1.0f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
         }
+
+        Fonts.e.a(event.h(), title, x + 4.0f, y + 20.0f, 5.5f, ColorUtil.a(active ? primary : -1, anim));
+        Fonts.e.a(event.h(), sub, x + 4.0f, y + 27.5f, 4.5f, ColorUtil.a(ColorUtil.a(160, 165, 180, 255), 0.75f * anim));
     }
 
     private void drawCheckbox(DrawEvent event, float x, float y, String label, boolean checked, float anim, int primary) {
@@ -653,9 +726,10 @@ public class PotionWidget extends Widget implements Interface {
         }
 
         float cardW = (mw - 24.0f) / 2.0f;
-        float cardH = 46.0f;
+        float cardH = 36.0f;
         float startCardY = my + 27.0f;
-        float card3Y = startCardY + cardH + 4.0f;
+        float row2Y = startCardY + cardH + 4.0f;
+        float secY = row2Y + cardH + 5.0f;
 
         if (action == 0 && button == 0) {
             // Close button
@@ -675,18 +749,23 @@ public class PotionWidget extends Widget implements Interface {
 
             // Style Card 2 (Inlined)
             if (MathUtil.a(mouseX, mouseY, mx + 14.0f + cardW, startCardY, cardW, cardH)) {
-                this.mode.a("Стандарт");
+                this.mode.a("Инлайн");
                 return true;
             }
 
             // Style Card 3 (Бафф)
-            if (MathUtil.a(mouseX, mouseY, mx + 10.0f, card3Y, mw - 20.0f, 26.0f)) {
+            if (MathUtil.a(mouseX, mouseY, mx + 10.0f, row2Y, cardW, cardH)) {
                 this.mode.a("Бафф");
                 return true;
             }
 
+            // Style Card 4 (Стандарт)
+            if (MathUtil.a(mouseX, mouseY, mx + 14.0f + cardW, row2Y, cardW, cardH)) {
+                this.mode.a("Стандарт");
+                return true;
+            }
+
             // Checkbox: Прозрачный стиль
-            float secY = card3Y + 31.0f;
             float chkY = secY + 8.5f;
             if (MathUtil.a(mouseX, mouseY, mx + 10.0f, chkY, mw - 20.0f, 9.0f)) {
                 this.transparentStyle.a(!this.transparentStyle.c().booleanValue());
