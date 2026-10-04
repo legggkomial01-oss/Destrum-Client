@@ -14,18 +14,16 @@ import aethereal.event.DrawEvent;
 import aethereal.module.render.EntityESP;
 import aethereal.setting.BooleanSetting;
 import aethereal.setting.ModeSetting;
-import aethereal.setting.SliderSetting;
 import aethereal.ui.element.DragInfo;
 import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.util.Identifier;
 
 public class NameTagWidget extends Widget implements Interface {
     private static NameTagWidget INSTANCE;
 
-    public final ModeSetting mode = new ModeSetting("Режим", "Новый 1", "Новый 1", "Стандарт", "Новый 2");
+    public final ModeSetting mode = new ModeSetting("Режим", "Новый 1", "Новый 1", "Стандарт", "Новый 2", "Парящий");
     public final BooleanSetting transparentStyle = new BooleanSetting("Прозрачный стиль", true);
     public final BooleanSetting roundedCorners = new BooleanSetting("Скруглённые углы", true);
     public final BooleanSetting showGHP = new BooleanSetting("Здоровье от голов", true);
@@ -48,7 +46,7 @@ public class NameTagWidget extends Widget implements Interface {
     }
 
     public NameTagWidget() {
-        super(new DragInfo("NameTags", 160.0f, 100.0f, 136.0f, 15.0f));
+        super(new DragInfo("NameTags", 160.0f, 100.0f, 142.0f, 15.0f));
         INSTANCE = this;
         j().a(this);
         this.widgetScale.a(Float.valueOf(0.9f));
@@ -75,12 +73,23 @@ public class NameTagWidget extends Widget implements Interface {
         float x = j().a();
         float y = j().b();
 
-        float totalW = renderSampleNameTag(event, x, y, opacity);
-        j().c(totalW);
-        j().d(14.0f);
+        String currentMode = this.mode.c();
+        float[] dims;
+        if ("Стандарт".equals(currentMode)) {
+            dims = renderSampleStandard(event, x, y, opacity);
+        } else if ("Новый 2".equals(currentMode)) {
+            dims = renderSampleFloatingArmor(event, x, y, opacity);
+        } else if ("Парящий".equals(currentMode)) {
+            dims = renderSampleFloatingMinimal(event, x, y, opacity);
+        } else {
+            dims = renderSampleNew1(event, x, y, opacity);
+        }
+
+        j().c(dims[0]);
+        j().d(dims[1]);
     }
 
-    private float renderSampleNameTag(DrawEvent event, float x, float y, float opacity) {
+    private float[] renderSampleNew1(DrawEvent event, float x, float y, float opacity) {
         MatrixStack matrices = event.i().getMatrices();
         float fontSize = 5.75f;
         float h = 13.0f;
@@ -89,24 +98,23 @@ public class NameTagWidget extends Widget implements Interface {
         float skinSize = 9.5f;
         float itemSize = 8.0f;
 
-        String name = aM_.player != null ? aM_.player.getName().getString() : "Vorilr2kz49oi";
+        String name = aM_.player != null ? aM_.player.getName().getString() : "zynacuza";
         String hpText = "20 HP";
         String ghpText = "16 GHP";
 
         float nameW = Fonts.e.a(name, fontSize);
-        boolean drawHpText = this.showHealth.c().booleanValue() && (this.healthStyle.l("Текст") || this.healthStyle.l("Текст и кольцо"));
-        boolean drawHpRing = this.showHealth.c().booleanValue() && (this.healthStyle.l("Кольцо") || this.healthStyle.l("Текст и кольцо"));
-        float hpW = drawHpText ? Fonts.e.a(hpText, fontSize) : 0.0f;
-        float ringW = drawHpRing ? 8.0f : 0.0f;
+        boolean hasSkin = this.showSkin.c().booleanValue();
+        float skinW = hasSkin ? skinSize : 0.0f;
+        float hpW = this.showHealth.c().booleanValue() ? Fonts.e.a(hpText, fontSize) : 0.0f;
+        float badgeW = this.showHealth.c().booleanValue() ? 8.5f : 0.0f;
         float ghpW = this.showGHP.c().booleanValue() ? Fonts.e.a(ghpText, fontSize) : 0.0f;
-        float skinW = this.showSkin.c().booleanValue() ? skinSize : 0.0f;
 
         int armorCount = this.showArmor.c().booleanValue() ? 4 : 0;
         float armorW = armorCount > 0 ? (armorCount * (itemSize + 1.0f)) : 0.0f;
         float handsW = 2 * (itemSize + 1.0f);
 
         float totalW = pad + (skinW > 0 ? skinW + gap : 0.0f) + nameW
-                + (hpW > 0 ? gap + hpW : 0.0f) + (ringW > 0 ? gap + ringW : 0.0f)
+                + (hpW > 0 ? gap + hpW : 0.0f) + (badgeW > 0 ? gap + badgeW : 0.0f)
                 + (ghpW > 0 ? gap + ghpW : 0.0f) + (armorW > 0 ? gap + armorW : 0.0f)
                 + gap + handsW + pad;
 
@@ -124,14 +132,7 @@ public class NameTagWidget extends Widget implements Interface {
 
         if (skinW > 0) {
             float avatarY = y + ((h - skinSize) / 2.0f);
-            Identifier skin = aM_.player != null ? aM_.player.getSkinTextures().texture() : null;
-            if (skin != null) {
-                int texId = aM_.getTextureManager().getTexture(skin).getGlId();
-                event.d().a(matrices, curX, avatarY, skinSize, skinSize, 2.0f, -1, 0.125f, 0.125f, 0.125f, 0.125f, texId);
-                event.d().a(matrices, curX, avatarY, skinSize, skinSize, 2.0f, -1, 0.625f, 0.125f, 0.125f, 0.125f, texId);
-            } else {
-                event.d().a(matrices, curX, avatarY, skinSize, skinSize, 2.0f, ColorUtil.a(210, 170, 130, 255));
-            }
+            EntityESP.drawEntityHead(matrices, event, aM_.player, curX, avatarY, skinSize, 2.0f, 1.0f);
             curX += skinW + gap;
         }
 
@@ -141,18 +142,16 @@ public class NameTagWidget extends Widget implements Interface {
 
         if (hpW > 0) {
             curX += gap;
-            int hpColor = this.colorLowHp.c().booleanValue() ? ColorUtil.a(120, 255, 140, 255) : -1;
+            int hpColor = this.colorLowHp.c().booleanValue() ? ColorUtil.a(85, 245, 125, 255) : -1;
             Fonts.e.a(event.h(), hpText, curX, textY, fontSize, hpColor);
             curX += hpW;
         }
 
-        if (ringW > 0) {
+        if (badgeW > 0) {
             curX += gap;
-            float ringY = y + ((h - 8.0f) / 2.0f);
-            int ringBg = ColorUtil.a(40, 42, 54, 200);
-            event.d().a(matrices, curX, ringY, 8.0f, 8.0f, 4.0f, 1.0f, ringBg);
-            event.d().a(matrices, curX + 2.0f, ringY + 2.0f, 4.0f, 4.0f, 2.0f, ColorUtil.a(120, 255, 140, 255));
-            curX += ringW;
+            float ringY = y + ((h - 8.5f) / 2.0f);
+            EntityESP.drawHealthBadge(matrices, event, curX, ringY, 20.0f, 20.0f, this.colorLowHp.c().booleanValue(), opacity);
+            curX += badgeW;
         }
 
         if (ghpW > 0) {
@@ -197,7 +196,289 @@ public class NameTagWidget extends Widget implements Interface {
             curX += itemSize + 1.0f;
         }
 
-        return totalW;
+        return new float[]{totalW, h};
+    }
+
+    private float[] renderSampleStandard(DrawEvent event, float x, float y, float opacity) {
+        MatrixStack matrices = event.i().getMatrices();
+        float fontSize = 5.75f;
+        float h = 13.0f;
+        float pad = 3.5f;
+        float gap = 3.5f;
+        float skinSize = 9.5f;
+        float itemSize = 8.5f;
+
+        String name = aM_.player != null ? aM_.player.getName().getString() : "zynacuza";
+        String hpText = "20 HP";
+
+        float nameW = Fonts.e.a(name, fontSize);
+        boolean hasSkin = this.showSkin.c().booleanValue();
+        float skinW = hasSkin ? skinSize : 0.0f;
+        float hpW = this.showHealth.c().booleanValue() ? Fonts.e.a(hpText, fontSize) : 0.0f;
+        float badgeW = this.showHealth.c().booleanValue() ? 8.5f : 0.0f;
+
+        float tagW = pad + (skinW > 0 ? skinW + gap : 0.0f) + nameW + (hpW > 0 ? gap + hpW : 0.0f) + (badgeW > 0 ? gap + badgeW : 0.0f) + pad;
+
+        ItemStack[] sampleItems = {
+            new ItemStack(Items.GOLDEN_APPLE),
+            new ItemStack(Items.NETHERITE_HELMET),
+            new ItemStack(Items.NETHERITE_CHESTPLATE),
+            new ItemStack(Items.NETHERITE_LEGGINGS),
+            new ItemStack(Items.NETHERITE_BOOTS),
+            new ItemStack(Items.TOTEM_OF_UNDYING)
+        };
+
+        boolean showArmorItems = this.showArmor.c().booleanValue();
+        int itemCount = showArmorItems ? sampleItems.length : 0;
+        float itemsW = itemCount > 0 ? (itemCount * (itemSize + 2.0f)) : 0.0f;
+
+        float maxW = Math.max(tagW, itemsW);
+        float totalH = showArmorItems ? (itemSize + 3.5f + h) : h;
+
+        float tagX = x + ((maxW - tagW) / 2.0f);
+        float tagY = showArmorItems ? (y + itemSize + 3.5f) : y;
+
+        if (showArmorItems) {
+            float itemRowY = y;
+            float itemStartX = x + ((maxW - itemsW) / 2.0f);
+            for (int i = 0; i < sampleItems.length; i++) {
+                ItemStack stack = sampleItems[i];
+                event.d().a(matrices, itemStartX, itemRowY, itemSize, itemSize, 1.5f, ColorUtil.a(16, 17, 23, (int) (190 * opacity)));
+                event.e().a(event.i(), InventoryUtil.a(stack), itemStartX, itemRowY, 0, 1.0f, itemSize / 16.0f, false);
+                if (stack.isDamageable()) {
+                    float barY = itemRowY + itemSize - 0.5f;
+                    float barW = itemSize - 1.0f;
+                    float dur = 0.90f - (i * 0.15f);
+                    event.d().a(matrices, itemStartX + 0.5f, barY, barW, 0.8f, 0.4f, ColorUtil.a(25, 25, 30, 180));
+                    event.d().a(matrices, itemStartX + 0.5f, barY, barW * dur, 0.8f, 0.4f, ColorUtil.a(140, 120, 255, 240));
+                }
+                itemStartX += itemSize + 2.0f;
+            }
+        }
+
+        boolean rounded = this.roundedCorners.c().booleanValue();
+        float radius = rounded ? (h / 2.0f) : 2.5f;
+        int bgAlpha = (int) (opacity * (this.transparentStyle.c().booleanValue() ? 175 : 235));
+        int bg = ColorUtil.a(16, 17, 23, bgAlpha);
+        event.d().a(matrices, tagX, tagY, tagW, h, radius, bg);
+        event.d().a(matrices, tagX, tagY, tagW, h, radius, 0.5f, ColorUtil.a(255, 255, 255, (int) (opacity * 25)));
+
+        float curX = tagX + pad;
+        if (skinW > 0) {
+            float avatarY = tagY + ((h - skinSize) / 2.0f);
+            EntityESP.drawEntityHead(matrices, event, aM_.player, curX, avatarY, skinSize, 2.0f, 1.0f);
+            curX += skinW + gap;
+        }
+
+        float textY = tagY + ((h - Fonts.e.a(fontSize)) / 2.0f) - 0.25f;
+        Fonts.e.a(event.h(), name, curX, textY, fontSize, -1);
+        curX += nameW;
+
+        if (hpW > 0) {
+            curX += gap;
+            int hpColor = this.colorLowHp.c().booleanValue() ? ColorUtil.a(85, 245, 125, 255) : -1;
+            Fonts.e.a(event.h(), hpText, curX, textY, fontSize, hpColor);
+            curX += hpW;
+        }
+
+        if (badgeW > 0) {
+            curX += gap;
+            float ringY = tagY + ((h - 8.5f) / 2.0f);
+            EntityESP.drawHealthBadge(matrices, event, curX, ringY, 20.0f, 20.0f, this.colorLowHp.c().booleanValue(), opacity);
+        }
+
+        return new float[]{maxW, totalH};
+    }
+
+    private float[] renderSampleFloatingArmor(DrawEvent event, float x, float y, float opacity) {
+        MatrixStack matrices = event.i().getMatrices();
+        float fontSize = 5.75f;
+        float h = 13.0f;
+        float pad = 3.5f;
+        float gap = 3.5f;
+        float skinSize = 9.5f;
+        float itemSize = 9.0f;
+
+        String name = aM_.player != null ? aM_.player.getName().getString() : "zynacuza";
+        String hpText = "20 HP";
+        String ghpText = "16 GHP";
+
+        float nameW = Fonts.e.a(name, fontSize);
+        boolean hasSkin = this.showSkin.c().booleanValue();
+        float skinW = hasSkin ? skinSize : 0.0f;
+        float hpW = this.showHealth.c().booleanValue() ? Fonts.e.a(hpText, fontSize) : 0.0f;
+        float badgeW = this.showHealth.c().booleanValue() ? 8.5f : 0.0f;
+        float ghpW = this.showGHP.c().booleanValue() ? Fonts.e.a(ghpText, fontSize) : 0.0f;
+
+        float tagW = pad + (skinW > 0 ? skinW + gap : 0.0f) + nameW + (hpW > 0 ? gap + hpW : 0.0f) + (badgeW > 0 ? gap + badgeW : 0.0f) + (ghpW > 0 ? gap + ghpW : 0.0f) + pad;
+
+        ItemStack[] floatingItems = {
+            new ItemStack(Items.GOLDEN_APPLE),
+            new ItemStack(Items.NETHERITE_HELMET),
+            new ItemStack(Items.NETHERITE_CHESTPLATE),
+            new ItemStack(Items.NETHERITE_LEGGINGS),
+            new ItemStack(Items.NETHERITE_BOOTS),
+            new ItemStack(Items.TOTEM_OF_UNDYING)
+        };
+
+        boolean showArmorItems = this.showArmor.c().booleanValue();
+        int itemCount = showArmorItems ? floatingItems.length : 0;
+        float itemsW = itemCount > 0 ? (itemCount * (itemSize + 2.5f)) : 0.0f;
+
+        float maxW = Math.max(tagW, itemsW);
+        float totalH = showArmorItems ? (itemSize + 4.0f + h) : h;
+
+        float tagX = x + ((maxW - tagW) / 2.0f);
+        float tagY = showArmorItems ? (y + itemSize + 4.0f) : y;
+
+        if (showArmorItems) {
+            float itemRowY = y;
+            float itemStartX = x + ((maxW - itemsW) / 2.0f);
+            for (int i = 0; i < floatingItems.length; i++) {
+                ItemStack stack = floatingItems[i];
+                event.e().a(event.i(), InventoryUtil.a(stack), itemStartX, itemRowY, 0, 1.0f, itemSize / 16.0f, false);
+                if (stack.isDamageable()) {
+                    float barY = itemRowY + itemSize;
+                    float barW = itemSize - 1.0f;
+                    float dur = 0.90f - (i * 0.15f);
+                    event.d().a(matrices, itemStartX + 0.5f, barY, barW, 0.9f, 0.45f, ColorUtil.a(25, 25, 30, 180));
+                    event.d().a(matrices, itemStartX + 0.5f, barY, barW * dur, 0.9f, 0.45f, ColorUtil.a(140, 120, 255, 240));
+                }
+                itemStartX += itemSize + 2.5f;
+            }
+        }
+
+        boolean rounded = this.roundedCorners.c().booleanValue();
+        float radius = rounded ? (h / 2.0f) : 3.0f;
+        int bgAlpha = (int) (opacity * (this.transparentStyle.c().booleanValue() ? 175 : 235));
+        int bg = ColorUtil.a(16, 17, 23, bgAlpha);
+        event.d().a(matrices, tagX, tagY, tagW, h, radius, bg);
+        event.d().a(matrices, tagX, tagY, tagW, h, radius, 0.5f, ColorUtil.a(255, 255, 255, (int) (opacity * 25)));
+
+        float curX = tagX + pad;
+        if (skinW > 0) {
+            float avatarY = tagY + ((h - skinSize) / 2.0f);
+            EntityESP.drawEntityHead(matrices, event, aM_.player, curX, avatarY, skinSize, 2.0f, 1.0f);
+            curX += skinW + gap;
+        }
+
+        float textY = tagY + ((h - Fonts.e.a(fontSize)) / 2.0f) - 0.25f;
+        Fonts.e.a(event.h(), name, curX, textY, fontSize, -1);
+        curX += nameW;
+
+        if (hpW > 0) {
+            curX += gap;
+            int hpColor = this.colorLowHp.c().booleanValue() ? ColorUtil.a(85, 245, 125, 255) : -1;
+            Fonts.e.a(event.h(), hpText, curX, textY, fontSize, hpColor);
+            curX += hpW;
+        }
+
+        if (badgeW > 0) {
+            curX += gap;
+            float ringY = tagY + ((h - 8.5f) / 2.0f);
+            EntityESP.drawHealthBadge(matrices, event, curX, ringY, 20.0f, 20.0f, this.colorLowHp.c().booleanValue(), opacity);
+            curX += badgeW;
+        }
+
+        if (ghpW > 0) {
+            curX += gap;
+            int ghpColor = ColorUtil.a(255, 215, 0, 255);
+            Fonts.e.a(event.h(), ghpText, curX, textY, fontSize, ghpColor);
+        }
+
+        return new float[]{maxW, totalH};
+    }
+
+    private float[] renderSampleFloatingMinimal(DrawEvent event, float x, float y, float opacity) {
+        MatrixStack matrices = event.i().getMatrices();
+        float fontSize = 5.75f;
+        float h = 13.0f;
+        float pad = 3.5f;
+        float gap = 3.5f;
+        float skinSize = 9.5f;
+        float itemSize = 9.0f;
+
+        String name = aM_.player != null ? aM_.player.getName().getString() : "zynacuza";
+        String hpText = "20 HP";
+        String ghpText = "16 GHP";
+
+        float nameW = Fonts.e.a(name, fontSize);
+        boolean hasSkin = this.showSkin.c().booleanValue();
+        float skinW = hasSkin ? skinSize : 0.0f;
+        float hpW = this.showHealth.c().booleanValue() ? Fonts.e.a(hpText, fontSize) : 0.0f;
+        float badgeW = this.showHealth.c().booleanValue() ? 8.5f : 0.0f;
+        float ghpW = this.showGHP.c().booleanValue() ? Fonts.e.a(ghpText, fontSize) : 0.0f;
+
+        float tagW = pad + (skinW > 0 ? skinW + gap : 0.0f) + nameW + (hpW > 0 ? gap + hpW : 0.0f) + (badgeW > 0 ? gap + badgeW : 0.0f) + (ghpW > 0 ? gap + ghpW : 0.0f) + pad;
+
+        ItemStack[] floatingItems = {
+            new ItemStack(Items.GOLDEN_APPLE),
+            new ItemStack(Items.NETHERITE_HELMET),
+            new ItemStack(Items.NETHERITE_CHESTPLATE),
+            new ItemStack(Items.NETHERITE_LEGGINGS),
+            new ItemStack(Items.NETHERITE_BOOTS),
+            new ItemStack(Items.TOTEM_OF_UNDYING)
+        };
+
+        boolean showArmorItems = this.showArmor.c().booleanValue();
+        int itemCount = showArmorItems ? floatingItems.length : 0;
+        float itemsW = itemCount > 0 ? (itemCount * (itemSize + 2.5f)) : 0.0f;
+
+        float maxW = Math.max(tagW, itemsW);
+        float totalH = showArmorItems ? (itemSize + 4.0f + h) : h;
+
+        float tagX = x + ((maxW - tagW) / 2.0f);
+        float tagY = showArmorItems ? (y + itemSize + 4.0f) : y;
+
+        if (showArmorItems) {
+            float itemRowY = y;
+            float itemStartX = x + ((maxW - itemsW) / 2.0f);
+            for (int i = 0; i < floatingItems.length; i++) {
+                ItemStack stack = floatingItems[i];
+                event.e().a(event.i(), InventoryUtil.a(stack), itemStartX, itemRowY, 0, 1.0f, itemSize / 16.0f, false);
+                if (stack.isDamageable()) {
+                    float barY = itemRowY + itemSize;
+                    float barW = itemSize - 1.0f;
+                    float dur = 0.90f - (i * 0.15f);
+                    event.d().a(matrices, itemStartX + 0.5f, barY, barW, 0.9f, 0.45f, ColorUtil.a(25, 25, 30, 180));
+                    event.d().a(matrices, itemStartX + 0.5f, barY, barW * dur, 0.9f, 0.45f, ColorUtil.a(140, 120, 255, 240));
+                }
+                itemStartX += itemSize + 2.5f;
+            }
+        }
+
+        float curX = tagX + pad;
+        if (skinW > 0) {
+            float avatarY = tagY + ((h - skinSize) / 2.0f);
+            EntityESP.drawEntityHead(matrices, event, aM_.player, curX, avatarY, skinSize, 2.0f, 1.0f);
+            curX += skinW + gap;
+        }
+
+        float textY = tagY + ((h - Fonts.e.a(fontSize)) / 2.0f) - 0.25f;
+        Fonts.e.a(event.h(), name, curX, textY, fontSize, -1);
+        curX += nameW;
+
+        if (hpW > 0) {
+            curX += gap;
+            int hpColor = this.colorLowHp.c().booleanValue() ? ColorUtil.a(85, 245, 125, 255) : -1;
+            Fonts.e.a(event.h(), hpText, curX, textY, fontSize, hpColor);
+            curX += hpW;
+        }
+
+        if (badgeW > 0) {
+            curX += gap;
+            float ringY = tagY + ((h - 8.5f) / 2.0f);
+            EntityESP.drawHealthBadge(matrices, event, curX, ringY, 20.0f, 20.0f, this.colorLowHp.c().booleanValue(), opacity);
+            curX += badgeW;
+        }
+
+        if (ghpW > 0) {
+            curX += gap;
+            int ghpColor = ColorUtil.a(255, 215, 0, 255);
+            Fonts.e.a(event.h(), ghpText, curX, textY, fontSize, ghpColor);
+        }
+
+        return new float[]{maxW, totalH};
     }
 
     @Override
@@ -302,9 +583,9 @@ public class NameTagWidget extends Widget implements Interface {
         event.d().a(matrices, thumbX, thumbY, thumbW, thumbH, 3.0f, ColorUtil.a(12, 13, 18, (int) (210 * anim)));
 
         if ("Новый 1".equals(modeTarget)) {
-            float pillW = thumbW - 14.0f;
+            float pillW = thumbW - 10.0f;
             float pillH = 7.0f;
-            float pillX = thumbX + 7.0f;
+            float pillX = thumbX + 5.0f;
             float pillY = thumbY + 6.5f;
             event.d().a(matrices, pillX, pillY, pillW, pillH, 3.5f, ColorUtil.a(35, 36, 48, (int) (230 * anim)));
             event.d().a(matrices, pillX + 1.5f, pillY + 1.5f, 4.0f, 4.0f, 1.0f, ColorUtil.a(primary, anim));
@@ -314,16 +595,21 @@ public class NameTagWidget extends Widget implements Interface {
             event.d().a(matrices, pillX + 50.0f, pillY + 1.5f, 14.0f, 4.0f, 1.0f, ColorUtil.a(140, 120, 255, (int) (200 * anim)));
         } else if ("Стандарт".equals(modeTarget)) {
             float midX = thumbX + (thumbW / 2.0f);
-            event.d().a(matrices, midX - 16.0f, thumbY + 4.0f, 32.0f, 3.0f, 0.5f, ColorUtil.a(-1, (int) (190 * anim)));
-            event.d().a(matrices, midX - 20.0f, thumbY + 10.0f, 40.0f, 5.0f, 1.0f, ColorUtil.a(35, 36, 48, (int) (230 * anim)));
-            event.d().a(matrices, midX - 16.0f, thumbY + 11.5f, 16.0f, 2.0f, 0.5f, ColorUtil.a(120, 255, 140, (int) (220 * anim)));
+            event.d().a(matrices, midX - 18.0f, thumbY + 3.0f, 36.0f, 4.0f, 1.0f, ColorUtil.a(28, 30, 40, (int) (230 * anim)));
+            event.d().a(matrices, midX - 16.0f, thumbY + 9.5f, 32.0f, 6.5f, 1.0f, ColorUtil.a(35, 36, 48, (int) (230 * anim)));
+            event.d().a(matrices, midX - 13.0f, thumbY + 11.5f, 14.0f, 2.0f, 0.5f, ColorUtil.a(-1, (int) (200 * anim)));
+            event.d().a(matrices, midX + 3.0f, thumbY + 11.5f, 8.0f, 2.0f, 0.5f, ColorUtil.a(120, 255, 140, (int) (220 * anim)));
         } else if ("Новый 2".equals(modeTarget)) {
             float midX = thumbX + (thumbW / 2.0f);
-            event.d().a(matrices, midX - 18.0f, thumbY + 4.0f, 36.0f, 3.5f, 1.0f, ColorUtil.a(primary, (int) (200 * anim)));
-            event.d().a(matrices, midX - 22.0f, thumbY + 10.5f, 44.0f, 5.0f, 1.0f, ColorUtil.a(35, 36, 48, (int) (230 * anim)));
+            event.d().a(matrices, midX - 18.0f, thumbY + 3.5f, 36.0f, 3.5f, 1.0f, ColorUtil.a(primary, (int) (200 * anim)));
+            event.d().a(matrices, midX - 20.0f, thumbY + 9.5f, 40.0f, 6.5f, 3.25f, ColorUtil.a(35, 36, 48, (int) (230 * anim)));
+            event.d().a(matrices, midX - 16.0f, thumbY + 11.5f, 16.0f, 2.0f, 0.5f, ColorUtil.a(-1, (int) (200 * anim)));
+            event.d().a(matrices, midX + 2.0f, thumbY + 11.5f, 8.0f, 2.0f, 0.5f, ColorUtil.a(120, 255, 140, (int) (220 * anim)));
         } else {
             float midX = thumbX + (thumbW / 2.0f);
-            event.d().a(matrices, midX - 18.0f, thumbY + 8.5f, 36.0f, 4.0f, 1.0f, ColorUtil.a(-1, (int) (180 * anim)));
+            event.d().a(matrices, midX - 18.0f, thumbY + 4.0f, 36.0f, 3.5f, 1.0f, ColorUtil.a(primary, (int) (180 * anim)));
+            event.d().a(matrices, midX - 16.0f, thumbY + 11.0f, 18.0f, 2.0f, 0.5f, ColorUtil.a(-1, (int) (190 * anim)));
+            event.d().a(matrices, midX + 4.0f, thumbY + 11.0f, 8.0f, 2.0f, 0.5f, ColorUtil.a(120, 255, 140, (int) (200 * anim)));
         }
 
         float tagW = Fonts.e.a("v2.0", 5.0f) + 4.0f;

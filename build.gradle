@@ -4,6 +4,7 @@ plugins {
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
 	maven { url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/" }
 	maven { url = "https://maven.meteordev.org/snapshots" }
