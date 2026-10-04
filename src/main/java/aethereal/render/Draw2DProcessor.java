@@ -262,6 +262,7 @@ public class Draw2DProcessor extends BaseProcessor implements Interface {
 
     public void a(MatrixStack matrices, float x, float y, float width, float height, Vector4f radius, int color, float alpha, int glowColor, float glowRadius) {
         if (this.f.e().isEmpty()) {
+            a(matrices, x, y, width, height, radius, color);
             return;
         }
         float clampedGlowRadius = Math.max(glowRadius, 0.0f);
@@ -284,6 +285,7 @@ public class Draw2DProcessor extends BaseProcessor implements Interface {
 
     public void b(MatrixStack matrices, float x, float y, float width, float height, float radius, int color, float alpha) {
         if (this.f.e().isEmpty()) {
+            a(matrices, x, y, width, height, radius, color);
             return;
         }
         float padding = 0.8f * 1.5f;

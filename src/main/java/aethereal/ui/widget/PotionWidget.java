@@ -154,12 +154,7 @@ public class PotionWidget extends Widget implements Interface {
         j().c(totalW);
         j().d(totalH);
 
-        int bgAlpha = (int) (bgFactor * (this.transparentStyle.c().booleanValue() ? 150 : 235));
-        int outerBg = ColorUtil.a(16, 17, 23, bgAlpha);
-        int outerOutline = ColorUtil.a(255, 255, 255, (int) (bgFactor * 20));
-
-        event.d().a(matrices, x, y, totalW, totalH, 5.5f, outerBg);
-        event.d().a(matrices, x, y, totalW, totalH, 5.5f, 0.5f, outerOutline);
+        a(event, x, y, totalW, totalH, 5.5f, true, anim);
 
         // Header with "E" potion icon
         Fonts.a.a(matrices, "E", x + 5.5f, y + 4.0f, 7.0f, ColorUtil.a(primary, anim));
@@ -183,12 +178,7 @@ public class PotionWidget extends Widget implements Interface {
             float cx = startGridX + (col * (cardW + gap));
             float cy = startGridY + (row * (cardH + gap));
 
-            int cardAlpha = (int) (bgFactor * (this.transparentStyle.c().booleanValue() ? 175 : 242));
-            int cardBg = ColorUtil.a(25, 26, 35, cardAlpha);
-            int cardOutline = ColorUtil.a(255, 255, 255, (int) (bgFactor * 16));
-
-            event.d().a(matrices, cx, cy, cardW, cardH, 4.0f, cardBg);
-            event.d().a(matrices, cx, cy, cardW, cardH, 4.0f, 0.5f, cardOutline);
+            a(event, cx, cy, cardW, cardH, 4.0f, false, anim);
 
             Sprite sprite = aM_.getStatusEffectSpriteManager().getSprite(effect.getEffectType());
 
@@ -277,12 +267,7 @@ public class PotionWidget extends Widget implements Interface {
         j().c(totalW);
         j().d(totalH);
 
-        int bgAlpha = (int) (bgFactor * (this.transparentStyle.c().booleanValue() ? 150 : 235));
-        int outerBg = ColorUtil.a(16, 17, 23, bgAlpha);
-        int outerOutline = ColorUtil.a(255, 255, 255, (int) (bgFactor * 20));
-
-        event.d().a(matrices, x, y, totalW, totalH, 5.5f, outerBg);
-        event.d().a(matrices, x, y, totalW, totalH, 5.5f, 0.5f, outerOutline);
+        a(event, x, y, totalW, totalH, 5.5f, true, anim);
 
         // Header with "E" potion icon
         Fonts.a.a(matrices, "E", x + 5.5f, y + 4.0f, 7.0f, ColorUtil.a(primary, anim));
@@ -300,8 +285,7 @@ public class PotionWidget extends Widget implements Interface {
             float rowX = x + 3.5f;
             float rowW = totalW - 7.0f;
 
-            int rowAlpha = (int) (bgFactor * (this.transparentStyle.c().booleanValue() ? 120 : 210));
-            event.d().a(matrices, rowX, curY, rowW, rowH, 3.0f, ColorUtil.a(25, 26, 35, rowAlpha));
+            a(event, rowX, curY, rowW, rowH, 3.5f, false, anim);
 
             Sprite sprite = aM_.getStatusEffectSpriteManager().getSprite(effect.getEffectType());
             if (sprite != null) {
@@ -373,12 +357,7 @@ public class PotionWidget extends Widget implements Interface {
             float pillW = 20.0f + textW + 8.0f;
             maxW = Math.max(maxW, pillW);
 
-            int bgAlpha = (int) (bgFactor * (this.transparentStyle.c().booleanValue() ? 150 : 240));
-            int pillBg = ColorUtil.a(18, 19, 26, bgAlpha);
-            int pillOutline = ColorUtil.a(255, 255, 255, (int) (bgFactor * 20));
-
-            event.d().a(matrices, x, curY, pillW, pillH, 4.5f, pillBg);
-            event.d().a(matrices, x, curY, pillW, pillH, 4.5f, 0.5f, pillOutline);
+            a(event, x, curY, pillW, pillH, 4.5f, true, anim);
 
             Sprite sprite = aM_.getStatusEffectSpriteManager().getSprite(effect.getEffectType());
             if (sprite != null) {
@@ -503,8 +482,8 @@ public class PotionWidget extends Widget implements Interface {
         ThemeProcessor theme = Delta.h().d().o();
         int primary = theme.a(ThemeInfo.PRIMARY).a();
 
-        int modalBg = ColorUtil.a(16, 17, 23, (int) (245 * anim));
-        int modalOutline = ColorUtil.a(255, 255, 255, (int) (25 * anim));
+        int modalBg = ColorUtil.a(11, 11, 22, (int) (245 * anim));
+        int modalOutline = ColorUtil.a(primary, (int) (35 * anim));
         event.d().a(event.h(), mx, my, mw, mh, 8.0f, modalBg, anim, ColorUtil.a(primary, 0.12f * anim), 12.0f);
         event.d().a(matrices, mx, my, mw, mh, 8.0f, 0.5f, modalOutline);
 
@@ -586,8 +565,8 @@ public class PotionWidget extends Widget implements Interface {
         MatrixStack matrices = event.i().getMatrices();
         boolean active = this.mode.l(modeTarget);
 
-        int bg = ColorUtil.a(24, 25, 33, (int) (220 * anim));
-        int border = active ? ColorUtil.a(primary, 0.95f * anim) : ColorUtil.a(255, 255, 255, (int) (18 * anim));
+        int bg = ColorUtil.a(11, 11, 22, (int) (220 * anim));
+        int border = active ? ColorUtil.a(primary, 0.95f * anim) : ColorUtil.a(255, 255, 255, (int) (14 * anim));
 
         event.d().a(matrices, x, y, w, h, 4.0f, bg);
         event.d().a(matrices, x, y, w, h, 4.0f, active ? 0.9f : 0.5f, border);
@@ -596,7 +575,7 @@ public class PotionWidget extends Widget implements Interface {
         float thumbH = 15.0f;
         float thumbX = x + 3.0f;
         float thumbY = y + 3.0f;
-        event.d().a(matrices, thumbX, thumbY, thumbW, thumbH, 2.5f, ColorUtil.a(12, 13, 18, (int) (210 * anim)));
+        event.d().a(matrices, thumbX, thumbY, thumbW, thumbH, 2.5f, ColorUtil.a(8, 8, 14, (int) (220 * anim)));
 
         if ("Карточки".equals(modeTarget)) {
             // Mini 2x2 grid

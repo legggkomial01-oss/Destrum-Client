@@ -252,6 +252,10 @@ public class Widget {
     }
 
     protected void a(DrawEvent event, float x, float y, float width, float height, boolean glow, float animation) {
+        a(event, x, y, width, height, 5.0f, glow, animation);
+    }
+
+    protected void a(DrawEvent event, float x, float y, float width, float height, float radius, boolean glow, float animation) {
         if (animation > 0.0f) {
             ThemeProcessor themeProcessor = Delta.h().d().o();
             float bgMult = getBgOpacity();
@@ -260,9 +264,9 @@ public class Widget {
             themeProcessor.a(ThemeInfo.BACKGROUND_HUD).e(InterfaceC0020Opcode.cY);
             if (alpha > 0.001f) {
                 if (glow) {
-                    event.d().a(event.h(), x, y, width, height, 5.0f + (1.0f * this.b.c()), ColorUtil.a(background, alpha), animation * bgMult, ColorUtil.a(background, alpha), 8.0f + (2.0f * this.b.c()));
+                    event.d().a(event.h(), x, y, width, height, radius + (1.0f * this.b.c()), ColorUtil.a(background, alpha), animation * bgMult, ColorUtil.a(background, alpha), 8.0f + (2.0f * this.b.c()));
                 } else {
-                    event.d().b(event.h(), x, y, width, height, 5.0f, ColorUtil.a(background, alpha), animation * bgMult);
+                    event.d().b(event.h(), x, y, width, height, radius, ColorUtil.a(background, alpha), animation * bgMult);
                 }
             }
         }

@@ -187,9 +187,7 @@ public class TargetWidget extends Widget {
                 float sx = startCdX + (i * (slotSize + slotGap));
                 float sy = topY + 4.0f;
 
-                int slotBg = ColorUtil.a(20, 22, 30, (int) (190 * bgFactor));
-                event.d().a(matrices, sx, sy, slotSize, slotSize, 3.5f, slotBg);
-                event.d().a(matrices, sx, sy, slotSize, slotSize, 3.5f, 0.5f, ColorUtil.a(255, 255, 255, (int) (20 * bgFactor)));
+                a(event, sx, sy, slotSize, slotSize, 3.5f, false, anim);
 
                 event.e().a(event.i(), cooldownItems[i], sx + 2.0f, sy + 2.0f, 0, anim, 0.50f, false);
 
@@ -299,9 +297,7 @@ public class TargetWidget extends Widget {
         j().c(cardW);
         j().d(cardH);
 
-        int bgAlpha = (int) (bgFactor * (this.transparentStyle.c().booleanValue() ? 150 : 235));
-        event.d().a(matrices, x, y, cardW, cardH, 4.0f, ColorUtil.a(16, 17, 23, bgAlpha));
-        event.d().a(matrices, x, y, cardW, cardH, 4.0f, 0.5f, ColorUtil.a(255, 255, 255, (int) (bgFactor * 20)));
+        a(event, x, y, cardW, cardH, 5.0f, true, anim);
 
         boolean isPreview = (target == aM_.player) && (aM_.currentScreen instanceof ChatScreen);
         String name = isPreview ? "annihilatorq" : getTargetName(target);
@@ -397,9 +393,7 @@ public class TargetWidget extends Widget {
         j().c(cardW);
         j().d(cardH);
 
-        int bgAlpha = (int) (bgFactor * (this.transparentStyle.c().booleanValue() ? 150 : 235));
-        event.d().a(matrices, x, y, cardW, cardH, 5.0f, ColorUtil.a(16, 17, 23, bgAlpha));
-        event.d().a(matrices, x, y, cardW, cardH, 5.0f, 0.5f, ColorUtil.a(255, 255, 255, (int) (bgFactor * 20)));
+        a(event, x, y, cardW, cardH, 5.5f, true, anim);
 
         boolean isPreview = (target == aM_.player) && (aM_.currentScreen instanceof ChatScreen);
         String name = isPreview ? "annihilatorq" : getTargetName(target);
@@ -564,8 +558,8 @@ public class TargetWidget extends Widget {
         ThemeProcessor theme = Delta.h().d().o();
         int primary = theme.a(ThemeInfo.PRIMARY).a();
 
-        int modalBg = ColorUtil.a(16, 17, 23, (int) (245 * anim));
-        int modalOutline = ColorUtil.a(255, 255, 255, (int) (25 * anim));
+        int modalBg = ColorUtil.a(11, 11, 22, (int) (245 * anim));
+        int modalOutline = ColorUtil.a(primary, (int) (35 * anim));
         event.d().a(event.h(), mx, my, mw, mh, 8.0f, modalBg, anim, ColorUtil.a(primary, 0.12f * anim), 12.0f);
         event.d().a(matrices, mx, my, mw, mh, 8.0f, 0.5f, modalOutline);
 
@@ -620,8 +614,8 @@ public class TargetWidget extends Widget {
         MatrixStack matrices = event.i().getMatrices();
         boolean active = this.mode.l(modeTarget);
 
-        int bg = ColorUtil.a(24, 25, 33, (int) (220 * anim));
-        int border = active ? ColorUtil.a(primary, 0.95f * anim) : ColorUtil.a(255, 255, 255, (int) (18 * anim));
+        int bg = ColorUtil.a(11, 11, 22, (int) (220 * anim));
+        int border = active ? ColorUtil.a(primary, 0.95f * anim) : ColorUtil.a(255, 255, 255, (int) (14 * anim));
 
         event.d().a(matrices, x, y, w, h, 4.0f, bg);
         event.d().a(matrices, x, y, w, h, 4.0f, active ? 0.9f : 0.5f, border);
@@ -636,7 +630,7 @@ public class TargetWidget extends Widget {
             float thumbH = 15.0f;
             float thumbX = x + 3.0f;
             float thumbY = y + 3.0f;
-            event.d().a(matrices, thumbX, thumbY, thumbW, thumbH, 2.5f, ColorUtil.a(12, 13, 18, (int) (210 * anim)));
+            event.d().a(matrices, thumbX, thumbY, thumbW, thumbH, 2.5f, ColorUtil.a(8, 8, 14, (int) (220 * anim)));
 
             if ("Стиль виджета".equals(modeTarget)) {
                 // Mini widget style: head + armor/bar + right effects

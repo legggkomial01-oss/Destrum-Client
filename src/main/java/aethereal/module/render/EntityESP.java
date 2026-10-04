@@ -404,11 +404,8 @@ public class EntityESP extends Module {
 
         float radius = rounded ? (h / 2.0f) : 3.0f;
         int bgAlpha = (int) (opacity * (transparent ? 175 : 235));
-        int bg = ColorUtil.a(16, 17, 23, bgAlpha);
-        int outline = ColorUtil.a(255, 255, 255, (int) (opacity * 25));
-
-        event.d().a(matrices, x, y, totalW, h, radius, bg);
-        event.d().a(matrices, x, y, totalW, h, radius, 0.5f, outline);
+        int bg = ColorUtil.a(11, 11, 22, bgAlpha);
+        event.d().b(event.h(), x, y, totalW, h, radius, bg, opacity);
 
         float curX = x + pad;
 
@@ -553,7 +550,7 @@ public class EntityESP extends Module {
             float itemRowY = y - itemSize - 3.5f;
             float itemStartX = screenPos.x() - (itemsW / 2.0f);
             for (ItemStack stack : rowStacks) {
-                event.d().a(matrices, itemStartX, itemRowY, itemSize, itemSize, 1.5f, ColorUtil.a(16, 17, 23, (int) (190 * opacity)));
+                event.d().a(matrices, itemStartX, itemRowY, itemSize, itemSize, 1.5f, ColorUtil.a(11, 11, 22, (int) (190 * opacity)));
                 event.e().a(event.i(), InventoryUtil.a(stack), itemStartX, itemRowY, 0, 1.0f, itemSize / 16.0f, false);
                 if (stack.isDamageable()) {
                     float barY = itemRowY + itemSize - 0.5f;
@@ -567,10 +564,9 @@ public class EntityESP extends Module {
         }
 
         int bgAlpha = (int) (opacity * (transparent ? 175 : 235));
-        int bg = ColorUtil.a(16, 17, 23, bgAlpha);
+        int bg = ColorUtil.a(11, 11, 22, bgAlpha);
         float radius = rounded ? (h / 2.0f) : 2.5f;
-        event.d().a(matrices, x, y, tagW, h, radius, bg);
-        event.d().a(matrices, x, y, tagW, h, radius, 0.5f, ColorUtil.a(255, 255, 255, (int) (opacity * 25)));
+        event.d().b(event.h(), x, y, tagW, h, radius, bg, opacity);
 
         float curX = x + pad;
         if (skinW > 0) {
@@ -698,9 +694,8 @@ public class EntityESP extends Module {
 
         float radius = rounded ? (h / 2.0f) : 3.0f;
         int bgAlpha = (int) (opacity * (transparent ? 175 : 235));
-        int bg = ColorUtil.a(16, 17, 23, bgAlpha);
-        event.d().a(matrices, x, y, tagW, h, radius, bg);
-        event.d().a(matrices, x, y, tagW, h, radius, 0.5f, ColorUtil.a(255, 255, 255, (int) (opacity * 25)));
+        int bg = ColorUtil.a(11, 11, 22, bgAlpha);
+        event.d().b(event.h(), x, y, tagW, h, radius, bg, opacity);
 
         float curX = x + pad;
         if (skinW > 0) {

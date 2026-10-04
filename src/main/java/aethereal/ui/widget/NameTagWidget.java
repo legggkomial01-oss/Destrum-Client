@@ -121,12 +121,7 @@ public class NameTagWidget extends Widget implements Interface {
         boolean rounded = this.roundedCorners.c().booleanValue();
         float radius = rounded ? (h / 2.0f) : 3.0f;
 
-        int bgAlpha = (int) (opacity * (this.transparentStyle.c().booleanValue() ? 175 : 235));
-        int bg = ColorUtil.a(16, 17, 23, bgAlpha);
-        int outline = ColorUtil.a(255, 255, 255, (int) (opacity * 25));
-
-        event.d().a(matrices, x, y, totalW, h, radius, bg);
-        event.d().a(matrices, x, y, totalW, h, radius, 0.5f, outline);
+        a(event, x, y, totalW, h, radius, true, 1.0f);
 
         float curX = x + pad;
 
@@ -258,10 +253,7 @@ public class NameTagWidget extends Widget implements Interface {
 
         boolean rounded = this.roundedCorners.c().booleanValue();
         float radius = rounded ? (h / 2.0f) : 2.5f;
-        int bgAlpha = (int) (opacity * (this.transparentStyle.c().booleanValue() ? 175 : 235));
-        int bg = ColorUtil.a(16, 17, 23, bgAlpha);
-        event.d().a(matrices, tagX, tagY, tagW, h, radius, bg);
-        event.d().a(matrices, tagX, tagY, tagW, h, radius, 0.5f, ColorUtil.a(255, 255, 255, (int) (opacity * 25)));
+        a(event, tagX, tagY, tagW, h, radius, true, 1.0f);
 
         float curX = tagX + pad;
         if (skinW > 0) {
@@ -350,10 +342,7 @@ public class NameTagWidget extends Widget implements Interface {
 
         boolean rounded = this.roundedCorners.c().booleanValue();
         float radius = rounded ? (h / 2.0f) : 3.0f;
-        int bgAlpha = (int) (opacity * (this.transparentStyle.c().booleanValue() ? 175 : 235));
-        int bg = ColorUtil.a(16, 17, 23, bgAlpha);
-        event.d().a(matrices, tagX, tagY, tagW, h, radius, bg);
-        event.d().a(matrices, tagX, tagY, tagW, h, radius, 0.5f, ColorUtil.a(255, 255, 255, (int) (opacity * 25)));
+        a(event, tagX, tagY, tagW, h, radius, true, 1.0f);
 
         float curX = tagX + pad;
         if (skinW > 0) {
@@ -513,8 +502,8 @@ public class NameTagWidget extends Widget implements Interface {
         ThemeProcessor theme = Delta.h().d().o();
         int primary = theme.a(ThemeInfo.PRIMARY).a();
 
-        int modalBg = ColorUtil.a(16, 17, 23, (int) (245 * anim));
-        int modalOutline = ColorUtil.a(255, 255, 255, (int) (25 * anim));
+        int modalBg = ColorUtil.a(11, 11, 22, (int) (245 * anim));
+        int modalOutline = ColorUtil.a(primary, (int) (35 * anim));
         event.d().a(event.h(), mx, my, mw, mh, 8.0f, modalBg, anim, ColorUtil.a(primary, 0.12f * anim), 12.0f);
         event.d().a(matrices, mx, my, mw, mh, 8.0f, 0.5f, modalOutline);
 
@@ -570,8 +559,8 @@ public class NameTagWidget extends Widget implements Interface {
         MatrixStack matrices = event.i().getMatrices();
         boolean active = this.mode.l(modeTarget);
 
-        int bg = ColorUtil.a(24, 25, 33, (int) (220 * anim));
-        int border = active ? ColorUtil.a(primary, 0.95f * anim) : ColorUtil.a(255, 255, 255, (int) (18 * anim));
+        int bg = ColorUtil.a(11, 11, 22, (int) (220 * anim));
+        int border = active ? ColorUtil.a(primary, 0.95f * anim) : ColorUtil.a(255, 255, 255, (int) (14 * anim));
 
         event.d().a(matrices, x, y, w, h, 4.0f, bg);
         event.d().a(matrices, x, y, w, h, 4.0f, active ? 0.9f : 0.5f, border);
@@ -580,7 +569,7 @@ public class NameTagWidget extends Widget implements Interface {
         float thumbH = 20.0f;
         float thumbX = x + 3.0f;
         float thumbY = y + 3.0f;
-        event.d().a(matrices, thumbX, thumbY, thumbW, thumbH, 3.0f, ColorUtil.a(12, 13, 18, (int) (210 * anim)));
+        event.d().a(matrices, thumbX, thumbY, thumbW, thumbH, 3.0f, ColorUtil.a(8, 8, 14, (int) (220 * anim)));
 
         if ("Новый 1".equals(modeTarget)) {
             float pillW = thumbW - 10.0f;

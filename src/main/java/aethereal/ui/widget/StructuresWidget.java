@@ -136,9 +136,7 @@ public class StructuresWidget extends Widget implements Interface {
             maxW = Math.max(maxW, totalW);
 
             // Capsule background (respects background opacity)
-            int bgAlpha = (int) (bgFactor * (this.transparentStyle.c().booleanValue() ? 150 : 240));
-            event.d().a(matrices, x, curY, totalW, h, radius, ColorUtil.a(18, 19, 26, bgAlpha));
-            event.d().a(matrices, x, curY, totalW, h, radius, 0.5f, ColorUtil.a(255, 255, 255, (int) (bgFactor * 20)));
+            a(event, x, curY, totalW, h, radius, true, anim);
 
             // Left icon (Netherite scrap item)
             ItemStack stack = data.item.getDefaultStack();
@@ -151,7 +149,7 @@ public class StructuresWidget extends Widget implements Interface {
             // Right inner pill container
             float innerX = (x + totalW) - 3.5f - innerPillW;
             float innerY = curY + ((h - innerPillH) / 2.0f);
-            event.d().a(matrices, innerX, innerY, innerPillW, innerPillH, innerRadius, ColorUtil.a(12, 13, 18, (int) (220 * bgFactor)));
+            a(event, innerX, innerY, innerPillW, innerPillH, innerRadius, false, anim);
 
             // Ring
             float rx = innerX + 3.5f;
@@ -219,15 +217,10 @@ public class StructuresWidget extends Widget implements Interface {
         j().c(totalW);
         j().d(totalH);
 
-        int bgAlpha = (int) (bgFactor * (this.transparentStyle.c().booleanValue() ? 150 : 235));
-        int outerBg = ColorUtil.a(16, 17, 23, bgAlpha);
-        int outerOutline = ColorUtil.a(255, 255, 255, (int) (bgFactor * 20));
-
         boolean rounded = this.roundedCorners.c().booleanValue();
         float radius = rounded ? 5.5f : 3.5f;
 
-        event.d().a(matrices, x, y, totalW, totalH, radius, outerBg);
-        event.d().a(matrices, x, y, totalW, totalH, radius, 0.5f, outerOutline);
+        a(event, x, y, totalW, totalH, radius, true, anim);
 
         // Header: "U" icon + "Structures"
         Fonts.a.a(matrices, "U", x + 5.5f, y + 4.0f, 7.0f, ColorUtil.a(primary, anim));
@@ -239,8 +232,7 @@ public class StructuresWidget extends Widget implements Interface {
             float rowX = x + 3.0f;
             float rowW = totalW - 6.0f;
 
-            int rowAlpha = (int) (bgFactor * (this.transparentStyle.c().booleanValue() ? 120 : 210));
-            event.d().a(matrices, rowX, curY, rowW, rowH, 3.0f, ColorUtil.a(25, 26, 35, rowAlpha));
+            a(event, rowX, curY, rowW, rowH, 3.0f, false, anim);
 
             ItemStack stack = data.item.getDefaultStack();
             event.e().a(event.i(), stack, rowX + 2.5f, curY + 2.0f, 0, anim, 0.50f, false);
@@ -292,8 +284,8 @@ public class StructuresWidget extends Widget implements Interface {
         ThemeProcessor theme = Delta.h().d().o();
         int primary = theme.a(ThemeInfo.PRIMARY).a();
 
-        int modalBg = ColorUtil.a(16, 17, 23, (int) (245 * anim));
-        int modalOutline = ColorUtil.a(255, 255, 255, (int) (25 * anim));
+        int modalBg = ColorUtil.a(11, 11, 22, (int) (245 * anim));
+        int modalOutline = ColorUtil.a(primary, (int) (35 * anim));
         event.d().a(event.h(), mx, my, mw, mh, 8.0f, modalBg, anim, ColorUtil.a(primary, 0.12f * anim), 12.0f);
         event.d().a(matrices, mx, my, mw, mh, 8.0f, 0.5f, modalOutline);
 
@@ -350,8 +342,8 @@ public class StructuresWidget extends Widget implements Interface {
         MatrixStack matrices = event.i().getMatrices();
         boolean active = this.mode.l(modeTarget);
 
-        int bg = ColorUtil.a(24, 25, 33, (int) (220 * anim));
-        int border = active ? ColorUtil.a(primary, 0.95f * anim) : ColorUtil.a(255, 255, 255, (int) (18 * anim));
+        int bg = ColorUtil.a(11, 11, 22, (int) (220 * anim));
+        int border = active ? ColorUtil.a(primary, 0.95f * anim) : ColorUtil.a(255, 255, 255, (int) (14 * anim));
 
         event.d().a(matrices, x, y, w, h, 4.0f, bg);
         event.d().a(matrices, x, y, w, h, 4.0f, active ? 0.9f : 0.5f, border);
@@ -365,7 +357,7 @@ public class StructuresWidget extends Widget implements Interface {
         float thumbH = 16.0f;
         float thumbX = x + 3.0f;
         float thumbY = y + 3.0f;
-        event.d().a(matrices, thumbX, thumbY, thumbW, thumbH, 3.0f, ColorUtil.a(12, 13, 18, (int) (210 * anim)));
+        event.d().a(matrices, thumbX, thumbY, thumbW, thumbH, 3.0f, ColorUtil.a(8, 8, 14, (int) (220 * anim)));
 
         if ("Интерфейс".equals(modeTarget)) {
             // Mini capsule
