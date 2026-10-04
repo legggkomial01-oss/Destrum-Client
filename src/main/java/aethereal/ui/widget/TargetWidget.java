@@ -39,10 +39,15 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.EntityHitResult;
 
 public class TargetWidget extends Widget {
     private static TargetWidget INSTANCE;
+
+    private static final Identifier WIDGET_STYLE_TEXTURE = Identifier.of("delta", "pictures/targethud/widget.png");
+    private static final Identifier STANDARD_STYLE_TEXTURE = Identifier.of("delta", "pictures/targethud/standard.png");
+    private static final Identifier INTEGRATED_STYLE_TEXTURE = Identifier.of("delta", "pictures/targethud/integrated.png");
 
     private final ModeSetting mode;
     private final BooleanSetting transparentStyle;
@@ -645,34 +650,43 @@ public class TargetWidget extends Widget {
 
         if (h > 30.0f) {
             float thumbW = w - 6.0f;
-            float thumbH = 15.0f;
+            float thumbH = 16.0f;
             float thumbX = x + 3.0f;
             float thumbY = y + 3.0f;
             event.d().a(matrices, thumbX, thumbY, thumbW, thumbH, 2.5f, ColorUtil.a(8, 8, 14, (int) (220 * anim)));
 
             if ("Стиль виджета".equals(modeTarget)) {
-                // Mini widget style: head + armor/bar + right effects
-                event.d().a(matrices, thumbX + 2.0f, thumbY + 2.5f, 10.0f, 10.0f, 1.5f, ColorUtil.a(primary, (int) (200 * anim)));
-                event.d().a(matrices, thumbX + 14.0f, thumbY + 3.0f, 20.0f, 2.5f, 0.5f, ColorUtil.a(-1, (int) (200 * anim)));
-                event.d().a(matrices, thumbX + 14.0f, thumbY + 7.0f, 22.0f, 2.0f, 0.5f, ColorUtil.a(120, 255, 140, (int) (200 * anim)));
-                event.d().a(matrices, thumbX + 14.0f, thumbY + 10.5f, 16.0f, 2.0f, 0.5f, ColorUtil.a(235, 175, 75, (int) (200 * anim)));
-                // Right effects column
-                event.d().a(matrices, thumbX + thumbW - 8.0f, thumbY + 3.0f, 6.0f, 4.0f, 1.0f, ColorUtil.a(255, 76, 79, (int) (180 * anim)));
-                event.d().a(matrices, thumbX + thumbW - 8.0f, thumbY + 8.5f, 6.0f, 4.0f, 1.0f, ColorUtil.a(140, 120, 255, (int) (180 * anim)));
-            } else {
-                // Mini classic Destrum standard: head + name + armor dots + bar
-                event.d().a(matrices, thumbX + 2.0f, thumbY + 3.0f, 9.0f, 9.0f, 1.5f, ColorUtil.a(primary, (int) (200 * anim)));
-                event.d().a(matrices, thumbX + 13.0f, thumbY + 3.5f, 18.0f, 2.0f, 0.5f, ColorUtil.a(-1, (int) (200 * anim)));
-                event.d().a(matrices, thumbX + 13.0f, thumbY + 7.0f, 24.0f, 2.0f, 0.5f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
-                event.d().a(matrices, thumbX + 13.0f, thumbY + 10.5f, 24.0f, 1.5f, 0.5f, ColorUtil.a(primary, (int) (200 * anim)));
+                // Image 3: widget.png
+                float imgH = thumbH - 1.0f;
+                float imgW = Math.min(thumbW - 2.0f, imgH * (384.0f / 117.0f));
+                float imgX = thumbX + (thumbW - imgW) / 2.0f;
+                float imgY = thumbY + (thumbH - imgH) / 2.0f;
+                event.d().a(matrices, WIDGET_STYLE_TEXTURE, imgX, imgY, imgW, imgH, 2.0f, ColorUtil.a(-1, anim));
+            } else if ("Стандарт".equals(modeTarget)) {
+                // Image 1: standard.png
+                float imgH = thumbH - 1.0f;
+                float imgW = Math.min(thumbW - 2.0f, imgH * (275.0f / 105.0f));
+                float imgX = thumbX + (thumbW - imgW) / 2.0f;
+                float imgY = thumbY + (thumbH - imgH) / 2.0f;
+                event.d().a(matrices, STANDARD_STYLE_TEXTURE, imgX, imgY, imgW, imgH, 2.0f, ColorUtil.a(-1, anim));
             }
 
-            Fonts.e.a(event.h(), title, x + 4.0f, y + 21.0f, 5.5f, ColorUtil.a(active ? primary : -1, anim));
-            Fonts.e.a(event.h(), sub, x + 4.0f, y + 28.5f, 4.5f, ColorUtil.a(ColorUtil.a(160, 165, 180, 255), 0.75f * anim));
+            Fonts.e.a(event.h(), title, x + 4.0f, y + 21.5f, 5.5f, ColorUtil.a(active ? primary : -1, anim));
+            Fonts.e.a(event.h(), sub, x + 4.0f, y + 29.0f, 4.5f, ColorUtil.a(ColorUtil.a(160, 165, 180, 255), 0.75f * anim));
         } else {
             // Horizontal compact card for Встроенный стиль
-            Fonts.e.a(event.h(), title, x + 6.0f, y + 5.5f, 6.0f, ColorUtil.a(active ? primary : -1, anim));
-            Fonts.e.a(event.h(), sub, x + 6.0f, y + 14.5f, 4.75f, ColorUtil.a(ColorUtil.a(160, 165, 180, 255), 0.75f * anim));
+            // Image 5: integrated.png thumbnail on the left
+            float thumbH = h - 6.0f;
+            float thumbW = thumbH * (172.0f / 103.0f);
+            float thumbX = x + 3.0f;
+            float thumbY = y + 3.0f;
+
+            event.d().a(matrices, thumbX, thumbY, thumbW, thumbH, 2.5f, ColorUtil.a(8, 8, 14, (int) (220 * anim)));
+            event.d().a(matrices, INTEGRATED_STYLE_TEXTURE, thumbX, thumbY, thumbW, thumbH, 2.0f, ColorUtil.a(-1, anim));
+
+            float textX = thumbX + thumbW + 6.0f;
+            Fonts.e.a(event.h(), title, textX, y + 5.5f, 6.0f, ColorUtil.a(active ? primary : -1, anim));
+            Fonts.e.a(event.h(), sub, textX, y + 14.5f, 4.75f, ColorUtil.a(ColorUtil.a(160, 165, 180, 255), 0.75f * anim));
         }
     }
 
