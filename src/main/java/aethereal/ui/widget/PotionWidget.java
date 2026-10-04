@@ -167,12 +167,6 @@ public class PotionWidget extends Widget implements Interface {
         float titleX = x + 5.5f + Fonts.a.a("E", 7.0f) + 3.5f;
         Fonts.e.a(event.h(), "Effects", titleX, y + 4.0f, 6.75f, ColorUtil.a(-1, anim));
 
-        float sparkleSize = 10.0f;
-        float sparkleX = (x + totalW) - 5.5f - sparkleSize;
-        float sparkleY = y + 2.5f;
-        event.d().a(matrices, sparkleX, sparkleY, sparkleSize, sparkleSize, 2.5f, ColorUtil.a(primary, 0.22f * anim));
-        Fonts.e.a(event.h(), "✦", sparkleX + 1.75f, sparkleY + 1.75f, 5.75f, ColorUtil.a(primary, anim));
-
         // Cards grid
         float startGridX = x + 4.0f;
         float startGridY = y + headerH + 1.5f;
@@ -188,14 +182,14 @@ public class PotionWidget extends Widget implements Interface {
 
             Sprite sprite = aM_.getStatusEffectSpriteManager().getSprite(effect.getEffectType());
 
-            // Watermark behind content (scales with bgFactor)
+            // Watermark behind content (bright, vivid and clearly visible)
             if (sprite != null) {
-                event.e().a(event.i(), sprite, cx + cardW - 20.0f, cy + cardH - 20.0f, 0.0f, 1.05f, 0.09f * bgFactor);
+                event.e().a(event.i(), sprite, cx + cardW - 22.0f, cy + cardH - 22.0f, 0.0f, 1.15f, 0.32f * anim);
             }
 
             // Top row: Sprite icon on left
             if (sprite != null) {
-                event.e().a(event.i(), sprite, cx + 3.5f, cy + 3.0f, 0.0f, 0.52f, anim);
+                event.e().a(event.i(), sprite, cx + 3.5f, cy + 3.0f, 0.0f, 0.55f, anim);
             }
 
             // Top row: Progress ring and timer on right
@@ -279,12 +273,6 @@ public class PotionWidget extends Widget implements Interface {
         Fonts.a.a(matrices, "E", x + 5.5f, y + 4.0f, 7.0f, ColorUtil.a(primary, anim));
         float titleX = x + 5.5f + Fonts.a.a("E", 7.0f) + 3.5f;
         Fonts.e.a(event.h(), "Effects", titleX, y + 4.0f, 6.75f, ColorUtil.a(-1, anim));
-
-        float sparkleSize = 10.0f;
-        float sparkleX = (x + totalW) - 5.5f - sparkleSize;
-        float sparkleY = y + 2.5f;
-        event.d().a(matrices, sparkleX, sparkleY, sparkleSize, sparkleSize, 2.5f, ColorUtil.a(primary, 0.22f * anim));
-        Fonts.e.a(event.h(), "✦", sparkleX + 1.75f, sparkleY + 1.75f, 5.75f, ColorUtil.a(primary, anim));
 
         float curY = y + headerH + 2.0f;
         for (StatusEffectInstance effect : effects) {
