@@ -33,9 +33,14 @@ import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 
 public class PotionWidget extends Widget implements Interface {
     private static PotionWidget INSTANCE;
+
+    private static final Identifier GRID_STYLE_TEXTURE = Identifier.of("delta", "pictures/potions/grid.png");
+    private static final Identifier INLINED_STYLE_TEXTURE = Identifier.of("delta", "pictures/potions/inlined.png");
+    private static final Identifier COMPACT_STYLE_TEXTURE = Identifier.of("delta", "pictures/potions/compact.png");
 
     private final ModeSetting mode;
     private final BooleanSetting transparentStyle;
@@ -578,22 +583,26 @@ public class PotionWidget extends Widget implements Interface {
         event.d().a(matrices, thumbX, thumbY, thumbW, thumbH, 2.5f, ColorUtil.a(8, 8, 14, (int) (220 * anim)));
 
         if ("Карточки".equals(modeTarget)) {
-            // Mini 2x2 grid
-            float cw = (thumbW - 3.0f) / 2.0f;
-            float ch = 5.5f;
-            event.d().a(matrices, thumbX + 1.0f, thumbY + 1.0f, cw, ch, 1.5f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
-            event.d().a(matrices, thumbX + 2.0f + cw, thumbY + 1.0f, cw, ch, 1.5f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
-            event.d().a(matrices, thumbX + 1.0f, thumbY + 7.5f, cw, ch, 1.5f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
-            event.d().a(matrices, thumbX + 2.0f + cw, thumbY + 7.5f, cw, ch, 1.5f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
+            // Image 1: grid.png
+            float imgH = thumbH - 1.0f;
+            float imgW = Math.min(thumbW - 2.0f, imgH * (302.0f / 113.0f));
+            float imgX = thumbX + (thumbW - imgW) / 2.0f;
+            float imgY = thumbY + (thumbH - imgH) / 2.0f;
+            event.d().a(matrices, GRID_STYLE_TEXTURE, imgX, imgY, imgW, imgH, 2.0f, ColorUtil.a(-1, anim));
         } else if ("Инлайн".equals(modeTarget)) {
-            // Mini horizontal strips
-            event.d().a(matrices, thumbX + 2.0f, thumbY + 2.0f, thumbW - 4.0f, 3.0f, 1.0f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
-            event.d().a(matrices, thumbX + 2.0f, thumbY + 6.0f, thumbW - 4.0f, 3.0f, 1.0f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
-            event.d().a(matrices, thumbX + 2.0f, thumbY + 10.0f, thumbW - 4.0f, 3.0f, 1.0f, ColorUtil.a(35, 37, 48, (int) (220 * anim)));
+            // Image 3: inlined.png
+            float imgH = thumbH - 1.0f;
+            float imgW = Math.min(thumbW - 2.0f, imgH * (241.0f / 101.0f));
+            float imgX = thumbX + (thumbW - imgW) / 2.0f;
+            float imgY = thumbY + (thumbH - imgH) / 2.0f;
+            event.d().a(matrices, INLINED_STYLE_TEXTURE, imgX, imgY, imgW, imgH, 2.0f, ColorUtil.a(-1, anim));
         } else if ("Бафф".equals(modeTarget)) {
-            // Mini pills
-            event.d().a(matrices, thumbX + 2.0f, thumbY + 2.0f, (thumbW - 6.0f) * 0.7f, 4.5f, 2.0f, ColorUtil.a(40, 42, 55, (int) (220 * anim)));
-            event.d().a(matrices, thumbX + 2.0f, thumbY + 8.0f, (thumbW - 6.0f) * 0.85f, 4.5f, 2.0f, ColorUtil.a(40, 42, 55, (int) (220 * anim)));
+            // Image 5: compact.png
+            float imgH = thumbH - 1.0f;
+            float imgW = Math.min(thumbW - 2.0f, imgH * (191.0f / 68.0f));
+            float imgX = thumbX + (thumbW - imgW) / 2.0f;
+            float imgY = thumbY + (thumbH - imgH) / 2.0f;
+            event.d().a(matrices, COMPACT_STYLE_TEXTURE, imgX, imgY, imgW, imgH, 2.0f, ColorUtil.a(-1, anim));
         } else {
             // Mini classic Destrum header + rows
             event.d().a(matrices, thumbX + 2.0f, thumbY + 1.5f, thumbW - 4.0f, 3.5f, 1.0f, ColorUtil.a(primary, (int) (180 * anim)));
