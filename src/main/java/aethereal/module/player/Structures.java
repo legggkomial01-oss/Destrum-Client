@@ -17,6 +17,7 @@ import aethereal.event.DrawEvent;
 import aethereal.event.TickEvent;
 
 import aethereal.render.AnimationUtil;
+import aethereal.setting.ModeSetting;
 import aethereal.util.CounterUtil;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -40,10 +41,30 @@ import org.joml.Vector2f;
 
 @ModuleRegister(a = "Structures", b = "Отображает время до исчезновения структур трапки и пласта", c = Category.Player)
 public class Structures extends Module {
+    private static Structures INSTANCE;
+
+    private final ModeSetting mode = new ModeSetting("Режим", "Интерфейс", "Интерфейс", "В мире");
     private final List<Block> allowedBlocks = java.util.Arrays.asList(new Block[]{Blocks.QUARTZ_BLOCK, Blocks.DEAD_TUBE_CORAL_BLOCK, Blocks.INFESTED_MOSSY_STONE_BRICKS, Blocks.PURPUR_PILLAR, Blocks.END_STONE_BRICKS, Blocks.NETHER_BRICKS, Blocks.GILDED_BLACKSTONE, Blocks.PRISMARINE_BRICKS, Blocks.ICE, Blocks.NETHER_WART_BLOCK, Blocks.RESPAWN_ANCHOR, Blocks.NETHERITE_BLOCK, Blocks.WHITE_STAINED_GLASS, Blocks.BLACK_CONCRETE, Blocks.POLISHED_BASALT});
     private final List<a> c = new ObjectArrayList();
     private final Set<BlockPos> d = new ObjectOpenHashSet();
     private int e;
+
+    public static Structures getInstance() {
+        return INSTANCE;
+    }
+
+    public List<a> getStructures() {
+        return this.c;
+    }
+
+    public ModeSetting getMode() {
+        return this.mode;
+    }
+
+    public Structures() {
+        INSTANCE = this;
+        a(this.mode);
+    }
 
     @EventTarget
     public void a(BlockChangeEvent event) {
@@ -92,6 +113,9 @@ public class Structures extends Module {
     @EventTarget
     public void a(DrawEvent event) {
         if (event.b()) {
+            if (this.mode.l("Интерфейс")) {
+                return;
+            }
             for (a structure : this.c) {
                 String text = String.format(Locale.US, "%.1f", Float.valueOf(Math.max(0.0f, (structure.d().d() - structure.c().c()) / 1000.0f)));
                 structure.b().a(0.0f, 1.0f, 0.35f, EasingList.i, event.g());
@@ -124,7 +148,7 @@ public class Structures extends Module {
         super.c();
     }
 
-    static class a implements Interface {
+    public static class a implements Interface {
         private final AnimationUtil b = new AnimationUtil();
         private final CounterUtil c = new CounterUtil();
         private final b d;

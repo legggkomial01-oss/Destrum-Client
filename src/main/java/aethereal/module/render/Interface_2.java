@@ -25,6 +25,7 @@ import aethereal.ui.widget.StaffWidget;
 import aethereal.ui.widget.TargetWidget;
 import aethereal.ui.widget.WatermarkWidget;
 import aethereal.ui.widget.NameTagWidget;
+import aethereal.ui.widget.StructuresWidget;
 
 import aethereal.setting.ColorSetting;
 import aethereal.setting.MultiModeSetting;
@@ -35,7 +36,7 @@ import lombok.Generated;
 @ModuleRegister(a = "Interface", b = "Отображает выбранные элементы интерфейса на экране", c = Category.Render)
 public class Interface_2 extends Module {
     private final ColorSetting b = new ColorSetting("Глобальный цвет интерфейса", Integer.valueOf(Delta.h().d().o().a(ThemeInfo.PRIMARY).a()));
-    private final MultiModeSetting c = new MultiModeSetting("Элементы интерфейса", new BooleanSetting("Клавиши", true), new BooleanSetting("Таргет-худ", true), new BooleanSetting("Задержки", true), new BooleanSetting("Инфо-панель", true), new BooleanSetting("Уведомления", true), new BooleanSetting("Зелья", true), new BooleanSetting("Предметы", true), new BooleanSetting("Броня", true), new BooleanSetting("Стафф", true), new BooleanSetting("Окружение", true), new BooleanSetting("NameTags", true));
+    private final MultiModeSetting c = new MultiModeSetting("Элементы интерфейса", new BooleanSetting("Клавиши", true), new BooleanSetting("Таргет-худ", true), new BooleanSetting("Задержки", true), new BooleanSetting("Инфо-панель", true), new BooleanSetting("Уведомления", true), new BooleanSetting("Зелья", true), new BooleanSetting("Предметы", true), new BooleanSetting("Броня", true), new BooleanSetting("Стафф", true), new BooleanSetting("Окружение", true), new BooleanSetting("NameTags", true), new BooleanSetting("Структуры", true));
     private final List<Widget> d = new ArrayList();
 
     @Generated
@@ -56,6 +57,7 @@ public class Interface_2 extends Module {
         this.d.add(new StaffWidget());
         this.d.add(new EnvironmentWidget());
         this.d.add(new NameTagWidget());
+        this.d.add(new StructuresWidget());
     }
 
     @EventTarget
