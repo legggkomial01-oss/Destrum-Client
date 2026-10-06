@@ -112,7 +112,7 @@ public class AuraUtil implements Interface {
     }
 
     public static boolean a(int ticks, LivingEntity target, boolean checks) {
-        if (!checks && ticks >= 7 && a(target, 3.0d) && aM_.player.getAttackCooldownProgress(0.5f) > 0.7f) {
+        if (!checks && ticks >= 7 && a(target, 3.0d) && aM_.player.getAttackCooldownProgress(0.5f) >= 0.9f) {
             return a();
         }
         return false;
@@ -217,11 +217,29 @@ public class AuraUtil implements Interface {
         World world = aM_.player.getWorld();
         BlockPos eye = BlockPos.ofFloored(aM_.player.getEyePos());
         FluidState fluid = world.getFluidState(eye);
-        return (aM_.player.hasStatusEffect(StatusEffects.LEVITATION) || aM_.player.hasStatusEffect(StatusEffects.BLINDNESS) || fluid.isIn(FluidTags.WATER) || fluid.isIn(FluidTags.LAVA) || aM_.player.getAbilities().flying || aM_.player.isGliding() || aM_.player.isClimbing() || aM_.player.hasVehicle()) ? false : true;
+        return !(aM_.player.hasStatusEffect(StatusEffects.LEVITATION)
+                || aM_.player.hasStatusEffect(StatusEffects.BLINDNESS)
+                || aM_.player.isTouchingWater()
+                || aM_.player.isInLava()
+                || fluid.isIn(FluidTags.WATER)
+                || fluid.isIn(FluidTags.LAVA)
+                || aM_.player.getAbilities().flying
+                || aM_.player.isGliding()
+                || aM_.player.isClimbing()
+                || aM_.player.hasVehicle());
     }
 
     public static boolean c() {
-        return aM_.player != null && b() && aM_.player.fallDistance > 0.0f && !aM_.player.isOnGround();
+        return aM_.player != null && b() && !aM_.player.isOnGround() && aM_.player.fallDistance > 0.0f && aM_.player.getVelocity().y < 0.0d;
+    }
+
+    public static boolean isInTightSpace() {
+        if (aM_.player == null || aM_.world == null) {
+            return false;
+        }
+        Box box = aM_.player.getBoundingBox();
+        Box ceilingBox = new Box(box.minX, box.maxY, box.minZ, box.maxX, box.maxY + 0.85d, box.maxZ);
+        return !aM_.world.isBlockSpaceEmpty(aM_.player, ceilingBox);
     }
 
     public static float a(float start, float end, float amount) {

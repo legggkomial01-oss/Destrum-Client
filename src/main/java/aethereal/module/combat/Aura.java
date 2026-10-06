@@ -226,7 +226,7 @@ public class Aura extends Module {
                     skip = true;
                 }
             }
-            if (((platform.inject.accessors.ClientPlayerEntityAccessor) aM_.player).getWasSprinting() && !aM_.player.isTouchingWater() && !aM_.player.isInLava() && !aM_.player.isSwimming() && !aM_.player.isOnGround() && !skip) {
+            if (((platform.inject.accessors.ClientPlayerEntityAccessor) aM_.player).getWasSprinting() && !aM_.player.isTouchingWater() && !aM_.player.isInLava() && !aM_.player.isSwimming() && !skip) {
                 if (!this.p.c().booleanValue()) {
                     ((platform.inject.accessors.ClientPlayerEntityAccessor) aM_.player).setWasSprinting(false);
                     aM_.player.setSprinting(false);
@@ -275,10 +275,27 @@ public class Aura extends Module {
             if (aM_.player.getItemCooldownManager().isCoolingDown(aM_.player.getMainHandStack()) || aM_.player.getAttackCooldownProgress(0.5f) < 0.9f) {
                 return false;
             }
-        } else if (aM_.player.getAttackCooldownProgress(0.5f) < 0.9f || this.b < 10) {
+        } else if (aM_.player.getAttackCooldownProgress(0.5f) < 0.9f || this.b < 8) {
             return false;
         }
-        return AuraUtil.c() || (this.m.c().booleanValue() && aM_.player.isOnGround() && !aM_.player.input.playerInput.jump()) || !AuraUtil.b();
+        boolean onlyCrits = this.l.c().booleanValue();
+        boolean adaptive = this.m.c().booleanValue();
+        if (!onlyCrits) {
+            return true;
+        }
+        if (!AuraUtil.b()) {
+            return true;
+        }
+        if (AuraUtil.c()) {
+            return true;
+        }
+        if (AuraUtil.isInTightSpace() && aM_.player.isOnGround()) {
+            return true;
+        }
+        if (adaptive && aM_.player.isOnGround() && !aM_.player.input.playerInput.jump()) {
+            return true;
+        }
+        return false;
     }
 
     private boolean a(LivingEntity entity) {
@@ -391,18 +408,9 @@ public class Aura extends Module {
         float pitchToTarget = targetPosition == Vec3d.ZERO ? Look.c() : (float) (-Math.toDegrees(Math.atan2(targetPosition.y, Math.hypot(targetPosition.x, targetPosition.z))));
         System.arraycopy(this.u, 0, this.u, 1, 29);
         this.u[0] = pitchToTarget;
-        if (this.t != null && this.b >= 2 && ((ServerUtil.a.a(this.t) > 6.0f || this.c[2] > 43.0f) && this.c[2] >= 33.0f && ((this.b == 4 || Math.random() > 0.5d) && (!this.f || !AuraUtil.a(aM_.player.getYaw(), aM_.player.getPitch(), 3.0d, this.t, false))))) {
-            ((platform.inject.invokers.MinecraftClientInvoker) aM_).invokeDoAttack();
-            ChatUtil.a(Boolean.valueOf(this.f));
-            if (Math.random() > 0.5d) {
-                this.f = !this.f;
-            }
-            this.c[2] = (int) MathUtil.a(-10.0f, 10.0f);
-        }
-        boolean skip = (this.n.a("Используется предмет").c().booleanValue() && aM_.player.isUsingItem() && aM_.player.getItemUseTimeLeft() > 0 && this.b >= 8) || !(this.n.a("Открыт контейнер") == null || !this.n.a("Открыт контейнер").c().booleanValue() || aM_.currentScreen == null || (aM_.currentScreen instanceof GUIScreen) || (aM_.currentScreen instanceof AssistantScreen));
-        if ((this.c[3] <= 0.0f && q()) || AuraUtil.a(this.b, this.t, skip)) {
+        if (this.c[3] <= 0.0f && q()) {
             this.c[3] = 1.0f;
-            if (!aM_.player.isTouchingWater() && this.p.c().booleanValue() && !aM_.player.isOnGround()) {
+            if (!aM_.player.isTouchingWater() && this.p.c().booleanValue()) {
                 this.c[0] = 1.0f;
             }
         }

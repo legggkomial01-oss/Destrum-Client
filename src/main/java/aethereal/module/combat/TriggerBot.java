@@ -115,14 +115,6 @@ public class TriggerBot extends Module {
     private void t() {
         this.d++;
         v();
-        if (this.o != null && this.g.a("Случайные промахи").c().booleanValue() && this.d >= 2 && this.m >= 30 && (((Math.random() > 0.5d && this.d >= 1) || this.d == 4) && (!this.e || !AuraUtil.a(aM_.player.getYaw(), aM_.player.getPitch(), 3.0d, this.o, false)))) {
-            ((platform.inject.invokers.MinecraftClientInvoker) aM_).invokeDoAttack();
-            this.e = !this.e;
-            this.m = (int) MathUtil.a(-10.0f, 10.0f);
-        }
-        if (this.o != null && AuraUtil.a(this.d, this.o, false)) {
-            this.l = 1;
-        }
         u();
     }
 
@@ -195,7 +187,7 @@ public class TriggerBot extends Module {
     }
 
     private boolean w() {
-        if (!((platform.inject.accessors.ClientPlayerEntityAccessor) aM_.player).getWasSprinting() || aM_.player.isTouchingWater() || aM_.player.isInLava() || aM_.player.isSwimming() || aM_.player.isOnGround()) {
+        if (!((platform.inject.accessors.ClientPlayerEntityAccessor) aM_.player).getWasSprinting() || aM_.player.isTouchingWater() || aM_.player.isInLava() || aM_.player.isSwimming()) {
             return false;
         }
         if (this.i.l("Рейдж")) {
@@ -229,10 +221,27 @@ public class TriggerBot extends Module {
             if (aM_.player.getItemCooldownManager().isCoolingDown(aM_.player.getMainHandStack()) || aM_.player.getAttackCooldownProgress(0.5f) < 0.9f) {
                 return false;
             }
-        } else if (aM_.player.getAttackCooldownProgress(0.5f) < 0.9f || this.d < 10) {
+        } else if (aM_.player.getAttackCooldownProgress(0.5f) < 0.9f || this.d < 8) {
             return false;
         }
-        return AuraUtil.c() || (this.g.a("Адаптивные удары").c().booleanValue() && aM_.player.isOnGround() && !aM_.player.input.playerInput.jump()) || !AuraUtil.b();
+        boolean onlyCrits = this.g.a("Только критические удары") != null && this.g.a("Только критические удары").c().booleanValue();
+        boolean adaptive = this.g.a("Адаптивные удары") != null && this.g.a("Адаптивные удары").c().booleanValue();
+        if (!onlyCrits) {
+            return true;
+        }
+        if (!AuraUtil.b()) {
+            return true;
+        }
+        if (AuraUtil.c()) {
+            return true;
+        }
+        if (AuraUtil.isInTightSpace() && aM_.player.isOnGround()) {
+            return true;
+        }
+        if (adaptive && aM_.player.isOnGround() && !aM_.player.input.playerInput.jump()) {
+            return true;
+        }
+        return false;
     }
 
     private LivingEntity d(boolean aimed) {
