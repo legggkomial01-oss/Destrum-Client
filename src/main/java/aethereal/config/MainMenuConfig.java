@@ -34,6 +34,7 @@ public class MainMenuConfig {
 
     public enum BackgroundMode {
         DEFAULT("Стандартный", "Default"),
+        DESTRUM_V2("Destrum-V2", "Destrum-V2"),
         DARK("Тёмный", "Dark"),
         SHADER("Шейдеры", "Shaders"),
         WALLPAPER("4K Обои", "4K Wallpaper"),
@@ -220,7 +221,11 @@ public class MainMenuConfig {
                 this.language = Language.valueOf(json.get("language").getAsString());
             }
             if (json.has("backgroundMode")) {
-                this.backgroundMode = BackgroundMode.valueOf(json.get("backgroundMode").getAsString());
+                try {
+                    this.backgroundMode = BackgroundMode.valueOf(json.get("backgroundMode").getAsString());
+                } catch (Exception ignored) {
+                    this.backgroundMode = BackgroundMode.DEFAULT;
+                }
             }
             if (json.has("shaderBackground")) {
                 try {

@@ -68,6 +68,11 @@ public class MainScreen extends Screen {
     private final AnimationUtil modalAnimation = new AnimationUtil();
     private final TypewriterEffect typewriter = new TypewriterEffect();
     private boolean modalOpen = false;
+    private static long destrumV2StartTime = -1L;
+    private static float destrumV2CameraX = 0.0f;
+    private static float destrumV2CameraY = 0.0f;
+    private static final Identifier DESTRUM_V2_TEXTURE = Identifier.of("delta", "pictures/bg_destrum_v2.png");
+    private static final Identifier BLOOM_TEXTURE = Identifier.of("delta", "pictures/bloom.png");
 
     public static class TypewriterEffect {
         private static final String[] RU_PHRASES = {
@@ -372,9 +377,76 @@ public class MainScreen extends Screen {
             Delta.h().d().i().a(matrices, cfg.getWallpaperBackground().getIdentifier(), (-marginX) + a[0], (-marginY) + a[1], width + (marginX * 2.0f), height + (marginY * 2.0f), 0.0f, -1);
         } else if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.CUSTOM && cfg.getCustomTextureIdentifier() != null) {
             Delta.h().d().i().a(matrices, cfg.getCustomTextureIdentifier(), (-marginX) + a[0], (-marginY) + a[1], width + (marginX * 2.0f), height + (marginY * 2.0f), 0.0f, -1);
+        } else if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.DESTRUM_V2) {
+            renderDestrumV2Background(context, matrices, width, height, mouseX, mouseY, marginX, marginY);
         } else {
             Delta.h().d().i().a(matrices, Identifier.of("delta", "pictures/main.png"), (-marginX) + a[0], (-marginY) + a[1], width + (marginX * 2.0f), height + (marginY * 2.0f), 0.0f, -1);
         }
+        matrices.pop();
+    }
+
+    public static void renderDestrumV2Background(DrawContext context, MatrixStack matrices, int width, int height, int mouseX, int mouseY, float marginX, float marginY) {
+        if (destrumV2StartTime < 0L) {
+            destrumV2StartTime = System.currentTimeMillis();
+        }
+        float time = (float) (System.currentTimeMillis() - destrumV2StartTime) / 1000.0f;
+
+        // Cinematic slow camera drift (gentle breathing + natural motion)
+        float driftX = (float) Math.sin(time * 0.16f) * (width * 0.016f) + (float) Math.sin(time * 0.07f) * (width * 0.008f);
+        float driftY = (float) Math.cos(time * 0.12f) * (height * 0.012f) + (float) Math.sin(time * 0.05f) * (height * 0.006f);
+        float zoomBreath = 1.045f + (float) Math.sin(time * 0.10f) * 0.012f;
+
+        // Smooth parallax interpolation
+        destrumV2CameraX += ((a[0] + driftX) - destrumV2CameraX) * 0.05f;
+        destrumV2CameraY += ((a[1] + driftY) - destrumV2CameraY) * 0.05f;
+
+        // Draw with expanded margin so no edges are ever visible during drift/zoom
+        float extraPadX = marginX * 1.8f;
+        float extraPadY = marginY * 1.8f;
+        float renderX = (-extraPadX) + destrumV2CameraX;
+        float renderY = (-extraPadY) + destrumV2CameraY;
+        float renderW = width + (extraPadX * 2.0f);
+        float renderH = height + (extraPadY * 2.0f);
+
+        matrices.push();
+        matrices.translate(width * 0.5f, height * 0.5f, 0.0f);
+        matrices.scale(zoomBreath, zoomBreath, 1.0f);
+        matrices.translate(-width * 0.5f, -height * 0.5f, 0.0f);
+
+        Draw2DProcessor draw = Delta.h().d().i();
+
+        // 1. Base pristine 4K sunset artwork
+        draw.a(matrices, DESTRUM_V2_TEXTURE, renderX, renderY, renderW, renderH, 0.0f, -1);
+
+        // 2. Atmospheric sun warmth & pulsating glow (sun is located at approx x=0.770, y=0.482)
+        float sunX = renderX + (renderW * 0.770f);
+        float sunY = renderY + (renderH * 0.482f);
+        float sunPulse = (float) (Math.sin(time * 0.75f) * 0.5f + 0.5f);
+
+        float outerRadius = width * 0.36f;
+        int outerBloomAlpha = (int) (38.0f + 22.0f * sunPulse);
+        draw.a(matrices, BLOOM_TEXTURE, sunX - outerRadius, sunY - outerRadius, outerRadius * 2.0f, outerRadius * 2.0f, 0.0f, ColorUtil.a(255, 170, 55, outerBloomAlpha));
+
+        float innerRadius = width * 0.18f;
+        int innerBloomAlpha = (int) (55.0f + 30.0f * sunPulse);
+        draw.a(matrices, BLOOM_TEXTURE, sunX - innerRadius, sunY - innerRadius, innerRadius * 2.0f, innerRadius * 2.0f, 0.0f, ColorUtil.a(255, 215, 110, innerBloomAlpha));
+
+        // 3. Cinematic depth grading / vignette
+        // Top dusk twilight vignette (subtle deep violet/navy)
+        draw.a(matrices, 0.0f, 0.0f, (float) width, height * 0.28f, 0.0f,
+            ColorUtil.a(18, 10, 26, 65), ColorUtil.a(18, 10, 26, 65),
+            ColorUtil.a(18, 10, 26, 0), ColorUtil.a(18, 10, 26, 0));
+
+        // Bottom grounding vignette (deep warm obsidian to contrast main menu buttons)
+        draw.a(matrices, 0.0f, height * 0.60f, (float) width, height * 0.40f, 0.0f,
+            ColorUtil.a(10, 8, 14, 0), ColorUtil.a(10, 8, 14, 0),
+            ColorUtil.a(10, 8, 14, 115), ColorUtil.a(10, 8, 14, 115));
+
+        // Left mountain depth shade
+        draw.a(matrices, 0.0f, 0.0f, width * 0.28f, (float) height, 0.0f,
+            ColorUtil.a(12, 8, 16, 45), ColorUtil.a(12, 8, 16, 0),
+            ColorUtil.a(12, 8, 16, 65), ColorUtil.a(12, 8, 16, 0));
+
         matrices.pop();
     }
 
@@ -535,16 +607,17 @@ public class MainScreen extends Screen {
         float bgSecY = mY + 59.0f;
         Fonts.c.a(matrices, cfg.getBackgroundLabel(), mX + 12.0f, bgSecY, 6.75f, ColorUtil.a(160, 165, 180, (int) (200.0f * mAlpha)));
         float bgPillY = bgSecY + 10.5f;
-        float bgW1 = 87.0f;
+        float bgW = 87.0f;
         float bgH = 15.5f;
-        drawPill(matrices, draw, mX + 12.0f, bgPillY, bgW1, bgH, cfg.getBackgroundMode().DEFAULT.getDisplay(cfg.getLanguage()), cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.DEFAULT, mouseX, mouseY, primary, mAlpha, 6.5f);
-        drawPill(matrices, draw, mX + 12.0f + bgW1 + 5.0f, bgPillY, bgW1, bgH, cfg.getBackgroundMode().DARK.getDisplay(cfg.getLanguage()), cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.DARK, mouseX, mouseY, primary, mAlpha, 6.5f);
-        drawPill(matrices, draw, mX + 12.0f + (bgW1 + 5.0f) * 2.0f, bgPillY, bgW1, bgH, cfg.getBackgroundMode().SHADER.getDisplay(cfg.getLanguage()), cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.SHADER, mouseX, mouseY, primary, mAlpha, 6.5f);
+        float bgGap = 5.0f;
+        drawPill(matrices, draw, mX + 12.0f, bgPillY, bgW, bgH, cfg.getBackgroundMode().DEFAULT.getDisplay(cfg.getLanguage()), cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.DEFAULT, mouseX, mouseY, primary, mAlpha, 6.5f);
+        drawPill(matrices, draw, mX + 12.0f + bgW + bgGap, bgPillY, bgW, bgH, cfg.getBackgroundMode().DESTRUM_V2.getDisplay(cfg.getLanguage()), cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.DESTRUM_V2, mouseX, mouseY, primary, mAlpha, 6.5f);
+        drawPill(matrices, draw, mX + 12.0f + (bgW + bgGap) * 2.0f, bgPillY, bgW, bgH, cfg.getBackgroundMode().DARK.getDisplay(cfg.getLanguage()), cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.DARK, mouseX, mouseY, primary, mAlpha, 6.5f);
 
         float bgPillY2 = bgPillY + bgH + 3.0f;
-        float bgW2 = 133.0f;
-        drawPill(matrices, draw, mX + 12.0f, bgPillY2, bgW2, bgH, cfg.getBackgroundMode().WALLPAPER.getDisplay(cfg.getLanguage()), cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.WALLPAPER, mouseX, mouseY, primary, mAlpha, 6.5f);
-        drawPill(matrices, draw, mX + 12.0f + bgW2 + 6.0f, bgPillY2, bgW2, bgH, cfg.getBackgroundMode().CUSTOM.getDisplay(cfg.getLanguage()), cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.CUSTOM, mouseX, mouseY, primary, mAlpha, 6.5f);
+        drawPill(matrices, draw, mX + 12.0f, bgPillY2, bgW, bgH, cfg.getBackgroundMode().SHADER.getDisplay(cfg.getLanguage()), cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.SHADER, mouseX, mouseY, primary, mAlpha, 6.5f);
+        drawPill(matrices, draw, mX + 12.0f + bgW + bgGap, bgPillY2, bgW, bgH, cfg.getBackgroundMode().WALLPAPER.getDisplay(cfg.getLanguage()), cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.WALLPAPER, mouseX, mouseY, primary, mAlpha, 6.5f);
+        drawPill(matrices, draw, mX + 12.0f + (bgW + bgGap) * 2.0f, bgPillY2, bgW, bgH, cfg.getBackgroundMode().CUSTOM.getDisplay(cfg.getLanguage()), cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.CUSTOM, mouseX, mouseY, primary, mAlpha, 6.5f);
 
         // 3. Dynamic sub-options
         if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.SHADER) {
@@ -601,6 +674,9 @@ public class MainScreen extends Screen {
             }
         } else if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.DEFAULT) {
             String note = cfg.getLanguage() == MainMenuConfig.Language.ENGLISH ? "Original Destrum Client atmospheric artwork" : "Оригинальный атмосферный арт Destrum Client";
+            Fonts.c.a(matrices, note, mX + 13.0f, mY + 124.0f, 6.5f, ColorUtil.a(160, 170, 190, (int) (190.0f * mAlpha)));
+        } else if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.DESTRUM_V2) {
+            String note = cfg.getLanguage() == MainMenuConfig.Language.ENGLISH ? "Cinematic Minecraft sunset with dynamic camera and atmospheric lighting" : "Кинематографичный закат Minecraft с динамической камерой и атмосферой";
             Fonts.c.a(matrices, note, mX + 13.0f, mY + 124.0f, 6.5f, ColorUtil.a(160, 170, 190, (int) (190.0f * mAlpha)));
         } else if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.DARK) {
             String note = cfg.getLanguage() == MainMenuConfig.Language.ENGLISH ? "Minimalist deep dark OLED background" : "Минималистичный глубокий тёмный OLED фон";
@@ -673,31 +749,35 @@ public class MainScreen extends Screen {
             return true;
         }
 
-        // Background pills Row 1: DEFAULT, DARK, SHADER
+        // Background pills Row 1: DEFAULT, DESTRUM_V2, DARK
         float bgPillY = mY + 69.5f;
-        float bgW1 = 87.0f;
+        float bgW = 87.0f;
         float bgH = 15.5f;
-        if (MathUtil.a(dA, dA2, mX + 12.0f, bgPillY, bgW1, bgH)) {
+        float bgGap = 5.0f;
+        if (MathUtil.a(dA, dA2, mX + 12.0f, bgPillY, bgW, bgH)) {
             cfg.setBackgroundMode(MainMenuConfig.BackgroundMode.DEFAULT);
             return true;
         }
-        if (MathUtil.a(dA, dA2, mX + 12.0f + bgW1 + 5.0f, bgPillY, bgW1, bgH)) {
+        if (MathUtil.a(dA, dA2, mX + 12.0f + bgW + bgGap, bgPillY, bgW, bgH)) {
+            cfg.setBackgroundMode(MainMenuConfig.BackgroundMode.DESTRUM_V2);
+            return true;
+        }
+        if (MathUtil.a(dA, dA2, mX + 12.0f + (bgW + bgGap) * 2.0f, bgPillY, bgW, bgH)) {
             cfg.setBackgroundMode(MainMenuConfig.BackgroundMode.DARK);
             return true;
         }
-        if (MathUtil.a(dA, dA2, mX + 12.0f + (bgW1 + 5.0f) * 2.0f, bgPillY, bgW1, bgH)) {
+
+        // Background pills Row 2: SHADER, WALLPAPER, CUSTOM
+        float bgPillY2 = bgPillY + bgH + 3.0f;
+        if (MathUtil.a(dA, dA2, mX + 12.0f, bgPillY2, bgW, bgH)) {
             cfg.setBackgroundMode(MainMenuConfig.BackgroundMode.SHADER);
             return true;
         }
-
-        // Background pills Row 2: WALLPAPER, CUSTOM
-        float bgPillY2 = bgPillY + bgH + 3.0f;
-        float bgW2 = 133.0f;
-        if (MathUtil.a(dA, dA2, mX + 12.0f, bgPillY2, bgW2, bgH)) {
+        if (MathUtil.a(dA, dA2, mX + 12.0f + bgW + bgGap, bgPillY2, bgW, bgH)) {
             cfg.setBackgroundMode(MainMenuConfig.BackgroundMode.WALLPAPER);
             return true;
         }
-        if (MathUtil.a(dA, dA2, mX + 12.0f + bgW2 + 6.0f, bgPillY2, bgW2, bgH)) {
+        if (MathUtil.a(dA, dA2, mX + 12.0f + (bgW + bgGap) * 2.0f, bgPillY2, bgW, bgH)) {
             if (cfg.getCustomTextureIdentifier() != null) {
                 cfg.setBackgroundMode(MainMenuConfig.BackgroundMode.CUSTOM);
             } else {
