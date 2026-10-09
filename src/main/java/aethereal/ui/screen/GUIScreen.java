@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
@@ -228,6 +229,15 @@ public class GUIScreen extends Screen {
     public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
     }
 
+    private static final Set<String> EXCLUDED_MODULE_NAMES = Set.of(
+        "fly", "strafe", "chest stealer", "cheststealer",
+        "auto respawn", "autorespawn", "death coords", "deathcoords",
+        "fake lags", "fakelags", "open walls", "openwalls",
+        "ancient farmer", "ancientfarmer", "apple farmer", "applefarmer",
+        "auto warden", "autowarden", "communication", "portal bypass",
+        "portalbypass", "server joiner", "serverjoiner", "x ray", "xray"
+    );
+
     private static final String RU_KEYBOARD = "йцукенгшщзхъфывапролджэячсмитьбю.ё";
     private static final String EN_KEYBOARD = "qwertyuiop[]asdfghjkl;'zxcvbnm,./`";
 
@@ -258,6 +268,13 @@ public class GUIScreen extends Screen {
     }
 
     public boolean a(GUIPanel panel, Module module) {
+        if (module == null || module.j() == null) {
+            return false;
+        }
+        String name = module.j().toLowerCase().trim();
+        if (EXCLUDED_MODULE_NAMES.contains(name)) {
+            return false;
+        }
         if (module.l() != panel.c()) {
             return false;
         }
