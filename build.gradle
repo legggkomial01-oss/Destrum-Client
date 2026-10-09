@@ -26,9 +26,8 @@ dependencies {
 
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 	modImplementation "software.bernie.geckolib:geckolib-fabric-1.21.4:4.8.5"
-	modImplementation "meteordevelopment:baritone:${project.minecraft_version}-SNAPSHOT"
-	// Baritone кладёт эту нативную либу как вложенный jar, а в dev-окружении JiJ не распаковывается
-	runtimeOnly "dev.babbaj:nether-pathfinder:1.4.1"
+	// modImplementation "meteordevelopment:baritone:${project.minecraft_version}-SNAPSHOT"
+	// runtimeOnly "dev.babbaj:nether-pathfinder:1.4.1"
 
 	implementation 'com.google.code.findbugs:jsr305:3.0.2'
 	include 'com.google.code.findbugs:jsr305:3.0.2'
