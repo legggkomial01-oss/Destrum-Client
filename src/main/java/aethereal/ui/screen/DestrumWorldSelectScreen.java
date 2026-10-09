@@ -4,16 +4,17 @@ import aethereal.config.ThemeInfo;
 import aethereal.core.Delta;
 import aethereal.core.Interface;
 import aethereal.render.ColorUtil;
+import aethereal.render.CrispTexture;
 import aethereal.render.Draw2DProcessor;
 import aethereal.render.Fonts;
 import aethereal.render.ScaleUtil;
 import aethereal.util.MathUtil;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ConfirmScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.world.CreateWorldScreen;
 import net.minecraft.client.gui.screen.world.EditWorldScreen;
-import net.minecraft.client.gui.screen.world.WorldIcon;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
@@ -34,7 +35,7 @@ public class DestrumWorldSelectScreen extends Screen {
     private final Screen parent;
     private final List<LevelSummary> allWorlds = new ArrayList<>();
     private final List<LevelSummary> filteredWorlds = new ArrayList<>();
-    private final Map<String, WorldIcon> icons = new HashMap<>();
+    private final Map<String, CrispTexture> icons = new HashMap<>();
     private final Map<String, Float> hoverAnimations = new HashMap<>();
 
     private String searchQuery = "";
@@ -48,6 +49,8 @@ public class DestrumWorldSelectScreen extends Screen {
     private float contextMenuX = 0.0f;
     private float contextMenuY = 0.0f;
     private boolean loading = true;
+    private boolean worldsLoaded = false;
+    private volatile boolean closed = false;
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm");
 
     public DestrumWorldSelectScreen(Screen parent) {
@@ -58,7 +61,9 @@ public class DestrumWorldSelectScreen extends Screen {
     @Override
     protected void init() {
         super.init();
-        loadWorlds();
+        if (!this.worldsLoaded) {
+            loadWorlds();
+        }
     }
 
     private void loadWorlds() {
@@ -66,35 +71,53 @@ public class DestrumWorldSelectScreen extends Screen {
         try {
             LevelStorage storage = Interface.aM_.getLevelStorage();
             LevelStorage.LevelList list = storage.getLevelList();
-            storage.loadSummaries(list).thenAccept(summaries -> {
-                this.allWorlds.clear();
-                this.allWorlds.addAll(summaries);
-                this.allWorlds.sort(Comparator.comparingLong(LevelSummary::getLastPlayed).reversed());
-                this.loading = false;
-                filterWorlds();
-                loadIcons();
-            }).exceptionally(e -> {
-                this.loading = false;
+            storage.loadSummaries(list).thenAcceptAsync(summaries -> {
+                if (this.closed) return;
+                List<LevelSummary> sorted = new ArrayList<>(summaries);
+                sorted.sort(Comparator.comparingLong(LevelSummary::getLastPlayed).reversed());
+
+                // Decode icons in background worker thread for 100% smooth UI
+                Map<String, NativeImage> loadedImages = new HashMap<>();
+                for (LevelSummary s : sorted) {
+                    Path iconPath = s.getIconPath();
+                    if (iconPath != null && Files.isRegularFile(iconPath)) {
+                        try (InputStream is = Files.newInputStream(iconPath)) {
+                            NativeImage raw = NativeImage.read(is);
+                            NativeImage crisp = CrispTexture.upscaleToCrisp(raw);
+                            raw.close();
+                            if (crisp != null) {
+                                loadedImages.put(s.getName(), crisp);
+                            }
+                        } catch (Exception ignored) {
+                        }
+                    }
+                }
+
+                // Safely update UI and upload textures on render thread
+                RenderSystem.recordRenderCall(() -> {
+                    if (this.closed) {
+                        for (NativeImage img : loadedImages.values()) {
+                            img.close();
+                        }
+                        return;
+                    }
+                    this.allWorlds.clear();
+                    this.allWorlds.addAll(sorted);
+                    this.loading = false;
+                    this.worldsLoaded = true;
+                    filterWorlds();
+
+                    for (Map.Entry<String, NativeImage> entry : loadedImages.entrySet()) {
+                        CrispTexture ct = this.icons.computeIfAbsent(entry.getKey(), k -> new CrispTexture("world_" + Math.abs(entry.getKey().hashCode())));
+                        ct.upload(entry.getValue());
+                    }
+                });
+            }, Util.getMainWorkerExecutor()).exceptionally(e -> {
+                RenderSystem.recordRenderCall(() -> this.loading = false);
                 return null;
             });
         } catch (Exception e) {
             this.loading = false;
-        }
-    }
-
-    private void loadIcons() {
-        for (LevelSummary s : this.allWorlds) {
-            if (!this.icons.containsKey(s.getName())) {
-                WorldIcon icon = WorldIcon.forWorld(Interface.aM_.getTextureManager(), s.getName());
-                Path iconPath = s.getIconPath();
-                if (iconPath != null && Files.isRegularFile(iconPath)) {
-                    try (InputStream is = Files.newInputStream(iconPath)) {
-                        icon.load(NativeImage.read(is));
-                    } catch (Exception ignored) {
-                    }
-                }
-                this.icons.put(s.getName(), icon);
-            }
         }
     }
 
@@ -209,17 +232,12 @@ public class DestrumWorldSelectScreen extends Screen {
                 int borderColor = ColorUtil.a(ColorUtil.a(255, 255, 255, 30), primary, anim);
                 draw.a(matrices, curCardX, drawCardY, cardW, cardH, radius, 1.0f + anim * 0.5f, borderColor);
 
-                // World thumbnail image
+                // Crisp world thumbnail image (crystal clear, zero blur)
                 float iconPad = 8.0f;
                 float iconSize = cardW - (iconPad * 2.0f);
-                WorldIcon icon = this.icons.get(world.getName());
-                Identifier iconId = (icon != null) ? icon.getTextureId() : Identifier.ofVanilla("textures/misc/unknown_server.png");
+                CrispTexture icon = this.icons.get(world.getName());
+                Identifier iconId = (icon != null) ? icon.getId() : Identifier.ofVanilla("textures/misc/unknown_server.png");
                 draw.a(matrices, iconId, curCardX + iconPad, drawCardY + iconPad, iconSize, iconSize, 12.0f, -1);
-
-                // Bottom gradient inside card for text readability
-                draw.a(matrices, curCardX + iconPad, drawCardY + iconPad + iconSize * 0.65f, iconSize, iconSize * 0.35f, 12.0f,
-                    ColorUtil.a(10, 10, 15, 0), ColorUtil.a(10, 10, 15, 0),
-                    ColorUtil.a(10, 10, 15, 220), ColorUtil.a(10, 10, 15, 220));
 
                 // Title below card
                 String worldName = world.getDisplayName();
@@ -410,6 +428,7 @@ public class DestrumWorldSelectScreen extends Screen {
                     LevelStorage.Session session = Interface.aM_.getLevelStorage().createSession(world.getName());
                     EditWorldScreen editScreen = EditWorldScreen.create(Interface.aM_, session, confirmed -> {
                         Interface.aM_.setScreen(this);
+                        this.worldsLoaded = false;
                         loadWorlds();
                     });
                     Interface.aM_.setScreen(editScreen);
@@ -431,6 +450,7 @@ public class DestrumWorldSelectScreen extends Screen {
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
+                        this.worldsLoaded = false;
                         loadWorlds();
                     }
                     Interface.aM_.setScreen(this);
@@ -506,7 +526,8 @@ public class DestrumWorldSelectScreen extends Screen {
 
     @Override
     public void removed() {
-        for (WorldIcon icon : this.icons.values()) {
+        this.closed = true;
+        for (CrispTexture icon : this.icons.values()) {
             try {
                 icon.close();
             } catch (Exception ignored) {

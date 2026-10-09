@@ -4,16 +4,17 @@ import aethereal.config.ThemeInfo;
 import aethereal.core.Delta;
 import aethereal.core.Interface;
 import aethereal.render.ColorUtil;
+import aethereal.render.CrispTexture;
 import aethereal.render.Draw2DProcessor;
 import aethereal.render.Fonts;
 import aethereal.render.ScaleUtil;
 import aethereal.util.MathUtil;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.multiplayer.AddServerScreen;
 import net.minecraft.client.gui.screen.multiplayer.ConnectScreen;
 import net.minecraft.client.gui.screen.multiplayer.DirectConnectScreen;
-import net.minecraft.client.gui.screen.world.WorldIcon;
 import net.minecraft.client.network.MultiplayerServerListPinger;
 import net.minecraft.client.network.ServerAddress;
 import net.minecraft.client.network.ServerInfo;
@@ -22,16 +23,18 @@ import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public class DestrumServerSelectScreen extends Screen {
     private final Screen parent;
     private ServerList serverList;
     private final List<ServerInfo> allServers = new ArrayList<>();
     private final List<ServerInfo> filteredServers = new ArrayList<>();
-    private final Map<String, WorldIcon> icons = new HashMap<>();
+    private final Map<String, CrispTexture> icons = new HashMap<>();
     private final Map<String, Float> hoverAnimations = new HashMap<>();
     private final MultiplayerServerListPinger pinger = new MultiplayerServerListPinger();
 
@@ -45,6 +48,8 @@ public class DestrumServerSelectScreen extends Screen {
     private ServerInfo contextServer = null;
     private float contextMenuX = 0.0f;
     private float contextMenuY = 0.0f;
+    private boolean serversLoaded = false;
+    private volatile boolean closed = false;
 
     public DestrumServerSelectScreen(Screen parent) {
         super(Text.literal("Сетевая игра"));
@@ -54,7 +59,9 @@ public class DestrumServerSelectScreen extends Screen {
     @Override
     protected void init() {
         super.init();
-        loadServers();
+        if (!this.serversLoaded) {
+            loadServers();
+        }
     }
 
     private void loadServers() {
@@ -62,25 +69,48 @@ public class DestrumServerSelectScreen extends Screen {
         this.serverList.loadFile();
         this.allServers.clear();
         for (int i = 0; i < this.serverList.size(); i++) {
-            ServerInfo s = this.serverList.get(i);
-            this.allServers.add(s);
-            try {
-                this.pinger.add(s, () -> {}, () -> {});
-            } catch (Exception ignored) {
-            }
-            if (!this.icons.containsKey(s.address)) {
-                WorldIcon icon = WorldIcon.forServer(Interface.aM_.getTextureManager(), s.address);
-                byte[] favicon = s.getFavicon();
-                if (favicon != null && favicon.length > 0) {
-                    try {
-                        icon.load(NativeImage.read(favicon));
-                    } catch (Exception ignored) {
-                    }
-                }
-                this.icons.put(s.address, icon);
-            }
+            this.allServers.add(this.serverList.get(i));
         }
+        this.serversLoaded = true;
         filterServers();
+
+        // Offload all DNS resolving, pinger connections, and favicon decompression to background threads
+        List<ServerInfo> serversToPing = new ArrayList<>(this.allServers);
+        CompletableFuture.runAsync(() -> {
+            for (ServerInfo s : serversToPing) {
+                if (this.closed) break;
+                loadFaviconAsync(s);
+                try {
+                    this.pinger.add(s, () -> loadFaviconAsync(s), () -> {});
+                } catch (Exception ignored) {
+                }
+            }
+        }, Util.getMainWorkerExecutor());
+    }
+
+    private void loadFaviconAsync(ServerInfo s) {
+        byte[] favicon = s.getFavicon();
+        if (favicon != null && favicon.length > 0) {
+            CompletableFuture.runAsync(() -> {
+                if (this.closed) return;
+                try {
+                    NativeImage raw = NativeImage.read(favicon);
+                    NativeImage crisp = CrispTexture.upscaleToCrisp(raw);
+                    raw.close();
+                    if (crisp != null) {
+                        RenderSystem.recordRenderCall(() -> {
+                            if (this.closed) {
+                                crisp.close();
+                                return;
+                            }
+                            CrispTexture ct = this.icons.computeIfAbsent(s.address, k -> new CrispTexture("server_" + Math.abs(s.address.hashCode())));
+                            ct.upload(crisp);
+                        });
+                    }
+                } catch (Exception ignored) {
+                }
+            }, Util.getMainWorkerExecutor());
+        }
     }
 
     private void filterServers() {
@@ -205,17 +235,12 @@ public class DestrumServerSelectScreen extends Screen {
             int borderColor = ColorUtil.a(ColorUtil.a(255, 255, 255, 30), primary, anim);
             draw.a(matrices, curCardX, drawCardY, cardW, cardH, radius, 1.0f + anim * 0.5f, borderColor);
 
-            // Favicon image
+            // Crisp favicon image
             float iconPad = 8.0f;
             float iconSize = cardW - (iconPad * 2.0f);
-            WorldIcon icon = this.icons.get(server.address);
-            Identifier iconId = (icon != null) ? icon.getTextureId() : Identifier.ofVanilla("textures/misc/unknown_server.png");
+            CrispTexture icon = this.icons.get(server.address);
+            Identifier iconId = (icon != null) ? icon.getId() : Identifier.ofVanilla("textures/misc/unknown_server.png");
             draw.a(matrices, iconId, curCardX + iconPad, drawCardY + iconPad, iconSize, iconSize, 12.0f, -1);
-
-            // Bottom gradient inside card
-            draw.a(matrices, curCardX + iconPad, drawCardY + iconPad + iconSize * 0.65f, iconSize, iconSize * 0.35f, 12.0f,
-                ColorUtil.a(10, 10, 15, 0), ColorUtil.a(10, 10, 15, 0),
-                ColorUtil.a(10, 10, 15, 220), ColorUtil.a(10, 10, 15, 220));
 
             // Ping badge in top-right of card
             int pingCol = (server.ping < 0) ? ColorUtil.a(200, 70, 70, 230) : (server.ping < 120 ? ColorUtil.a(80, 220, 110, 230) : ColorUtil.a(230, 180, 50, 230));
@@ -391,6 +416,7 @@ public class DestrumServerSelectScreen extends Screen {
                 if (confirmed) {
                     this.serverList.add(newServer, false);
                     this.serverList.saveFile();
+                    this.serversLoaded = false;
                     loadServers();
                 }
                 Interface.aM_.setScreen(this);
@@ -415,6 +441,7 @@ public class DestrumServerSelectScreen extends Screen {
                 Interface.aM_.setScreen(new AddServerScreen(this, confirmed -> {
                     if (confirmed) {
                         this.serverList.saveFile();
+                        this.serversLoaded = false;
                         loadServers();
                     }
                     Interface.aM_.setScreen(this);
@@ -423,6 +450,7 @@ public class DestrumServerSelectScreen extends Screen {
             case 2 -> {
                 this.serverList.remove(server);
                 this.serverList.saveFile();
+                this.serversLoaded = false;
                 loadServers();
             }
         }
@@ -495,8 +523,9 @@ public class DestrumServerSelectScreen extends Screen {
 
     @Override
     public void removed() {
+        this.closed = true;
         this.pinger.cancel();
-        for (WorldIcon icon : this.icons.values()) {
+        for (CrispTexture icon : this.icons.values()) {
             try {
                 icon.close();
             } catch (Exception ignored) {
