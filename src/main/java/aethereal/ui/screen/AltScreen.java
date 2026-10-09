@@ -12,6 +12,7 @@ import aethereal.render.Fonts;
 import aethereal.render.ColorUtil;
 import aethereal.util.MathUtil;
 
+import aethereal.config.MainMenuConfig;
 import aethereal.config.ThemeInfo;
 import aethereal.core.Delta;
 import aethereal.core.Processor_2;
@@ -356,7 +357,12 @@ public class AltScreen extends Screen {
     }
 
     private int a(float open) {
-        int rgba = Delta.h().d().o().a(ThemeInfo.PRIMARY).a();
+        int rgba;
+        if (MainMenuConfig.getInstance().getBackgroundMode() == MainMenuConfig.BackgroundMode.DESTRUM_V2) {
+            rgba = ColorUtil.a(255, 175, 65, 255); // Warm sunset golden amber matching Destrum-V2
+        } else {
+            rgba = Delta.h().d().o().a(ThemeInfo.PRIMARY).a();
+        }
         return (rgba & 16777215) | (((int) (((rgba >>> 24) & 255) * open)) << 24);
     }
 

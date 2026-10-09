@@ -5,6 +5,7 @@ import aethereal.core.Delta;
 import aethereal.core.Interface;
 import aethereal.render.ColorUtil;
 import aethereal.render.CrispTexture;
+import aethereal.render.DestrumIconRenderer;
 import aethereal.render.Draw2DProcessor;
 import aethereal.render.Fonts;
 import aethereal.render.ScaleUtil;
@@ -51,6 +52,7 @@ public class DestrumWorldSelectScreen extends Screen {
     private boolean loading = true;
     private boolean worldsLoaded = false;
     private volatile boolean closed = false;
+    private float openProgress = 0.0f;
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd.MM.yyyy HH:mm");
 
     public DestrumWorldSelectScreen(Screen parent) {
@@ -144,7 +146,17 @@ public class DestrumWorldSelectScreen extends Screen {
 
         MatrixStack matrices = context.getMatrices();
         Draw2DProcessor draw = Delta.h().d().i();
-        int primary = ThemeInfo.PRIMARY.a().a();
+        int sunsetAccent = ColorUtil.a(255, 175, 65, 255); // Warm sunset golden amber matching Destrum-V2
+
+        // Smooth opening ease-out animation
+        this.openProgress = MathUtil.c(this.openProgress, 1.0f, 10.0f);
+        float ease = (float) (1.0 - Math.pow(1.0 - this.openProgress, 3.0));
+
+        matrices.push();
+        matrices.translate(width * 0.5f, height * 0.5f + (1.0f - ease) * 16.0f, 0.0f);
+        float enterScale = 0.96f + 0.04f * ease;
+        matrices.scale(enterScale, enterScale, 1.0f);
+        matrices.translate(-width * 0.5f, -height * 0.5f, 0.0f);
 
         // Smooth scroll interpolation
         float cardW = 120.0f;
@@ -157,7 +169,7 @@ public class DestrumWorldSelectScreen extends Screen {
         this.scrollX = MathUtil.c(this.scrollX, this.targetScrollX, 14.0f);
 
         // Dark ambient overlay for cards contrast
-        draw.a(matrices, 0.0f, 0.0f, (float) width, (float) height, 0.0f, ColorUtil.a(0, 0, 0, 45));
+        draw.a(matrices, 0.0f, 0.0f, (float) width, (float) height, 0.0f, ColorUtil.a(0, 0, 0, (int) (45.0f * ease)));
 
         // 2. Top Header
         // Back button
@@ -166,8 +178,8 @@ public class DestrumWorldSelectScreen extends Screen {
         float backSize = 22.0f;
         boolean backHover = MathUtil.a(dA, dA2, backX, backY, backSize, backSize);
         draw.a(matrices, backX, backY, backSize, backSize, backSize * 0.5f, ColorUtil.a(20, 24, 34, backHover ? 210 : 150));
-        draw.a(matrices, backX, backY, backSize, backSize, backSize * 0.5f, 1.0f, backHover ? primary : ColorUtil.a(255, 255, 255, 40));
-        Fonts.c.a(matrices, "←", backX + 7.0f, backY + 5.0f, 8.5f, -1);
+        draw.a(matrices, backX, backY, backSize, backSize, backSize * 0.5f, 1.0f, backHover ? sunsetAccent : ColorUtil.a(255, 255, 255, 40));
+        Fonts.c.a(matrices, "←", backX + 7.0f, backY + 5.0f, 8.5f, backHover ? sunsetAccent : -1);
 
         // Title & Subtitle
         String title = "Одиночная игра";
@@ -185,15 +197,15 @@ public class DestrumWorldSelectScreen extends Screen {
         float searchY = 48.0f;
         boolean searchHover = MathUtil.a(dA, dA2, searchX, searchY, searchW, searchH);
         draw.a(matrices, searchX, searchY, searchW, searchH, 9.5f, ColorUtil.a(15, 18, 26, 185));
-        draw.a(matrices, searchX, searchY, searchW, searchH, 9.5f, 1.0f, this.searchFocused ? primary : (searchHover ? ColorUtil.a(255, 255, 255, 75) : ColorUtil.a(255, 255, 255, 30)));
-        Fonts.a.a(matrices, "G", searchX + 8.0f, searchY + 5.5f, 8.0f, this.searchFocused ? primary : ColorUtil.a(180, 185, 200, 190));
+        draw.a(matrices, searchX, searchY, searchW, searchH, 9.5f, 1.0f, this.searchFocused ? sunsetAccent : (searchHover ? ColorUtil.a(255, 255, 255, 75) : ColorUtil.a(255, 255, 255, 30)));
+        Fonts.a.a(matrices, "G", searchX + 8.0f, searchY + 5.5f, 8.0f, this.searchFocused ? sunsetAccent : ColorUtil.a(180, 185, 200, 190));
 
         String displayText = this.searchQuery.isEmpty() && !this.searchFocused ? "Поиск..." : this.searchQuery;
         int textColor = this.searchQuery.isEmpty() && !this.searchFocused ? ColorUtil.a(140, 145, 160, 180) : -1;
         Fonts.c.a(matrices, displayText, searchX + 22.0f, searchY + 5.5f, 7.5f, textColor);
         if (this.searchFocused && (System.currentTimeMillis() / 500) % 2 == 0) {
             float textOffset = Fonts.c.a(this.searchQuery, 7.5f);
-            draw.a(matrices, searchX + 23.0f + textOffset, searchY + 4.5f, 1.0f, 10.0f, 0.5f, primary);
+            draw.a(matrices, searchX + 23.0f + textOffset, searchY + 4.5f, 1.0f, 10.0f, 0.5f, sunsetAccent);
         }
 
         // 3. Carousel Cards
@@ -229,15 +241,15 @@ public class DestrumWorldSelectScreen extends Screen {
 
                 // Card background & glass outline
                 draw.a(matrices, curCardX, drawCardY, cardW, cardH, radius, ColorUtil.a(16, 20, 28, (int) (155.0f + anim * 50.0f)));
-                int borderColor = ColorUtil.a(ColorUtil.a(255, 255, 255, 30), primary, anim);
+                int borderColor = ColorUtil.a(ColorUtil.a(255, 255, 255, 30), sunsetAccent, anim);
                 draw.a(matrices, curCardX, drawCardY, cardW, cardH, radius, 1.0f + anim * 0.5f, borderColor);
 
-                // Crisp world thumbnail image (crystal clear, zero blur)
-                float iconPad = 8.0f;
+                // Crisp world thumbnail image (fills card with neat 5px border, crystal clear)
+                float iconPad = 5.0f;
                 float iconSize = cardW - (iconPad * 2.0f);
                 CrispTexture icon = this.icons.get(world.getName());
                 Identifier iconId = (icon != null) ? icon.getId() : Identifier.ofVanilla("textures/misc/unknown_server.png");
-                draw.a(matrices, iconId, curCardX + iconPad, drawCardY + iconPad, iconSize, iconSize, 12.0f, -1);
+                draw.a(matrices, iconId, curCardX + iconPad, drawCardY + iconPad, iconSize, iconSize, 13.0f, -1);
 
                 // Title below card
                 String worldName = world.getDisplayName();
@@ -269,25 +281,25 @@ public class DestrumWorldSelectScreen extends Screen {
                 float plusRadius = 16.0f;
 
                 draw.a(matrices, plusCardX, drawPlusY, cardW, cardH, plusRadius, ColorUtil.a(18, 22, 32, (int) (140.0f + plusAnim * 50.0f)));
-                int plusBorder = ColorUtil.a(ColorUtil.a(255, 255, 255, 30), primary, plusAnim);
+                int plusBorder = ColorUtil.a(ColorUtil.a(255, 255, 255, 30), sunsetAccent, plusAnim);
                 draw.a(matrices, plusCardX, drawPlusY, cardW, cardH, plusRadius, 1.0f + plusAnim * 0.5f, plusBorder);
 
-                // "+" Plus Icon centered
-                float plusIconW = Fonts.c.a("+", 24.0f);
-                Fonts.c.a(matrices, "+", plusCardX + (cardW - plusIconW) * 0.5f, drawPlusY + 38.0f, 24.0f, ColorUtil.a(255, 255, 255, (int) (190.0f + plusAnim * 65.0f)));
+                // 3D Volumetric '+' Plus Badge centered (matching reference video)
+                DestrumIconRenderer.render3DPlusBadge(matrices, draw, plusCardX + cardW * 0.5f, drawPlusY + cardH * 0.44f, plusHover, plusAnim, sunsetAccent);
 
                 // Label below card
                 String plusLabel = "Новый мир";
                 float labelW = Fonts.c.a(plusLabel, 7.5f);
-                Fonts.c.a(matrices, plusLabel, plusCardX + (cardW - labelW) * 0.5f, drawPlusY + cardH + 7.5f, 7.5f, -1);
+                Fonts.c.a(matrices, plusLabel, plusCardX + (cardW - labelW) * 0.5f, drawPlusY + cardH + 7.5f, 7.5f, plusHover ? sunsetAccent : -1);
             }
         }
 
         // 4. Context Menu Popup (ПКМ)
         if (this.contextWorld != null) {
-            renderContextMenu(matrices, draw, dA, dA2, primary);
+            renderContextMenu(matrices, draw, dA, dA2, sunsetAccent);
         }
 
+        matrices.pop();
         ScaleUtil.a(context);
     }
 
@@ -308,7 +320,7 @@ public class DestrumWorldSelectScreen extends Screen {
             if (itemHover) {
                 draw.a(matrices, mX + 4.0f, itemY, menuW - 8.0f, itemH, 5.0f, ColorUtil.a(primary, 50));
             }
-            int itemCol = (i == 3) ? (itemHover ? ColorUtil.a(255, 90, 90, 255) : ColorUtil.a(240, 110, 110, 220)) : (itemHover ? -1 : ColorUtil.a(200, 205, 220, 230));
+            int itemCol = (i == 3) ? (itemHover ? ColorUtil.a(255, 90, 90, 255) : ColorUtil.a(240, 110, 110, 220)) : (itemHover ? primary : ColorUtil.a(200, 205, 220, 230));
             Fonts.c.a(matrices, items[i], mX + 10.0f, itemY + 5.0f, 7.0f, itemCol);
         }
     }

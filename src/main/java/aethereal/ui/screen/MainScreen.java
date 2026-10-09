@@ -1,6 +1,7 @@
 package aethereal.ui.screen;
 
 import aethereal.render.ScaleUtil;
+import aethereal.render.DestrumIconRenderer;
 import aethereal.core.NativeMethodLookup;
 import aethereal.ui.shader.GradientUtil;
 import aethereal.ui.widget.EffectMarker;
@@ -509,14 +510,15 @@ public class MainScreen extends Screen {
         }
 
         // 2. Action Dock (5 Circular Frosted Buttons)
-        float btnSize = 38.0f;
+        float btnSize = 27.0f;
         float btnRadius = btnSize * 0.5f;
-        float btnGap = 16.0f;
+        float btnGap = 13.0f;
         int btnCount = 5;
         float totalDockW = btnCount * btnSize + (btnCount - 1) * btnGap;
         float dockX = (width - totalDockW) * 0.5f;
-        float dockY = height * 0.52f;
+        float dockY = height * 0.53f;
 
+        int sunsetAccent = ColorUtil.a(255, 175, 65, 255); // Warm sunset golden amber matching Destrum-V2
         String[] labels = {"Одиночная", "Сетевая", "Аккаунты", "Настройки", "Выход"};
 
         for (int i = 0; i < btnCount; i++) {
@@ -524,79 +526,51 @@ public class MainScreen extends Screen {
             float btnY = dockY;
             boolean isHover = MathUtil.a((double) mouseX, (double) mouseY, btnX, btnY, btnSize, btnSize) && !this.modalOpen;
 
-            // Hover bloom
+            // Hover bloom in warm sunset amber
             if (isHover) {
-                draw.a(matrices, BLOOM_TEXTURE, btnX - 12.0f, btnY - 12.0f, btnSize + 24.0f, btnSize + 24.0f, 0.0f, ColorUtil.a(primary, (int) (70.0f * alpha)));
+                draw.a(matrices, BLOOM_TEXTURE, btnX - 10.0f, btnY - 10.0f, btnSize + 20.0f, btnSize + 20.0f, 0.0f, ColorUtil.a(255, 160, 50, (int) (85.0f * alpha)));
             }
 
             // Circle background
-            draw.a(matrices, btnX, btnY, btnSize, btnSize, btnRadius, ColorUtil.a(18, 22, 32, (int) ((isHover ? 210.0f : 150.0f) * alpha)));
-            int borderCol = isHover ? primary : ColorUtil.a(255, 255, 255, (int) (40.0f * alpha));
-            draw.a(matrices, btnX, btnY, btnSize, btnSize, btnRadius, isHover ? 1.5f : 1.0f, borderCol);
+            int bgCol = isHover ? ColorUtil.a(36, 24, 18, (int) (210.0f * alpha)) : ColorUtil.a(18, 22, 32, (int) (150.0f * alpha));
+            draw.a(matrices, btnX, btnY, btnSize, btnSize, btnRadius, bgCol);
+            int borderCol = isHover ? sunsetAccent : ColorUtil.a(255, 255, 255, (int) (40.0f * alpha));
+            draw.a(matrices, btnX, btnY, btnSize, btnSize, btnRadius, isHover ? 1.35f : 1.0f, borderCol);
 
-            // Icon inside circle
-            int iconColor = isHover ? -1 : ColorUtil.a(220, 225, 235, (int) (215.0f * alpha));
-            renderDockIcon(matrices, draw, i, btnX, btnY, btnSize, iconColor, primary, isHover);
+            // 3D Vector Icon inside circle
+            float cx = btnX + btnSize * 0.5f;
+            float cy = btnY + btnSize * 0.5f;
+            switch (i) {
+                case 0 -> DestrumIconRenderer.render3DCube(matrices, draw, cx, cy, btnSize, isHover, 1.0f, sunsetAccent);
+                case 1 -> DestrumIconRenderer.render3DGlobe(matrices, draw, cx, cy, btnSize, isHover, 1.0f, sunsetAccent);
+                case 2 -> DestrumIconRenderer.render3DUser(matrices, draw, cx, cy, btnSize, isHover, 1.0f, sunsetAccent);
+                case 3 -> DestrumIconRenderer.render3DGear(matrices, draw, cx, cy, btnSize, isHover, 1.0f, sunsetAccent);
+                case 4 -> DestrumIconRenderer.render3DCrossExit(matrices, draw, cx, cy, btnSize, isHover, 1.0f, sunsetAccent);
+            }
 
-            // Label below circle
-            float labelW = Fonts.c.a(labels[i], 6.5f);
-            int labelCol = isHover ? -1 : ColorUtil.a(170, 175, 190, (int) (185.0f * alpha));
-            Fonts.c.a(matrices, labels[i], btnX + (btnSize - labelW) * 0.5f, btnY + btnSize + 8.0f, 6.5f, labelCol);
+            // Label below circle only when hovered (matching reference video clean look)
+            if (isHover) {
+                float labelW = Fonts.c.a(labels[i], 6.5f);
+                Fonts.c.a(matrices, labels[i], btnX + (btnSize - labelW) * 0.5f, btnY + btnSize + 7.5f, 6.5f, ColorUtil.a(255, 225, 160, (int) (250.0f * alpha)));
+            }
         }
 
-        // 3. Bottom Home Indicator Bar (iOS style)
+        // 3. Bottom Home Indicator Bar (iOS style, warm frosted capsule)
         float barW = 86.0f;
         float barH = 3.0f;
         float barX = (width - barW) * 0.5f;
         float barY = height - 14.0f;
-        draw.a(matrices, barX, barY, barW, barH, 1.5f, ColorUtil.a(130, 215, 255, (int) (170.0f * alpha)));
-    }
-
-    private void renderDockIcon(MatrixStack matrices, Draw2DProcessor draw, int index, float x, float y, float size, int color, int primary, boolean hover) {
-        float cx = x + size * 0.5f;
-        float cy = y + size * 0.5f;
-        switch (index) {
-            case 0 -> {
-                // Cube / World icon
-                float s = 7.0f;
-                draw.a(matrices, cx - s, cy - s * 0.6f, s * 2.0f, s * 1.2f, 2.0f, 1.0f, color);
-                draw.a(matrices, cx - 0.5f, cy, 1.0f, s, 0.5f, color);
-                draw.a(matrices, cx - s, cy - s * 0.2f, s * 2.0f, s * 1.3f, 3.0f, 1.0f, color);
-            }
-            case 1 -> {
-                // Globe / Network icon
-                float r = 7.5f;
-                draw.a(matrices, cx - r, cy - r, r * 2.0f, r * 2.0f, r, 1.0f, color);
-                draw.a(matrices, cx - r + 1.0f, cy - 0.5f, (r - 1.0f) * 2.0f, 1.0f, 0.5f, color);
-                draw.a(matrices, cx - 3.5f, cy - r + 1.0f, 7.0f, (r - 1.0f) * 2.0f, 3.5f, 1.0f, color);
-            }
-            case 2 -> {
-                // Player / Accounts icon
-                float headR = 3.8f;
-                draw.a(matrices, cx - headR, cy - 7.5f, headR * 2.0f, headR * 2.0f, headR, color);
-                draw.a(matrices, cx - 6.5f, cy - 0.5f, 13.0f, 7.0f, 3.5f, color);
-            }
-            case 3 -> {
-                // Settings Gear
-                float iconW = Fonts.a.a("%", 12.0f);
-                Fonts.a.a(matrices, "%", cx - iconW * 0.5f, cy - 6.0f, 12.0f, hover ? primary : color);
-            }
-            case 4 -> {
-                // Exit / Power
-                float iconW = Fonts.a.a("u", 10.5f);
-                Fonts.a.a(matrices, "u", cx - iconW * 0.5f, cy - 5.5f, 10.5f, hover ? ColorUtil.a(255, 80, 80, 255) : color);
-            }
-        }
+        draw.a(matrices, barX, barY, barW, barH, 1.5f, ColorUtil.a(255, 205, 145, (int) (175.0f * alpha)));
     }
 
     private boolean handleDestrumV2Click(double mouseX, double mouseY, int button, int width, int height) {
         if (button != 0) return false;
-        float btnSize = 38.0f;
-        float btnGap = 16.0f;
+        float btnSize = 27.0f;
+        float btnGap = 13.0f;
         int btnCount = 5;
         float totalDockW = btnCount * btnSize + (btnCount - 1) * btnGap;
         float dockX = (width - totalDockW) * 0.5f;
-        float dockY = height * 0.52f;
+        float dockY = height * 0.53f;
 
         for (int i = 0; i < btnCount; i++) {
             float btnX = dockX + i * (btnSize + btnGap);
