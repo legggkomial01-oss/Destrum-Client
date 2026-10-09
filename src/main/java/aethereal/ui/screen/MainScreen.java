@@ -40,6 +40,11 @@ import net.minecraft.client.gui.screen.world.SelectWorldScreen;
 import net.minecraft.sound.MusicSound;
 import net.minecraft.sound.MusicType;
 import org.joml.Quaternionf;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
+import java.util.Locale;
 
 public class MainScreen extends Screen {
     private static final float[] a;
@@ -213,17 +218,22 @@ public class MainScreen extends Screen {
         int iMethod_4502 = Interface.aM_.getWindow().getScaledHeight();
         a(context, iMethod_4486, iMethod_4502, (int) dA, (int) dA2, 1.25f - (EasingList.s.ease(fMin) * 0.2f));
         Delta.h().d().i().e().a(context.getMatrices());
-        a(iMethod_4486, iMethod_4502);
-        a(context, iMethod_4486 * 0.5f, ((iMethod_4502 - this.c.c()) * 0.5f) - 58.0f, fMin);
-        Iterator<Button> it = this.g.iterator();
-        while (it.hasNext()) {
-            it.next().a(context, (int) dA, (int) dA2, delta, fMin);
+        MainMenuConfig cfg = MainMenuConfig.getInstance();
+        if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.DESTRUM_V2) {
+            renderDestrumV2UI(context, iMethod_4486, iMethod_4502, (int) dA, (int) dA2, delta, fMin);
+        } else {
+            a(iMethod_4486, iMethod_4502);
+            a(context, iMethod_4486 * 0.5f, ((iMethod_4502 - this.c.c()) * 0.5f) - 58.0f, fMin);
+            Iterator<Button> it = this.g.iterator();
+            while (it.hasNext()) {
+                it.next().a(context, (int) dA, (int) dA2, delta, fMin);
+            }
+            a(context, fMin, (int) dA);
+            a(context, iMethod_4486, iMethod_4502);
         }
-        a(context, fMin, (int) dA);
         renderGearButton(context, iMethod_4486, (int) dA, (int) dA2, delta, fMin);
         EffectMarker.a(context.getMatrices(), delta, this.h);
         renderSettingsModal(context, iMethod_4486, iMethod_4502, (int) dA, (int) dA2, delta);
-        a(context, iMethod_4486, iMethod_4502);
         ScaleUtil.a(context);
     }
 
@@ -249,15 +259,24 @@ public class MainScreen extends Screen {
         List<EffectMarker.a> list = this.h;
         List<Button> list2 = this.g;
         EffectMarker.a(list, (float) dA, (float) dA2);
-        float f = this.k + 1.75f + (this.i * 59.5f);
-        if (MathUtil.a(dA, dA2, f, this.l + 1.75f, 16.0f, 16.0f)) {
-            this.j = ((float) dA) - f;
-            return true;
-        }
-        for (Button button2 : list2) {
-            if (button2.e() != null && MathUtil.a(dA, dA2, button2.f(), button2.g(), button2.b(), button2.c())) {
-                button2.e().run();
+        MainMenuConfig cfg = MainMenuConfig.getInstance();
+        if (cfg.getBackgroundMode() == MainMenuConfig.BackgroundMode.DESTRUM_V2) {
+            int width = Interface.aM_.getWindow().getScaledWidth();
+            int height = Interface.aM_.getWindow().getScaledHeight();
+            if (handleDestrumV2Click(dA, dA2, button, width, height)) {
                 return true;
+            }
+        } else {
+            float f = this.k + 1.75f + (this.i * 59.5f);
+            if (MathUtil.a(dA, dA2, f, this.l + 1.75f, 16.0f, 16.0f)) {
+                this.j = ((float) dA) - f;
+                return true;
+            }
+            for (Button button2 : list2) {
+                if (button2.e() != null && MathUtil.a(dA, dA2, button2.f(), button2.g(), button2.b(), button2.c())) {
+                    button2.e().run();
+                    return true;
+                }
             }
         }
         return super.mouseClicked(dA, dA2, button);
@@ -321,10 +340,18 @@ public class MainScreen extends Screen {
         }
         MainMenuConfig cfg = MainMenuConfig.getInstance();
         this.c = new Button(70.0f, 21.0f, cfg.getSingleplayerText(), () -> {
-            Interface.aM_.setScreen(new SelectWorldScreen((Screen) null));
+            if (MainMenuConfig.getInstance().getBackgroundMode() == MainMenuConfig.BackgroundMode.DESTRUM_V2) {
+                Interface.aM_.setScreen(new DestrumWorldSelectScreen(this));
+            } else {
+                Interface.aM_.setScreen(new SelectWorldScreen((Screen) null));
+            }
         });
         this.d = new Button(70.0f, 21.0f, cfg.getMultiplayerText(), () -> {
-            Interface.aM_.setScreen(new MultiplayerScreen((Screen) null));
+            if (MainMenuConfig.getInstance().getBackgroundMode() == MainMenuConfig.BackgroundMode.DESTRUM_V2) {
+                Interface.aM_.setScreen(new DestrumServerSelectScreen(this));
+            } else {
+                Interface.aM_.setScreen(new MultiplayerScreen((Screen) null));
+            }
         });
         this.e = new Button(144.0f, 20.0f, cfg.getAltManagerText(), () -> {
             Interface.aM_.setScreen(new AltScreen());
@@ -448,6 +475,144 @@ public class MainScreen extends Screen {
             ColorUtil.a(12, 8, 16, 65), ColorUtil.a(12, 8, 16, 0));
 
         matrices.pop();
+    }
+
+    private void renderDestrumV2UI(DrawContext context, int width, int height, int mouseX, int mouseY, float delta, float alpha) {
+        MatrixStack matrices = context.getMatrices();
+        Draw2DProcessor draw = Delta.h().d().i();
+        int primary = ThemeInfo.PRIMARY.a().a();
+
+        // 1. Top Lockscreen Header Widget
+        try {
+            LocalDate today = LocalDate.now();
+            String dow = today.getDayOfWeek().getDisplayName(TextStyle.FULL, new Locale("ru", "RU"));
+            dow = dow.substring(0, 1).toUpperCase() + dow.substring(1);
+            String month = today.getMonth().getDisplayName(TextStyle.FULL, new Locale("ru", "RU"));
+            String dateStr = dow + ", " + today.getDayOfMonth() + " " + month;
+
+            float dateW = Fonts.c.a(dateStr, 8.0f);
+            Fonts.c.a(matrices, dateStr, (width - dateW) * 0.5f, height * 0.16f, 8.0f, ColorUtil.a(240, 245, 255, (int) (220.0f * alpha)));
+
+            String timeStr = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
+            float clockW = Fonts.b.a(timeStr, 34.0f);
+            draw.a(matrices, BLOOM_TEXTURE, (width - clockW) * 0.5f - 20.0f, height * 0.16f + 2.0f, clockW + 40.0f, 44.0f, 0.0f, ColorUtil.a(255, 200, 120, (int) (35.0f * alpha)));
+            Fonts.b.a(matrices, timeStr, (width - clockW) * 0.5f, height * 0.16f + 12.0f, 34.0f, ColorUtil.a(255, 255, 255, (int) (255.0f * alpha)));
+
+            String brand = "Destrum Client";
+            float brandW = Fonts.c.a(brand, 7.5f);
+            Fonts.c.a(matrices, brand, (width - brandW) * 0.5f, height * 0.16f + 50.0f, 7.5f, ColorUtil.a(255, 255, 255, (int) (230.0f * alpha)));
+
+            String ver = "1.21.4";
+            float verW = Fonts.c.a(ver, 6.25f);
+            Fonts.c.a(matrices, ver, (width - verW) * 0.5f, height * 0.16f + 60.5f, 6.25f, ColorUtil.a(180, 185, 200, (int) (190.0f * alpha)));
+        } catch (Exception ignored) {
+        }
+
+        // 2. Action Dock (5 Circular Frosted Buttons)
+        float btnSize = 38.0f;
+        float btnRadius = btnSize * 0.5f;
+        float btnGap = 16.0f;
+        int btnCount = 5;
+        float totalDockW = btnCount * btnSize + (btnCount - 1) * btnGap;
+        float dockX = (width - totalDockW) * 0.5f;
+        float dockY = height * 0.52f;
+
+        String[] labels = {"Одиночная", "Сетевая", "Аккаунты", "Настройки", "Выход"};
+
+        for (int i = 0; i < btnCount; i++) {
+            float btnX = dockX + i * (btnSize + btnGap);
+            float btnY = dockY;
+            boolean isHover = MathUtil.a((double) mouseX, (double) mouseY, btnX, btnY, btnSize, btnSize) && !this.modalOpen;
+
+            // Hover bloom
+            if (isHover) {
+                draw.a(matrices, BLOOM_TEXTURE, btnX - 12.0f, btnY - 12.0f, btnSize + 24.0f, btnSize + 24.0f, 0.0f, ColorUtil.a(primary, (int) (70.0f * alpha)));
+            }
+
+            // Circle background
+            draw.a(matrices, btnX, btnY, btnSize, btnSize, btnRadius, ColorUtil.a(18, 22, 32, (int) ((isHover ? 210.0f : 150.0f) * alpha)));
+            int borderCol = isHover ? primary : ColorUtil.a(255, 255, 255, (int) (40.0f * alpha));
+            draw.a(matrices, btnX, btnY, btnSize, btnSize, btnRadius, isHover ? 1.5f : 1.0f, borderCol);
+
+            // Icon inside circle
+            int iconColor = isHover ? -1 : ColorUtil.a(220, 225, 235, (int) (215.0f * alpha));
+            renderDockIcon(matrices, draw, i, btnX, btnY, btnSize, iconColor, primary, isHover);
+
+            // Label below circle
+            float labelW = Fonts.c.a(labels[i], 6.5f);
+            int labelCol = isHover ? -1 : ColorUtil.a(170, 175, 190, (int) (185.0f * alpha));
+            Fonts.c.a(matrices, labels[i], btnX + (btnSize - labelW) * 0.5f, btnY + btnSize + 8.0f, 6.5f, labelCol);
+        }
+
+        // 3. Bottom Home Indicator Bar (iOS style)
+        float barW = 86.0f;
+        float barH = 3.0f;
+        float barX = (width - barW) * 0.5f;
+        float barY = height - 14.0f;
+        draw.a(matrices, barX, barY, barW, barH, 1.5f, ColorUtil.a(130, 215, 255, (int) (170.0f * alpha)));
+    }
+
+    private void renderDockIcon(MatrixStack matrices, Draw2DProcessor draw, int index, float x, float y, float size, int color, int primary, boolean hover) {
+        float cx = x + size * 0.5f;
+        float cy = y + size * 0.5f;
+        switch (index) {
+            case 0 -> {
+                // Cube / World icon
+                float s = 7.0f;
+                draw.a(matrices, cx - s, cy - s * 0.6f, s * 2.0f, s * 1.2f, 2.0f, 1.0f, color);
+                draw.a(matrices, cx - 0.5f, cy, 1.0f, s, 0.5f, color);
+                draw.a(matrices, cx - s, cy - s * 0.2f, s * 2.0f, s * 1.3f, 3.0f, 1.0f, color);
+            }
+            case 1 -> {
+                // Globe / Network icon
+                float r = 7.5f;
+                draw.a(matrices, cx - r, cy - r, r * 2.0f, r * 2.0f, r, 1.0f, color);
+                draw.a(matrices, cx - r + 1.0f, cy - 0.5f, (r - 1.0f) * 2.0f, 1.0f, 0.5f, color);
+                draw.a(matrices, cx - 3.5f, cy - r + 1.0f, 7.0f, (r - 1.0f) * 2.0f, 3.5f, 1.0f, color);
+            }
+            case 2 -> {
+                // Player / Accounts icon
+                float headR = 3.8f;
+                draw.a(matrices, cx - headR, cy - 7.5f, headR * 2.0f, headR * 2.0f, headR, color);
+                draw.a(matrices, cx - 6.5f, cy - 0.5f, 13.0f, 7.0f, 3.5f, color);
+            }
+            case 3 -> {
+                // Settings Gear
+                float iconW = Fonts.a.a("%", 12.0f);
+                Fonts.a.a(matrices, "%", cx - iconW * 0.5f, cy - 6.0f, 12.0f, hover ? primary : color);
+            }
+            case 4 -> {
+                // Exit / Power
+                float iconW = Fonts.a.a("u", 10.5f);
+                Fonts.a.a(matrices, "u", cx - iconW * 0.5f, cy - 5.5f, 10.5f, hover ? ColorUtil.a(255, 80, 80, 255) : color);
+            }
+        }
+    }
+
+    private boolean handleDestrumV2Click(double mouseX, double mouseY, int button, int width, int height) {
+        if (button != 0) return false;
+        float btnSize = 38.0f;
+        float btnGap = 16.0f;
+        int btnCount = 5;
+        float totalDockW = btnCount * btnSize + (btnCount - 1) * btnGap;
+        float dockX = (width - totalDockW) * 0.5f;
+        float dockY = height * 0.52f;
+
+        for (int i = 0; i < btnCount; i++) {
+            float btnX = dockX + i * (btnSize + btnGap);
+            float btnY = dockY;
+            if (MathUtil.a(mouseX, mouseY, btnX, btnY, btnSize, btnSize)) {
+                switch (i) {
+                    case 0 -> Interface.aM_.setScreen(new DestrumWorldSelectScreen(this));
+                    case 1 -> Interface.aM_.setScreen(new DestrumServerSelectScreen(this));
+                    case 2 -> Interface.aM_.setScreen(new AltScreen());
+                    case 3 -> Interface.aM_.setScreen(new OptionsScreen(this, Interface.aM_.options));
+                    case 4 -> Interface.aM_.scheduleStop();
+                }
+                return true;
+            }
+        }
+        return false;
     }
 
     private void a(int width, int height) {
