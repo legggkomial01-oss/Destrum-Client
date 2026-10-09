@@ -2,8 +2,16 @@ package aethereal.render;
 
 import aethereal.render.ColorUtil;
 import aethereal.render.Draw2DProcessor;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.gl.ShaderProgramKeys;
+import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.BufferRenderer;
+import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.RotationAxis;
+import org.joml.Matrix4f;
 import org.joml.Vector4f;
 
 public class DestrumIconRenderer {
@@ -13,7 +21,6 @@ public class DestrumIconRenderer {
      */
     public static void render3DCube(MatrixStack matrices, Draw2DProcessor draw, float cx, float cy, float size, boolean hover, float anim, int accentColor) {
         float r = size * 0.46f;
-        // Subtle hover float
         float yOffset = hover ? -1.0f : 0.0f;
 
         // 1. Drop shadow underneath
@@ -23,7 +30,6 @@ public class DestrumIconRenderer {
         int topFace = hover ? ColorUtil.a(255, 230, 160, 255) : ColorUtil.a(235, 240, 250, 240);
         int leftFace = hover ? ColorUtil.a(230, 155, 65, 255) : ColorUtil.a(160, 175, 195, 230);
         int rightFace = hover ? ColorUtil.a(180, 110, 40, 255) : ColorUtil.a(110, 125, 145, 230);
-        int rimLight = hover ? ColorUtil.a(255, 255, 220, 255) : ColorUtil.a(255, 255, 255, 160);
 
         // 2. Left side face
         draw.a(matrices, cx - r * 0.95f, cy - r * 0.1f + yOffset, r * 0.95f, r * 1.15f, new Vector4f(0.5f, 0.5f, 2.0f, 0.5f), leftFace);
@@ -34,16 +40,20 @@ public class DestrumIconRenderer {
         // 4. Center vertical seam shadow
         draw.a(matrices, cx - 0.4f, cy - r * 0.1f + yOffset, 0.8f, r * 1.15f, 0.4f, ColorUtil.a(0, 0, 0, 40));
 
-        // 5. Isometric Top Face (rotated 45 deg, squashed vertically)
-        matrices.push();
-        matrices.translate(cx, cy - r * 0.38f + yOffset, 0.0f);
-        matrices.scale(1.0f, 0.55f, 1.0f);
-        matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(45.0f));
-        float diamondSide = r * 0.98f;
-        draw.a(matrices, -diamondSide * 0.5f, -diamondSide * 0.5f, diamondSide, diamondSide, 1.2f, topFace);
-        // Specular highlight outline on top
-        draw.a(matrices, -diamondSide * 0.5f, -diamondSide * 0.5f, diamondSide, diamondSide, 1.2f, 0.75f, rimLight);
-        matrices.pop();
+        // 5. Isometric Top Face (Exact 4-point diamond)
+        Matrix4f matrix = matrices.peek().getPositionMatrix();
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.disableCull();
+        RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
+        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+        buffer.vertex(matrix, cx, cy - r * 0.68f + yOffset, 0.0f).color(topFace);
+        buffer.vertex(matrix, cx + r * 0.95f, cy - r * 0.1f + yOffset, 0.0f).color(topFace);
+        buffer.vertex(matrix, cx, cy + r * 0.48f + yOffset, 0.0f).color(topFace);
+        buffer.vertex(matrix, cx - r * 0.95f, cy - r * 0.1f + yOffset, 0.0f).color(topFace);
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        RenderSystem.enableCull();
+        RenderSystem.disableBlend();
     }
 
     /**
@@ -108,9 +118,7 @@ public class DestrumIconRenderer {
         // 2. 3D Body / Shoulders
         float bodyW = r * 1.9f;
         float bodyH = r * 0.95f;
-        draw.a(matrices, cx - bodyW * 0.5f, cy + r * 0.1f + yOffset, bodyW, bodyH, new Vector4f(r * 0.45f, r * 0.45f, 2.0f, 2.0f), bodyCol);
-        // Bevel highlight on collar
-        draw.a(matrices, cx - bodyW * 0.35f, cy + r * 0.1f + yOffset, bodyW * 0.7f, 1.0f, 0.5f, specCol);
+        draw.a(matrices, cx - bodyW * 0.5f, cy + r * 0.05f + yOffset, bodyW, bodyH, new Vector4f(bodyH * 0.8f, bodyH * 0.8f, 2.0f, 2.0f), bodyCol);
 
         // 3. 3D Head
         float headR = r * 0.52f;
@@ -162,45 +170,61 @@ public class DestrumIconRenderer {
     }
 
     /**
-     * Renders a tactile 3D rounded 'X' cross with realistic bevel, depth, and specular gloss.
+     * Renders a tactile 3D rounded 'X' cross with realistic bevel, depth extrusion, and specular gloss.
+     * Uses direct POSITION_COLOR hardware rendering for 100% reliable visibility and crisp anti-aliased appearance.
      */
     public static void render3DCrossExit(MatrixStack matrices, Draw2DProcessor draw, float cx, float cy, float size, boolean hover, float anim, int accentColor) {
-        float barL = size * 0.44f;
-        float barT = size * 0.12f;
-        float radius = barT * 0.5f;
+        float span = 4.4f;
+        float thick = 2.2f;
         float yOffset = hover ? -1.0f : 0.0f;
 
+        Matrix4f matrix = matrices.peek().getPositionMatrix();
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.disableCull();
+        RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
+
+        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+
         // 1. Drop shadow layer underneath (offset down-right)
-        matrices.push();
-        matrices.translate(cx + 0.7f, cy + 0.9f + yOffset, 0.0f);
-        matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(45.0f));
-        draw.a(matrices, -barL * 0.5f, -barT * 0.5f, barL, barT, radius, ColorUtil.a(0, 0, 0, 85));
-        draw.a(matrices, -barT * 0.5f, -barL * 0.5f, barT, barL, radius, ColorUtil.a(0, 0, 0, 85));
-        matrices.pop();
+        float shX = cx + 0.8f;
+        float shY = cy + 1.2f + yOffset;
+        int shadowCol = ColorUtil.a(0, 0, 0, 95);
+        drawCapsule(buffer, matrix, shX - span, shY - span, shX + span, shY + span, thick + 0.6f, shadowCol);
+        drawCapsule(buffer, matrix, shX + span, shY - span, shX - span, shY + span, thick + 0.6f, shadowCol);
 
-        // 2. Volumetric side bevel layer (slightly darker)
-        int bevelCol = hover ? ColorUtil.a(210, 85, 45, 255) : ColorUtil.a(150, 160, 175, 230);
-        matrices.push();
-        matrices.translate(cx, cy + 0.4f + yOffset, 0.0f);
-        matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(45.0f));
-        draw.a(matrices, -barL * 0.5f, -barT * 0.5f, barL, barT, radius, bevelCol);
-        draw.a(matrices, -barT * 0.5f, -barL * 0.5f, barT, barL, radius, bevelCol);
-        matrices.pop();
+        // 2. Volumetric 3D Bottom Bevel (depth extrusion downwards)
+        float bevY = cy + 1.0f + yOffset;
+        int bevelCol = hover ? ColorUtil.a(190, 75, 35, 255) : ColorUtil.a(115, 120, 135, 245);
+        drawCapsule(buffer, matrix, cx - span, bevY - span, cx + span, bevY + span, thick + 0.3f, bevelCol);
+        drawCapsule(buffer, matrix, cx + span, bevY - span, cx - span, bevY + span, thick + 0.3f, bevelCol);
 
-        // 3. Front lit face
-        int frontCol = hover ? ColorUtil.a(255, 125, 65, 255) : ColorUtil.a(240, 245, 255, 245);
-        int specCol = hover ? ColorUtil.a(255, 220, 180, 255) : ColorUtil.a(255, 255, 255, 220);
+        // 3. Volumetric Mid Bevel (ambient transition)
+        float midY = cy + 0.5f + yOffset;
+        int midCol = hover ? ColorUtil.a(230, 110, 45, 255) : ColorUtil.a(165, 175, 195, 250);
+        drawCapsule(buffer, matrix, cx - span, midY - span, cx + span, midY + span, thick, midCol);
+        drawCapsule(buffer, matrix, cx + span, midY - span, cx - span, midY + span, thick, midCol);
 
-        matrices.push();
-        matrices.translate(cx, cy + yOffset, 0.0f);
-        matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(45.0f));
-        draw.a(matrices, -barL * 0.5f, -barT * 0.5f, barL, barT, radius, frontCol);
-        draw.a(matrices, -barT * 0.5f, -barL * 0.5f, barT, barL, radius, frontCol);
+        // 4. Front Lit Face
+        float faceY = cy + yOffset;
+        int frontCol = hover ? ColorUtil.a(255, 150, 60, 255) : ColorUtil.a(245, 248, 255, 255);
+        drawCapsule(buffer, matrix, cx - span, faceY - span, cx + span, faceY + span, thick, frontCol);
+        drawCapsule(buffer, matrix, cx + span, faceY - span, cx - span, faceY + span, thick, frontCol);
 
-        // 4. Gloss specular highlight line along top edge
-        draw.a(matrices, -barL * 0.5f + 0.4f, -barT * 0.5f + 0.2f, barL - 0.8f, 0.65f, 0.325f, specCol);
-        draw.a(matrices, -barT * 0.5f + 0.2f, -barL * 0.5f + 0.4f, 0.65f, barL - 0.8f, 0.325f, specCol);
-        matrices.pop();
+        // 5. Specular highlight line along top-facing edges
+        float specY = cy - 0.4f + yOffset;
+        int specCol = hover ? ColorUtil.a(255, 240, 200, 255) : ColorUtil.a(255, 255, 255, 255);
+        float specSpan = span * 0.75f;
+        drawBar(buffer, matrix, cx - specSpan, specY - specSpan, cx + specSpan, specY + specSpan, 0.85f, specCol);
+        drawBar(buffer, matrix, cx + specSpan, specY - specSpan, cx - specSpan, specY + specSpan, 0.85f, specCol);
+
+        // 6. Center glossy boss / facet
+        drawCap(buffer, matrix, cx, faceY, thick * 0.65f, frontCol);
+        drawCap(buffer, matrix, cx - 0.2f, faceY - 0.3f, thick * 0.35f, specCol);
+
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        RenderSystem.enableCull();
+        RenderSystem.disableBlend();
     }
 
     /**
@@ -217,21 +241,79 @@ public class DestrumIconRenderer {
         int borderCol = hover ? accentColor : ColorUtil.a(255, 255, 255, 55);
         draw.a(matrices, cx - bSize * 0.5f, cy - bSize * 0.5f + yOffset, bSize, bSize, bRad, hover ? 1.25f : 1.0f, borderCol);
 
-        // 2. 3D Volumetric Plus ('+') inside badge
-        float barL = 12.0f;
-        float barT = 2.6f;
-        float rad = barT * 0.5f;
+        // 2. 3D Volumetric Plus ('+') inside badge using direct hardware rendering
+        float arm = 5.2f;
+        float thick = 2.4f;
+
+        Matrix4f matrix = matrices.peek().getPositionMatrix();
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.disableCull();
+        RenderSystem.setShader(ShaderProgramKeys.POSITION_COLOR);
+
+        BufferBuilder buffer = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
 
         // Drop shadow
-        draw.a(matrices, cx - barL * 0.5f + 0.6f, cy - barT * 0.5f + 0.8f + yOffset, barL, barT, rad, ColorUtil.a(0, 0, 0, 75));
-        draw.a(matrices, cx - barT * 0.5f + 0.6f, cy - barL * 0.5f + 0.8f + yOffset, barT, barL, rad, ColorUtil.a(0, 0, 0, 75));
+        float shX = cx + 0.6f;
+        float shY = cy + 0.9f + yOffset;
+        int shadowCol = ColorUtil.a(0, 0, 0, 80);
+        drawCapsule(buffer, matrix, shX - arm, shY, shX + arm, shY, thick + 0.4f, shadowCol);
+        drawCapsule(buffer, matrix, shX, shY - arm, shX, shY + arm, thick + 0.4f, shadowCol);
 
-        // Front lit face
-        int plusCol = hover ? ColorUtil.a(255, 245, 210, 255) : ColorUtil.a(245, 250, 255, 240);
-        draw.a(matrices, cx - barL * 0.5f, cy - barT * 0.5f + yOffset, barL, barT, rad, plusCol);
-        draw.a(matrices, cx - barT * 0.5f, cy - barL * 0.5f + yOffset, barT, barL, rad, plusCol);
+        // Bottom bevel
+        float bevY = cy + 0.8f + yOffset;
+        int bevCol = hover ? ColorUtil.a(190, 80, 40, 255) : ColorUtil.a(130, 140, 155, 240);
+        drawCapsule(buffer, matrix, cx - arm, bevY, cx + arm, bevY, thick + 0.2f, bevCol);
+        drawCapsule(buffer, matrix, cx, bevY - arm, cx, bevY + arm, thick + 0.2f, bevCol);
+
+        // Front face
+        float faceY = cy + yOffset;
+        int plusCol = hover ? ColorUtil.a(255, 245, 210, 255) : ColorUtil.a(245, 250, 255, 245);
+        drawCapsule(buffer, matrix, cx - arm, faceY, cx + arm, faceY, thick, plusCol);
+        drawCapsule(buffer, matrix, cx, faceY - arm, cx, faceY + arm, thick, plusCol);
 
         // Specular highlight on horizontal bar
-        draw.a(matrices, cx - barL * 0.5f + 0.4f, cy - barT * 0.5f + 0.3f + yOffset, barL - 0.8f, 0.75f, 0.375f, ColorUtil.a(255, 255, 255, 180));
+        float specY = faceY - 0.4f;
+        int specCol = hover ? ColorUtil.a(255, 255, 240, 255) : ColorUtil.a(255, 255, 255, 230);
+        drawBar(buffer, matrix, cx - arm * 0.8f, specY, cx + arm * 0.8f, specY, 0.85f, specCol);
+
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        RenderSystem.enableCull();
+        RenderSystem.disableBlend();
+    }
+
+    private static void drawBar(BufferBuilder buffer, Matrix4f matrix, float x1, float y1, float x2, float y2, float thick, int color) {
+        float dx = x2 - x1;
+        float dy = y2 - y1;
+        float len = (float) Math.sqrt(dx * dx + dy * dy);
+        if (len < 0.001f) return;
+        float nx = dx / len;
+        float ny = dy / len;
+        float px = -ny * (thick * 0.5f);
+        float py = nx * (thick * 0.5f);
+
+        buffer.vertex(matrix, x1 + px, y1 + py, 0.0f).color(color);
+        buffer.vertex(matrix, x2 + px, y2 + py, 0.0f).color(color);
+        buffer.vertex(matrix, x2 - px, y2 - py, 0.0f).color(color);
+        buffer.vertex(matrix, x1 - px, y1 - py, 0.0f).color(color);
+    }
+
+    private static void drawCapsule(BufferBuilder buffer, Matrix4f matrix, float x1, float y1, float x2, float y2, float thick, int color) {
+        drawBar(buffer, matrix, x1, y1, x2, y2, thick, color);
+        drawCap(buffer, matrix, x1, y1, thick * 0.5f, color);
+        drawCap(buffer, matrix, x2, y2, thick * 0.5f, color);
+    }
+
+    private static void drawCap(BufferBuilder buffer, Matrix4f matrix, float cx, float cy, float r, int color) {
+        int segs = 8;
+        for (int i = 0; i < segs; i += 2) {
+            float a0 = (float) (i * Math.PI * 2.0 / segs);
+            float a1 = (float) ((i + 1) * Math.PI * 2.0 / segs);
+            float a2 = (float) ((i + 2) * Math.PI * 2.0 / segs);
+            buffer.vertex(matrix, cx, cy, 0.0f).color(color);
+            buffer.vertex(matrix, cx + (float) Math.cos(a0) * r, cy + (float) Math.sin(a0) * r, 0.0f).color(color);
+            buffer.vertex(matrix, cx + (float) Math.cos(a1) * r, cy + (float) Math.sin(a1) * r, 0.0f).color(color);
+            buffer.vertex(matrix, cx + (float) Math.cos(a2) * r, cy + (float) Math.sin(a2) * r, 0.0f).color(color);
+        }
     }
 }
