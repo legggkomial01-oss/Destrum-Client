@@ -51,7 +51,10 @@ public class DestrumServerSelectScreen extends Screen {
     private float contextMenuY = 0.0f;
     private boolean serversLoaded = false;
     private volatile boolean closed = false;
-    private float openProgress = 0.0f;
+    private final long openStartTime = System.currentTimeMillis();
+    private boolean isExiting = false;
+    private long exitStartTime = 0L;
+    private static final float TRANSITION_MS = 240.0f;
 
     public DestrumServerSelectScreen(Screen parent) {
         super(Text.literal("Сетевая игра"));
@@ -146,13 +149,29 @@ public class DestrumServerSelectScreen extends Screen {
         Draw2DProcessor draw = Delta.h().d().i();
         int sunsetAccent = ColorUtil.a(255, 175, 65, 255); // Warm sunset golden amber matching Destrum-V2
 
-        // Smooth opening ease-out animation
-        this.openProgress = MathUtil.c(this.openProgress, 1.0f, 10.0f);
-        float ease = (float) (1.0 - Math.pow(1.0 - this.openProgress, 3.0));
+        // Smooth bidirectional cinematic transition
+        float animProgress;
+        if (this.isExiting) {
+            float elapsed = (System.currentTimeMillis() - this.exitStartTime) / TRANSITION_MS;
+            animProgress = 1.0f - Math.min(1.0f, Math.max(0.0f, elapsed));
+            if (elapsed >= 1.0f) {
+                if (this.client != null) {
+                    this.client.setScreen(this.parent);
+                } else {
+                    Interface.aM_.setScreen(this.parent);
+                }
+                return;
+            }
+        } else {
+            float elapsed = (System.currentTimeMillis() - this.openStartTime) / TRANSITION_MS;
+            animProgress = Math.min(1.0f, Math.max(0.0f, elapsed));
+        }
+
+        float ease = (float) (1.0 - Math.pow(1.0 - animProgress, 3.0));
 
         matrices.push();
-        matrices.translate(width * 0.5f, height * 0.5f + (1.0f - ease) * 16.0f, 0.0f);
-        float enterScale = 0.96f + 0.04f * ease;
+        matrices.translate(width * 0.5f, height * 0.5f + (1.0f - ease) * 26.0f, 0.0f);
+        float enterScale = 0.95f + 0.05f * ease;
         matrices.scale(enterScale, enterScale, 1.0f);
         matrices.translate(-width * 0.5f, -height * 0.5f, 0.0f);
 
@@ -169,10 +188,12 @@ public class DestrumServerSelectScreen extends Screen {
         // Dark ambient overlay
         draw.a(matrices, 0.0f, 0.0f, (float) width, (float) height, 0.0f, ColorUtil.a(0, 0, 0, (int) (45.0f * ease)));
 
-        // 2. Top Header
+        // 2. Top Header (slides down smoothly)
+        float headerOffset = (1.0f - ease) * -22.0f;
+
         // Back button
         float backX = 22.0f;
-        float backY = 18.0f;
+        float backY = 18.0f + headerOffset;
         float backSize = 22.0f;
         boolean backHover = MathUtil.a(dA, dA2, backX, backY, backSize, backSize);
         draw.a(matrices, backX, backY, backSize, backSize, backSize * 0.5f, ColorUtil.a(20, 24, 34, backHover ? 210 : 150));
@@ -183,7 +204,7 @@ public class DestrumServerSelectScreen extends Screen {
         float directW = 86.0f;
         float directH = 18.0f;
         float directX = width - directW - 22.0f;
-        float directY = 18.0f;
+        float directY = 18.0f + headerOffset;
         boolean directHover = MathUtil.a(dA, dA2, directX, directY, directW, directH);
         draw.a(matrices, directX, directY, directW, directH, 9.0f, ColorUtil.a(20, 24, 34, directHover ? 210 : 150));
         draw.a(matrices, directX, directY, directW, directH, 9.0f, 1.0f, directHover ? sunsetAccent : ColorUtil.a(255, 255, 255, 40));
@@ -194,17 +215,17 @@ public class DestrumServerSelectScreen extends Screen {
         // Title & Subtitle
         String title = "Сетевая игра";
         float titleW = Fonts.c.a(title, 13.0f);
-        Fonts.c.a(matrices, title, (width - titleW) * 0.5f, 18.0f, 13.0f, -1);
+        Fonts.c.a(matrices, title, (width - titleW) * 0.5f, 18.0f + headerOffset, 13.0f, -1);
 
         String subtitle = "(ПКМ по серверу изменить или удалить)";
         float subW = Fonts.c.a(subtitle, 7.0f);
-        Fonts.c.a(matrices, subtitle, (width - subW) * 0.5f, 34.5f, 7.0f, ColorUtil.a(180, 185, 200, 200));
+        Fonts.c.a(matrices, subtitle, (width - subW) * 0.5f, 34.5f + headerOffset, 7.0f, ColorUtil.a(180, 185, 200, 200));
 
         // Search Bar
         float searchW = 190.0f;
         float searchH = 19.0f;
         float searchX = (width - searchW) * 0.5f;
-        float searchY = 48.0f;
+        float searchY = 48.0f + headerOffset;
         boolean searchHover = MathUtil.a(dA, dA2, searchX, searchY, searchW, searchH);
         draw.a(matrices, searchX, searchY, searchW, searchH, 9.5f, ColorUtil.a(15, 18, 26, 185));
         draw.a(matrices, searchX, searchY, searchW, searchH, 9.5f, 1.0f, this.searchFocused ? sunsetAccent : (searchHover ? ColorUtil.a(255, 255, 255, 75) : ColorUtil.a(255, 255, 255, 30)));
@@ -334,6 +355,7 @@ public class DestrumServerSelectScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (this.isExiting) return false;
         double dA = MathUtil.scale(mouseX, 2);
         double dA2 = MathUtil.scale(mouseY, 2);
 
@@ -358,7 +380,7 @@ public class DestrumServerSelectScreen extends Screen {
         float backY = 18.0f;
         float backSize = 22.0f;
         if (button == 0 && MathUtil.a(dA, dA2, backX, backY, backSize, backSize)) {
-            close();
+            triggerClose();
             return true;
         }
 
@@ -522,15 +544,21 @@ public class DestrumServerSelectScreen extends Screen {
             }
         }
         if (keyCode == 256) { // Escape
-            close();
+            triggerClose();
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
+    public void triggerClose() {
+        if (this.isExiting) return;
+        this.isExiting = true;
+        this.exitStartTime = System.currentTimeMillis();
+    }
+
     @Override
     public void close() {
-        Interface.aM_.setScreen(this.parent);
+        triggerClose();
     }
 
     @Override

@@ -79,6 +79,11 @@ public class MainScreen extends Screen {
     private static float destrumV2CameraY = 0.0f;
     private static final Identifier DESTRUM_V2_TEXTURE = Identifier.of("delta", "pictures/bg_destrum_v2.png");
     private static final Identifier BLOOM_TEXTURE = Identifier.of("delta", "pictures/bloom.png");
+    public enum TransitionState { IN, IDLE, OUT }
+    private TransitionState transitionState = TransitionState.IN;
+    private Screen pendingScreen = null;
+    private long transitionStartTime = System.currentTimeMillis();
+    private static final float TRANSITION_DURATION_MS = 220.0f;
 
     public static class TypewriterEffect {
         private static final String[] RU_PHRASES = {
@@ -379,6 +384,14 @@ public class MainScreen extends Screen {
     public void close() {
     }
 
+    @Override
+    protected void init() {
+        super.init();
+        this.transitionState = TransitionState.IN;
+        this.transitionStartTime = System.currentTimeMillis();
+        this.pendingScreen = null;
+    }
+
     public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
     }
 
@@ -411,6 +424,10 @@ public class MainScreen extends Screen {
             Delta.h().d().i().a(matrices, Identifier.of("delta", "pictures/main.png"), (-marginX) + a[0], (-marginY) + a[1], width + (marginX * 2.0f), height + (marginY * 2.0f), 0.0f, -1);
         }
         matrices.pop();
+    }
+
+    public static void renderDestrumV2Background(DrawContext context, int width, int height, int mouseX, int mouseY) {
+        renderDestrumV2Background(context, context.getMatrices(), width, height, mouseX, mouseY, width * 0.04f, height * 0.04f);
     }
 
     public static void renderDestrumV2Background(DrawContext context, MatrixStack matrices, int width, int height, int mouseX, int mouseY, float marginX, float marginY) {
@@ -483,6 +500,33 @@ public class MainScreen extends Screen {
         Draw2DProcessor draw = Delta.h().d().i();
         int primary = ThemeInfo.PRIMARY.a().a();
 
+        // Screen transition animation state
+        float transProg;
+        if (this.transitionState == TransitionState.IN) {
+            float elapsed = (System.currentTimeMillis() - this.transitionStartTime) / TRANSITION_DURATION_MS;
+            transProg = Math.min(1.0f, Math.max(0.0f, elapsed));
+            if (transProg >= 1.0f) {
+                this.transitionState = TransitionState.IDLE;
+            }
+        } else if (this.transitionState == TransitionState.OUT) {
+            float elapsed = (System.currentTimeMillis() - this.transitionStartTime) / TRANSITION_DURATION_MS;
+            transProg = 1.0f - Math.min(1.0f, Math.max(0.0f, elapsed));
+            if (elapsed >= 1.0f && this.pendingScreen != null) {
+                Screen target = this.pendingScreen;
+                this.pendingScreen = null;
+                this.transitionState = TransitionState.IDLE;
+                Interface.aM_.setScreen(target);
+                return;
+            }
+        } else {
+            transProg = 1.0f;
+        }
+
+        float ease = (float) (1.0 - Math.pow(1.0 - transProg, 3.0));
+        float effectiveAlpha = alpha * ease;
+        float clockSlideY = (1.0f - ease) * -22.0f;
+        float dockSlideY = (1.0f - ease) * 28.0f;
+
         // 1. Top Lockscreen Header Widget
         try {
             LocalDate today = LocalDate.now();
@@ -491,32 +535,33 @@ public class MainScreen extends Screen {
             String month = today.getMonth().getDisplayName(TextStyle.FULL, new Locale("ru", "RU"));
             String dateStr = dow + ", " + today.getDayOfMonth() + " " + month;
 
+            float baseClockY = height * 0.16f + clockSlideY;
             float dateW = Fonts.c.a(dateStr, 8.0f);
-            Fonts.c.a(matrices, dateStr, (width - dateW) * 0.5f, height * 0.16f, 8.0f, ColorUtil.a(240, 245, 255, (int) (220.0f * alpha)));
+            Fonts.c.a(matrices, dateStr, (width - dateW) * 0.5f, baseClockY, 8.0f, ColorUtil.a(240, 245, 255, (int) (220.0f * effectiveAlpha)));
 
             String timeStr = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
             float clockW = Fonts.b.a(timeStr, 34.0f);
-            draw.a(matrices, BLOOM_TEXTURE, (width - clockW) * 0.5f - 20.0f, height * 0.16f + 2.0f, clockW + 40.0f, 44.0f, 0.0f, ColorUtil.a(255, 200, 120, (int) (35.0f * alpha)));
-            Fonts.b.a(matrices, timeStr, (width - clockW) * 0.5f, height * 0.16f + 12.0f, 34.0f, ColorUtil.a(255, 255, 255, (int) (255.0f * alpha)));
+            draw.a(matrices, BLOOM_TEXTURE, (width - clockW) * 0.5f - 20.0f, baseClockY + 2.0f, clockW + 40.0f, 44.0f, 0.0f, ColorUtil.a(255, 200, 120, (int) (35.0f * effectiveAlpha)));
+            Fonts.b.a(matrices, timeStr, (width - clockW) * 0.5f, baseClockY + 12.0f, 34.0f, ColorUtil.a(255, 255, 255, (int) (255.0f * effectiveAlpha)));
 
             String brand = "Destrum Client";
             float brandW = Fonts.c.a(brand, 7.5f);
-            Fonts.c.a(matrices, brand, (width - brandW) * 0.5f, height * 0.16f + 50.0f, 7.5f, ColorUtil.a(255, 255, 255, (int) (230.0f * alpha)));
+            Fonts.c.a(matrices, brand, (width - brandW) * 0.5f, baseClockY + 50.0f, 7.5f, ColorUtil.a(255, 255, 255, (int) (230.0f * effectiveAlpha)));
 
             String ver = "1.21.4";
             float verW = Fonts.c.a(ver, 6.25f);
-            Fonts.c.a(matrices, ver, (width - verW) * 0.5f, height * 0.16f + 60.5f, 6.25f, ColorUtil.a(180, 185, 200, (int) (190.0f * alpha)));
+            Fonts.c.a(matrices, ver, (width - verW) * 0.5f, baseClockY + 60.5f, 6.25f, ColorUtil.a(180, 185, 200, (int) (190.0f * effectiveAlpha)));
         } catch (Exception ignored) {
         }
 
         // 2. Action Dock (5 Circular Frosted Buttons)
-        float btnSize = 27.0f;
+        float btnSize = 24.5f;
         float btnRadius = btnSize * 0.5f;
-        float btnGap = 13.0f;
+        float btnGap = 11.5f;
         int btnCount = 5;
         float totalDockW = btnCount * btnSize + (btnCount - 1) * btnGap;
         float dockX = (width - totalDockW) * 0.5f;
-        float dockY = height * 0.53f;
+        float dockY = height * 0.53f + dockSlideY;
 
         int sunsetAccent = ColorUtil.a(255, 175, 65, 255); // Warm sunset golden amber matching Destrum-V2
         String[] labels = {"Одиночная", "Сетевая", "Аккаунты", "Настройки", "Выход"};
@@ -524,17 +569,17 @@ public class MainScreen extends Screen {
         for (int i = 0; i < btnCount; i++) {
             float btnX = dockX + i * (btnSize + btnGap);
             float btnY = dockY;
-            boolean isHover = MathUtil.a((double) mouseX, (double) mouseY, btnX, btnY, btnSize, btnSize) && !this.modalOpen;
+            boolean isHover = MathUtil.a((double) mouseX, (double) mouseY, btnX, btnY, btnSize, btnSize) && !this.modalOpen && this.transitionState != TransitionState.OUT;
 
             // Hover bloom in warm sunset amber
             if (isHover) {
-                draw.a(matrices, BLOOM_TEXTURE, btnX - 10.0f, btnY - 10.0f, btnSize + 20.0f, btnSize + 20.0f, 0.0f, ColorUtil.a(255, 160, 50, (int) (85.0f * alpha)));
+                draw.a(matrices, BLOOM_TEXTURE, btnX - 9.0f, btnY - 9.0f, btnSize + 18.0f, btnSize + 18.0f, 0.0f, ColorUtil.a(255, 160, 50, (int) (85.0f * effectiveAlpha)));
             }
 
             // Circle background
-            int bgCol = isHover ? ColorUtil.a(36, 24, 18, (int) (210.0f * alpha)) : ColorUtil.a(18, 22, 32, (int) (150.0f * alpha));
+            int bgCol = isHover ? ColorUtil.a(48, 28, 18, (int) (220.0f * effectiveAlpha)) : ColorUtil.a(16, 20, 30, (int) (140.0f * effectiveAlpha));
             draw.a(matrices, btnX, btnY, btnSize, btnSize, btnRadius, bgCol);
-            int borderCol = isHover ? sunsetAccent : ColorUtil.a(255, 255, 255, (int) (40.0f * alpha));
+            int borderCol = isHover ? sunsetAccent : ColorUtil.a(255, 255, 255, (int) (40.0f * effectiveAlpha));
             draw.a(matrices, btnX, btnY, btnSize, btnSize, btnRadius, isHover ? 1.35f : 1.0f, borderCol);
 
             // 3D Vector Icon inside circle
@@ -551,7 +596,7 @@ public class MainScreen extends Screen {
             // Label below circle only when hovered (matching reference video clean look)
             if (isHover) {
                 float labelW = Fonts.c.a(labels[i], 6.5f);
-                Fonts.c.a(matrices, labels[i], btnX + (btnSize - labelW) * 0.5f, btnY + btnSize + 7.5f, 6.5f, ColorUtil.a(255, 225, 160, (int) (250.0f * alpha)));
+                Fonts.c.a(matrices, labels[i], btnX + (btnSize - labelW) * 0.5f, btnY + btnSize + 7.5f, 6.5f, ColorUtil.a(255, 225, 160, (int) (250.0f * effectiveAlpha)));
             }
         }
 
@@ -559,14 +604,14 @@ public class MainScreen extends Screen {
         float barW = 86.0f;
         float barH = 3.0f;
         float barX = (width - barW) * 0.5f;
-        float barY = height - 14.0f;
-        draw.a(matrices, barX, barY, barW, barH, 1.5f, ColorUtil.a(255, 205, 145, (int) (175.0f * alpha)));
+        float barY = height - 14.0f + dockSlideY;
+        draw.a(matrices, barX, barY, barW, barH, 1.5f, ColorUtil.a(255, 205, 145, (int) (175.0f * effectiveAlpha)));
     }
 
     private boolean handleDestrumV2Click(double mouseX, double mouseY, int button, int width, int height) {
-        if (button != 0) return false;
-        float btnSize = 27.0f;
-        float btnGap = 13.0f;
+        if (button != 0 || this.transitionState == TransitionState.OUT) return false;
+        float btnSize = 24.5f;
+        float btnGap = 11.5f;
         int btnCount = 5;
         float totalDockW = btnCount * btnSize + (btnCount - 1) * btnGap;
         float dockX = (width - totalDockW) * 0.5f;
@@ -577,16 +622,22 @@ public class MainScreen extends Screen {
             float btnY = dockY;
             if (MathUtil.a(mouseX, mouseY, btnX, btnY, btnSize, btnSize)) {
                 switch (i) {
-                    case 0 -> Interface.aM_.setScreen(new DestrumWorldSelectScreen(this));
-                    case 1 -> Interface.aM_.setScreen(new DestrumServerSelectScreen(this));
-                    case 2 -> Interface.aM_.setScreen(new AltScreen());
-                    case 3 -> Interface.aM_.setScreen(new OptionsScreen(this, Interface.aM_.options));
+                    case 0 -> startDestrumTransition(new DestrumWorldSelectScreen(this));
+                    case 1 -> startDestrumTransition(new DestrumServerSelectScreen(this));
+                    case 2 -> startDestrumTransition(new AltScreen());
+                    case 3 -> startDestrumTransition(new DestrumSettingsScreen(this));
                     case 4 -> Interface.aM_.scheduleStop();
                 }
                 return true;
             }
         }
         return false;
+    }
+
+    public void startDestrumTransition(Screen targetScreen) {
+        this.pendingScreen = targetScreen;
+        this.transitionState = TransitionState.OUT;
+        this.transitionStartTime = System.currentTimeMillis();
     }
 
     private void a(int width, int height) {

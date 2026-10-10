@@ -53,7 +53,7 @@ public class CrispTexture implements AutoCloseable {
         }
         this.texture = new NativeImageBackedTexture(image);
         this.texture.setClamp(true);
-        this.texture.setFilter(false, false);
+        this.texture.setFilter(true, false);
         Interface.aM_.getTextureManager().registerTexture(this.id, this.texture);
     }
 

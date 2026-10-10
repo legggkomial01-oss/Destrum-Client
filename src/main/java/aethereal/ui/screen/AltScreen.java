@@ -276,7 +276,11 @@ public class AltScreen extends Screen {
     private void a(MatrixStack matrices, int w, float px, float py, float open) {
         Draw2DProcessor draw = Delta.h().d().i();
         AccountConstructor selected = Delta.h().d().h().a();
-        Fonts.e.a(matrices, (Text) GradientUtil.a("Менеджер Аккаунтов", a(open), 5.0f, 0.5f), (w - Fonts.e.a("Менеджер Аккаунтов", 11.0f)) / 2.0f, py - 28.0f, 11.0f, 0.0f, open);
+        if (MainMenuConfig.getInstance().getBackgroundMode() == MainMenuConfig.BackgroundMode.DESTRUM_V2) {
+            Fonts.e.a(matrices, "Менеджер Аккаунтов", (w - Fonts.e.a("Менеджер Аккаунтов", 11.0f)) / 2.0f, py - 28.0f, 11.0f, ColorUtil.a(255, 225, 160, (int) (255.0f * open)));
+        } else {
+            Fonts.e.a(matrices, (Text) GradientUtil.a("Менеджер Аккаунтов", a(open), 5.0f, 0.5f), (w - Fonts.e.a("Менеджер Аккаунтов", 11.0f)) / 2.0f, py - 28.0f, 11.0f, 0.0f, open);
+        }
         String info = (selected != null ? selected.b() : "Не выбран") + "  |  " + a().size() + " аккаунтов";
         Fonts.b.a(matrices, info, (w - Fonts.b.a(info, 7.0f)) / 2.0f, py - 13.5f, 7.0f, ColorUtil.a(255, 255, 255, (int) (255.0f * open)));
         draw.b(matrices, px, py, 190.0f, 250.0f, 8.0f, ColorUtil.a(11, 11, 13, InterfaceC0020Opcode.bN), open);
